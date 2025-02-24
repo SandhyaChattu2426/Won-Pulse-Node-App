@@ -1,0 +1,7 @@
+{
+    "env": {
+        "MONGO_DB_USER":"sandhya",
+        "MONGO_DB_USER_PASSWORD":"23zjyCm2sAL2GvWp",
+        "DATABASE_NAME":"wonpulse"
+    }
+}
