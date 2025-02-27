@@ -6,16 +6,10 @@ const Hospitals = require('../models/hospitals')
 //Register Supplier
 
 const AddHospital = async (req, res, next) => {
-    // const { supplierDetails, adress } = req.body
-    // console.log("Hospital Block")
-
     const newsupplier = new Hospitals({
         ...req.body,
     })
-
     try {
-        // console.log(req.body)
-
         await newsupplier.save()
         console.log("Hospital Registered SuccessFully")
         res.json({ message: "Hospital registered successfully" });
@@ -24,7 +18,6 @@ const AddHospital = async (req, res, next) => {
         console.log(e)
         console.log("Catch-block")
     }
-
 }
 
 const GetHospitals = async (req, res, next) => {
@@ -44,9 +37,7 @@ const getId = async (req, res, next) => {
     let newHospitalId;
     let HospitalsLength;
     const str = "0";
-
     console.log("Backend triggering to get ID");
-
     try {
         // Fetch all hospitals from the database
         const admissions = await Hospitals.find({});
@@ -171,9 +162,24 @@ const updatePassword = async (req, res, next) => {
     }
 }
 
+const getHospitalByEmail = async (req, res, next) => {
+    const { email } = req.params
+    console.log(email,"email")
+    let hospital
+    try {
+        hospital = await Hospitals.findOne({ "contactInformation.email": email })
+        console.log(hospital)
+    }
+    catch(e){
+        console.log(e)
+    }
+    res.json({hospital})
+}
+
 exports.AddHospital = AddHospital
 exports.GetHospitals = GetHospitals
 exports.getId = getId
 exports.getHospitalById = getHospitalById
 exports.updateHospital = updateHospital
 exports.updatePassword = updatePassword
+exports.getHospitalByEmail=getHospitalByEmail

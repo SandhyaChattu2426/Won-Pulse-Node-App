@@ -5,7 +5,7 @@ const HttpError = require('../models/http-error')
 
 const HospitalControllers = require('../controllers/hospitalRegistration-controllers')
 
-
+router.get('/email/:email',HospitalControllers.getHospitalByEmail)
 router.get('/getId', HospitalControllers.getId)
 router.get('/:Id',HospitalControllers.getHospitalById)
 router.post('/', HospitalControllers.AddHospital)

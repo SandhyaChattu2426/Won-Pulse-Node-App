@@ -8,9 +8,9 @@ const patientSchema = new Schema({
         dateOfBirth: { type: String, required: true },
         gender: { type: String,required: true  },
         email:{ type: String, required: true },
-        contactNumber:{type:String,required:true},
+        contactNumber:{type:String,},
         emergencyContactName: { type: String, required: true },
-        emergencyContactNumber: { type: String, required: true },
+        emergencyContactNumber: { type: String, },
         street: { type: String, required: true },
         city: { type: String, required: true },
         state: { type: String, required: true },
@@ -43,7 +43,8 @@ const patientSchema = new Schema({
         testResults:String,
         resultStatus:String,
 
-    }]
+    }],
+    hospitalId:{type:String}
 })
 
 module.exports = mongoose.model('Patient', patientSchema)

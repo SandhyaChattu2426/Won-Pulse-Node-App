@@ -21,6 +21,7 @@ const pharmacySchema=new Schema({
     contactNumber: {type:String,required:true},
     email: {type:String,required:true},
     medicineLicenceNo: {type:String,required:true},
-    status:{type:String,required:true}
+    status:{type:String,required:true},
+    hospitalId:{type:String,required:true}
 })
 module.exports = mongoose.model('pharmacy', pharmacySchema)

@@ -1,6 +1,7 @@
 const { response } = require('express')
 const HttpError = require('../models/http-error')
-const Suppliers=require('./suppliers')
+const Suppliers = require('./suppliers')
+const suppliers = require('./suppliers')
 
 //Register Supplier
 
@@ -8,7 +9,7 @@ const RegisterSupplier = async (req, res, next) => {
     const { supplierDetails, adress } = req.body
     console.log("Supplier block is triggering")
     const newsupplier = new Suppliers({
-       ...req.body,
+        ...req.body,
     })
 
     try {
@@ -27,15 +28,15 @@ const RegisterSupplier = async (req, res, next) => {
 // GETTing Details
 
 const GetSuppliers = async (req, res, next) => {
-     console.log("triggeing GET SUppliers")
+    console.log("triggeing GET SUppliers")
     let List;
     try {
         List = await Suppliers.find({})
     }
-    catch(e){
+    catch (e) {
         console.log(e)
     }
-    res.json({List})
+    res.json({ List })
 }
 
 // GetId
@@ -43,7 +44,7 @@ const getId = async (req, res, next) => {
     let newSupplierId;
     let SuppliersLength;
     const str = "0";
-    
+
     console.log("Backend triggering to get ID");
 
     try {
@@ -56,7 +57,7 @@ const getId = async (req, res, next) => {
 
             // Extract the last hospital's hospitalId
             const lastSupplierId = lastSupplier[0].supplierId;
-            
+
             // Calculate the next hospitalId based on the last one
             // Extract the numeric part of the last hospitalId (assuming the format is HP000001)
             const lastNumber = parseInt(lastSupplierId.substring(2));  // Extracts the number part after 'HP'
@@ -83,57 +84,131 @@ const getId = async (req, res, next) => {
 };
 
 
-const InventorySuppliers=async(req,res,next)=>{
+const InventorySuppliers = async (req, res, next) => {
     // console.log("Inventory Suppliers")
     let List;
     try {
-        List = await Suppliers.find({"category":"inventory"})
+        List = await Suppliers.find({ "category": "inventory" })
         // console.log(List)
     }
-    catch(e){
+    catch (e) {
         console.log(e)
     }
-    res.json({List})
+    res.json({ List })
 }
 
 
-const GetSupplierById=async(req,res,next)=>{
+const GetSupplierById = async (req, res, next) => {
     console.log("Triggering to fetch supplier Details")
     console.log(req.params)
-    const {Id}=req.params
+    const { Id } = req.params
     let List;
     try {
-        List = await Suppliers.findOne({"supplierId":Id})
+        List = await Suppliers.findOne({ "supplierId": Id })
         console.log(List)
     }
-    catch(e){
+    catch (e) {
         console.log(e)
     }
-    res.json({List})
+    res.json({ List })
 }
 
-
-
-const PharmacySuppliers=async(req,res,next)=>{
+const PharmacySuppliers = async (req, res, next) => {
     console.log("pharmacy Suppliers")
     let List;
     try {
-        List = await Suppliers.find({"category":"pharmacy"})
+        List = await Suppliers.find({ "category": "pharmacy" })
         // console.log(List)
     }
-    catch(e){
+    catch (e) {
         console.log(e)
     }
-    res.json({List})
+    res.json({ List })
 }
 
+const addSupplierFromExcel = async (req, res, next) => {
+    console.log("Triggering here");
+    let last, lastId, newId;
+    let createdItem;
+
+    try {
+        const totalItems = await suppliers.countDocuments();
+        if (totalItems > 0) {
+            last = await suppliers.findOne().sort({ _id: -1 });
+            console.log(last);
+            lastId = parseInt(last.supplierId.slice(2));
+            console.log(lastId, "lastid");
+        } else {
+            lastId = 0;
+        }
+        const prefix = "SU";
+        const newNumber = lastId + 1;
+        const paddedNumber = newNumber.toString().padStart(6, "0");
+        newId = prefix + paddedNumber;
+        console.log(newId);
+    } catch (err) {
+        return next(new HttpError(`Creating Supplier ID failed, Please try again. ${err}`, 500));
+    }
+
+    console.log(req.body, "request");
+    const excelSerialToJSDate = (serial) => {
+        const excelEpoch = new Date(1900, 0, 1);
+        return new Date(excelEpoch.getTime() + (serial - 1) * 86400000).toISOString().split("T")[0];
+    };
+
+    // Extract request body values
+    const { suppliername, contactnumber, email, adress, category, city, gstnumber, state, status, deliverytime, zipcode,medicinelicensenumber } = req.body
+    try {
+        const existingSupplier = await suppliers.findOne({
+            "supplierDetails.email": email,
+            "supplierDetails.contactNumber": contactnumber,
+        });
+
+        if (existingSupplier) {
+            return res.status(409).json({ message: "Report already exists with the same service name, collection date, and patient name." });
+        }
+    } catch (err) {
+        return next(new HttpError(`Checking existing reports failed, Please try again. ${err}`, 500));
+    }
+
+
+    // // Create a new report if it does not exist
+    const createdSupplier = new suppliers({
+        supplierId: newId,
+        supplierDetails: {
+            supplierName: suppliername,
+            contactNumber: contactnumber,
+            email: email,
+            deliveryTime: deliverytime,
+            gstNumber: gstnumber,
+            medicineLicenseNumber: medicinelicensenumber || ""
+        },
+        adress: {
+            city: city,
+            adress: adress,
+            state: state,
+            zipcode: zipcode
+        },
+        category: category,
+        status: status
+
+    })
+
+    try {
+        await createdSupplier.save();
+        res.status(201).json({ item: createdItem });
+    } catch (err) {
+        return next(new HttpError(`Creating Report failed, Please try again. ${err}`, 500));
+    }
+};
 
 
 
 
 exports.RegisterSupplier = RegisterSupplier
-exports.GetSuppliers=GetSuppliers
-exports.getId=getId
-exports.InventorySuppliers=InventorySuppliers
-exports.GetSupplierById=GetSupplierById
-exports.PharmacySuppliers=PharmacySuppliers
+exports.GetSuppliers = GetSuppliers
+exports.getId = getId
+exports.InventorySuppliers = InventorySuppliers
+exports.GetSupplierById = GetSupplierById
+exports.PharmacySuppliers = PharmacySuppliers
+exports.addSupplierFromExcel = addSupplierFromExcel

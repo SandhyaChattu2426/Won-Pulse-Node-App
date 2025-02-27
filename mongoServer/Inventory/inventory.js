@@ -34,7 +34,8 @@ const InventorySchema = new Schema({
     required: true, 
     match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email address'] 
   },
-  status: { type: String, required: true, enum: ['Active', 'Inactive'] }, // Limited to specific values
+  status: { type: String, required: true, enum: ['Active', 'Inactive'] },
+  hospitalId:{type:String} // Limited to specific values
 });
 
 

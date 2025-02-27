@@ -16,7 +16,7 @@ const AddPatient = async (req, res, next) => {
 
     try {
 
-
+        console.log(req.body,"body here")
         await newsupplier.save()
         console.log("Patinet is admitteds SuccessFully,triggering try-block")
     }

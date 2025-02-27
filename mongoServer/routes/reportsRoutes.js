@@ -1,15 +1,4 @@
-// const express = require('express')
-// const router = express.Router()
-// const { check } = require('express-validator')
-// const HttpError = require('../models/http-error')
-// const ReportControllers = require("../controllers/reportsControllers")
-// router.get('/getId', ReportControllers.getId);
-// router.get('/:Id', ReportControllers.getReportById);
-// router.get('/patient/:patientName', ReportControllers.getReportByPatientId)
-// router.post('/', ReportControllers.AddReport);
-// router.get('/', ReportControllers.GetReports);
-// router.patch('/status/:Id', ReportControllers.updateReportStatus)
-// module.exports = router
+
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
@@ -19,16 +8,6 @@ const ReportControllers = require("../controllers/reportsControllers");
 
 const router = express.Router();
 
-// Setup file storage engine for multer
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/'); // The directory to save the uploaded files
-    },
-    filename: (req, file, cb) => {
-        const ext = path.extname(file.originalname);
-        cb(null, Date.now() + ext); // Create unique file name
-    }
-});
 
 // Filter to allow only Excel files
 const fileFilter = (req, file, cb) => {
@@ -45,6 +24,7 @@ const fileFilter = (req, file, cb) => {
 // router.post('/upload-excel',  ReportControllers.addReportFromExcel);
 
 // Other routes
+router.post('/upload-excel', ReportControllers.addReportFromExcel);
 router.get('/getId', ReportControllers.getId);
 router.get('/:Id', ReportControllers.getReportById);
 router.get('/patient/:patientName', ReportControllers.getReportByPatientId);

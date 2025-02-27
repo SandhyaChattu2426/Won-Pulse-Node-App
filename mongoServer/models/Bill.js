@@ -27,8 +27,8 @@ const BillSchema = new Schema({
     // you are not updated in the Post request complete it, and you had to update the status also
 
     paymentType: { type: String, required: true },
-    status: { type: String, required: true }
-
+    status: { type: String, required: true },
+    hospitalId:{ type: String, required: true },
 })
 
 module.exports = mongoose.model('generalBill', BillSchema)

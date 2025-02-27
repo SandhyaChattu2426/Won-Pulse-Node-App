@@ -12,10 +12,11 @@ const ReportsSchema=new Schema({
         resultStatus: {type:String},
         testResults:{type:String},
         comments:{type:String},
-        generationDate:{type:String}
-      
+        generationDate:{type:String},
+        // serviceId:{type:mongoose.Types.ObjectId, required:true,ref:'services'}
     },
-    status:{type:String}
+    hospitalId:{type:String,required:true},
+    status:{type:String},
 })
 
 module.exports = mongoose.model('reports', ReportsSchema)

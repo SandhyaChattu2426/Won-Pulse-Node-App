@@ -19,9 +19,10 @@ const staffSchema = new Schema({
         nightShift:{type:String,required:false},
         online:{type:String,required:false},
         status: { type: String, required: true },
+        hospitalId: { type: String, required: true },
+        password:{ type: String, },
+        role:{ type: String },
 // add emergencyContactdetails As per the requirement
-
-
 })
 
 module.exports = mongoose.model('Staff', staffSchema)

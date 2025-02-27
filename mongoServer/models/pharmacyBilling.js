@@ -19,7 +19,8 @@ const pharmacyBillSchema = new mongoose.Schema({
     billValue:{ type: Number, },
     discount:{type: String, },
     paymentType:{type: String, },
-    status:{ type: String }
+    status:{ type: String },
+    hospitalId:{type: String}
 }); // Adds createdAt & updatedAt fields
 
 

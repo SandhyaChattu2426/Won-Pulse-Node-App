@@ -22,7 +22,8 @@ const ServiceRoutes = require('./routes/servicesRoutes')
 const UserRoutes = require('./routes/userRoutes')
 const PharmaBillRoutes = require('./routes/pharmaBillRoutes')
 const BillRoutes = require('./routes/billRoutes')
-const Login = require('./models/Users')
+const Login = require('./models/Users');
+const staff = require("./models/staff");
 require('dotenv').config();
 const secretKey = process.env.JWT_SECRET;
 const secretRefreshKey = process.env.JWT_REFRESH_SECRET;
@@ -163,7 +164,6 @@ app.post('/send-email-otp', async (req, res) => {
 app.post('/send-hospital-email-otp', async (req, res) => {
     const { email } = req.body;
 
-    // Check if the email already exists in the database
     try {
         const user = await Hospitals.findOne({ "contactInformation.email": email }); // MongoDB query using Mongoose
 
@@ -182,6 +182,80 @@ app.post('/send-hospital-email-otp', async (req, res) => {
             return res.status(400).json({ message: 'User does not Exist' });
 
         }
+
+    } catch (error) {
+        console.log('Error checking email or sending OTP:', error);
+        res.status(500).json({ error, message: 'Internal Server Error.' });
+    }
+});
+app.post('/send-staff-email-otp', async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        const user = await staff.findOne({ "email": email }); // MongoDB query using Mongoose
+
+        // If a user with this email exists, return an error response
+        if (user) {
+            const otp = generateOTP(); // Assume generateOTP() generates a random OTP
+            otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
+
+            console.log(otp);
+
+            // Send OTP to the email (assume sendOTP handles email delivery)
+            await sendOTP(email, otp);
+            res.status(200).json({ message: 'OTP sent successfully!' });
+        }
+        else {
+            return res.status(400).json({ message: 'User does not Exist' });
+
+        }
+
+    } catch (error) {
+        console.log('Error checking email or sending OTP:', error);
+        res.status(500).json({ error, message: 'Internal Server Error.' });
+    }
+});
+
+const sendOTPStaff = async (email, Id) => {
+    console.log("triggering SendOtPHospital")
+    console.log(email, "email")
+    console.log(Id, "Id")
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'WONPULSE: Complete Your Registration Process',
+        html: `
+            <a href=http://localhost:5173/hospital/${Id}
+               style="color: #007bff; text-decoration: none; font-weight: bold;">
+                Click the link  to complete your registration Process
+            </a>
+        `,
+    };
+    return transporter.sendMail(mailOptions);
+};
+
+app.post('/EmailStaff', async (req, res) => {
+    console.log("Triggering @staff ")
+    console.log(req.body)
+    const { email, Id } = req.body;
+    console.log('Received email:', email);
+
+    // Check if the email already exists in the database
+    try {
+        // const user = await Hospitals.findOne({ "contactInformation.email": email }); 
+        // console.log(user)// MongoDB query using Mongoose
+
+        // if (user) {
+
+        await sendOTPStaff(email, Id);
+
+        res.status(200).json({ message: 'OTP sent successfully!' });
+
+
+        // else {
+        //     return res.status(400).json({ message: 'Hospital does not exist' });
+
+        // }
 
     } catch (error) {
         console.log('Error checking email or sending OTP:', error);
@@ -234,9 +308,6 @@ const sendOTPHospital = async (email, Id) => {
     };
     return transporter.sendMail(mailOptions);
 };
-
-
-
 
 // FUNCTION TO VERIFY THE OTP
 const verifyOtp = (email, otp) => {
@@ -350,6 +421,7 @@ app.post('/register-login', async (req, res) => {
 });
 
 app.post('/verify-hospital', async (req, res) => {
+    console.log("triggering @@")
     const { email, password, role } = req.body;
     console.log(req.body);
 
@@ -383,6 +455,48 @@ app.post('/verify-hospital', async (req, res) => {
         } else {
             // If the email doesn't exist, send a message indicating not found
             return res.status(404).json({ success: false, message: 'User not found' });
+        }
+    } catch (err) {
+        console.error('Error handling request:', err);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+app.post('/verify-staff', async (req, res) => {
+    console.log("triggering @@")
+    const { email, password, role } = req.body;
+    console.log(req.body);
+
+    if (!email || !password) {
+        return res.status(400).json({ success: false, message: 'Email, password,  are required.' });
+    }
+
+    const hashPassword = async (plainTextPassword) => {
+        const saltRounds = 10;
+        try {
+            const hashedPassword = await bcrypt.hash(plainTextPassword, saltRounds);
+            return hashedPassword;
+        } catch (err) {
+            throw new Error('Error hashing password');
+        }
+    };
+
+    try {
+        const existingUser = await staff.findOne({ "email": email });
+
+        if (existingUser) {
+            // If the email exists, update the password and role
+            const hashedPassword = await hashPassword(password);
+            existingUser.password = hashedPassword;
+            existingUser.role = role;
+
+            // Save the updated user info
+            await existingUser.save();
+
+            return res.status(200).json({ success: true, message: 'staff updated successfully' });
+        } else {
+            // If the email doesn't exist, send a message indicating not found
+            return res.status(404).json({ success: false, message: 'staff not found' });
         }
     } catch (err) {
         console.error('Error handling request:', err);
@@ -425,8 +539,14 @@ app.post('/login', async (req, res) => {
         if (!user) {
             const hospitals = await Hospitals.findOne({ "contactInformation.email": req.body.email });
             if (!hospitals) {
-                return res.status(400).json({ message: 'Invalid Email' });
-            }            
+                // return res.status(400).json({ message: 'Invalid Email' });
+                const staffOne = await staff.findOne({ "email": req.body.email })
+                const isMatch = await bcrypt.compare(req.body.password, staffOne.password);
+                const accessToken = jwt.sign({ userId: staffOne.email }, secretKey, { expiresIn: '5h' });
+                const refreshToken = jwt.sign({ userId: staffOne.email }, secretRefreshKey, { expiresIn: '7d' });
+
+                return res.json({ success: "Login SuccessFully", accessToken, refreshToken });
+            }
 
             const isMatch = await bcrypt.compare(req.body.password, hospitals.password);
             if (!isMatch) {
@@ -439,17 +559,19 @@ app.post('/login', async (req, res) => {
 
             res.json({ success: "Login SuccessFully", accessToken, refreshToken, role: hospitals.role });
         }
+        if (user) {
 
-        const isMatch = await bcrypt.compare(req.body.password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: 'Invalid Password' });
+            const isMatch = await bcrypt.compare(req.body.password, user.password);
+            if (!isMatch) {
+                return res.status(400).json({ message: 'Invalid Password' });
+            }
+
+            // Create a JWT token
+            const accessToken = jwt.sign({ userId: user.email }, secretKey, { expiresIn: '5h' });
+            const refreshToken = jwt.sign({ userId: user.email }, secretRefreshKey, { expiresIn: '7d' });
+
+            res.json({ success: "Login SuccessFully", mfa: user.is_mfa_enabled, accessToken, refreshToken, role: "Super_Admin" });
         }
-
-        // Create a JWT token
-        const accessToken = jwt.sign({ userId: user.email }, secretKey, { expiresIn: '5h' });
-        const refreshToken = jwt.sign({ userId: user.email }, secretRefreshKey, { expiresIn: '7d' });
-
-        res.json({ success: "Login SuccessFully", mfa: user.is_mfa_enabled, accessToken, refreshToken, role: "Super_Admin" });
     } catch (err) {
         console.error('Error logging in:', err);
         res.status(500).send('Server error');

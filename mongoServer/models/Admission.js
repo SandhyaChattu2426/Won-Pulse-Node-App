@@ -32,7 +32,8 @@ const AdmissionSchema = new Schema({
         quantity:{ type: Number },
         AddedBy: { type: String },
         dateAdded:{type:String}
-    }]
+    }],
+    hospitalId: { type: String }
 })
 
 module.exports = mongoose.model('Admissions', AdmissionSchema)

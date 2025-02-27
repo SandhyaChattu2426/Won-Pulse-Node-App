@@ -11,7 +11,7 @@ router.get('/', staffControllers.getStaff);
 router.post('/', staffControllers.createStaff);
 router.patch('/:id', staffControllers.updateStaff);
 router.patch('/status/:Id',staffControllers.updateStaffStatus)
-
+router.get('/hospital/:Id', staffControllers.getStaffByHplId)
 module.exports = router
 
 

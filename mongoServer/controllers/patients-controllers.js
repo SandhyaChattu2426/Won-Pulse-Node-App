@@ -473,67 +473,75 @@ const AddReport = async (req, res, next) => {
 //     }
 // }
 const addPatientFromExcel = async (req, res, next) => {
-    let lastId, newId;
     function excelDateToJSDate(serialDate) {
-        const date = new Date((serialDate - 25569) * 86400 * 1000); // 86400 * 1000 = milliseconds in a day
-        return date.toISOString().split("T")[0];;
-    }
-
-    try {
-        const totalItems = await Patient.countDocuments();
-        if (totalItems > 0) {
-            const last = await Patient.findOne().sort({ _id: -1 });
-            lastId = parseInt(last.patientId.slice(2));
-        } else {
-            lastId = 0;
-        }
-
-        const prefix = "PA";
-        const newNumber = lastId + 1;
-        const paddedNumber = newNumber.toString().padStart(6, "0");
-        newId = prefix + paddedNumber;
-    } catch (err) {
-        return next(new HttpError(`Creating patient ID failed, please try again. ${err}`, 500));
+        const date = new Date((serialDate - 25569) * 86400 * 1000);
+        return date.toISOString().split("T")[0];
     }
 
     let {
-        firstname="",
-        lastname="",
-        dateofbirth="",
-        gender="",
-        email="",
-        contactnumber="",
-        emergencycontactname="",
-        emergencycontactnumber="",
-        street="",
-        city="",
-        state="",
-        zipcode="",
-        insuranceprovider="",
-        policynumber="",
-        policyholdersname="",
-        relation="",
-        currentmedicine="",
-        previoussurgeries="",
-        chronicconditions="",
-        reasonsforvisit="",
+        firstname = "",
+        lastname = "",
+        dateofbirth = "",
+        gender = "",
+        email = "",
+        contactnumber = "",
+        emergencycontactname = "",
+        emergencycontactnumber = "",
+        street = "",
+        city = "",
+        state = "",
+        zipcode = "",
+        insuranceprovider = "",
+        policynumber = "",
+        policyholdersname = "",
+        relation = "",
+        currentmedicine = "",
+        previoussurgeries = "",
+        chronicconditions = "",
+        reasonsforvisit = "",
         status = "Active",
     } = req.body;
-    console.log(req.body)
+
+    console.log(req.body);
 
     if (!firstname || !lastname || !dateofbirth || !gender || !contactnumber || !city) {
         return res.status(400).send({ message: "Incomplete patient details." });
     }
 
     try {
-     
+        // Check if a patient with the provided email exists
+        let existingPatient = await Patient.findOne({ email });
+
+        let patientId;
+        if (existingPatient) {
+            // Use the existing patientId if found
+            patientId = existingPatient.patientId;
+        } else {
+            // Generate a new patient ID if not found
+            const totalItems = await Patient.countDocuments();
+            let lastId;
+            
+            if (totalItems > 0) {
+                const last = await Patient.findOne().sort({ _id: -1 });
+                lastId = parseInt(last.patientId.slice(2));
+            } else {
+                lastId = 0;
+            }
+
+            const prefix = "PA";
+            const newNumber = lastId + 1;
+            const paddedNumber = newNumber.toString().padStart(6, "0");
+            patientId = prefix + paddedNumber;
+        }
+
+        // Create or update the patient record
         const updatedPatient = await Patient.findOneAndUpdate(
             { email: email },
             {
                 $set: {
-                    patientId:newId,
+                    patientId: patientId, // Assign the correct patientId
                     firstName: firstname,
-                    LastName: lastname,
+                    lastName: lastname,
                     dateOfBirth: excelDateToJSDate(dateofbirth),
                     gender: gender,
                     contactNumber: contactnumber,
@@ -554,7 +562,7 @@ const addPatientFromExcel = async (req, res, next) => {
                     status: status,
                 }
             },
-            { new: true, upsert: true } // Return the updated document; create if it doesn't exist
+            { new: true, upsert: true } // Return updated document; create if not exists
         );
 
         res.status(200).json({ patient: updatedPatient });
@@ -562,6 +570,7 @@ const addPatientFromExcel = async (req, res, next) => {
         return next(new HttpError(`Saving patient failed, please try again. ${err}`, 500));
     }
 };
+
 
 
 

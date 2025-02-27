@@ -27,8 +27,7 @@ const ServicesSchema=new Schema({
         return this.services?.category === 'Pharmacy';
     },
 },
-  
-  
+  hospitalId:{type:String}
     
 })
 
