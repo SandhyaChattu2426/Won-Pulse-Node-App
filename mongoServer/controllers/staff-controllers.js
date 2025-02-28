@@ -248,6 +248,21 @@ const getStaffByHplId=async (req,res,next)=>{
     }
 }
 
+const checkEmail=async(req,res,next)=>{
+    const staffemail = req.params.email
+    //console.log(req.params.id)
+    try {
+        const staffMember = await Staff.find({ email: staffemail })
+        // console.log(staffMember)
+        // console.log("try-block")
+        res.json({ staffMember })
+    }
+    catch (e) {
+        console.log(e)
+        console.log("catch-block")
+    }
+}
+
 
 
 
@@ -259,3 +274,4 @@ exports.updateStaff = updateStaff
 exports.updateStaffStatus = updateStaffStatus
 exports.addStaffFromExcel = addStaffFromExcel
 exports.getStaffByHplId=getStaffByHplId
+exports.checkEmail=checkEmail

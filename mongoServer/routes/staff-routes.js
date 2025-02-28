@@ -7,6 +7,7 @@ const staffControllers = require('../controllers/staff-controllers')
 router.post('/upload-excel',staffControllers.addStaffFromExcel)
 router.get('/getId', staffControllers.getId)
 router.get('/:id', staffControllers.getStaffById)
+router.get('/email/:email', staffControllers.checkEmail)
 router.get('/', staffControllers.getStaff);
 router.post('/', staffControllers.createStaff);
 router.patch('/:id', staffControllers.updateStaff);

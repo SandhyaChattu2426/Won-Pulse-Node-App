@@ -188,7 +188,6 @@ const addAdmissionFromExcel = async (req, res, next) => {
         } else {
             lastId = 0;
         }
-
         const prefix = "AD";
         const newNumber = lastId + 1;
         const paddedNumber = newNumber.toString().padStart(6, "0");

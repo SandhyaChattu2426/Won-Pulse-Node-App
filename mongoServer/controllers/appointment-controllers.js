@@ -105,8 +105,8 @@ const updateAppointments = async (req, res, next) => {
 // Get Appointment By Id
 const getAppointmentById = async (req, res, next) => {
     const { Id } = req.params
-    // console.log(Id)
-    // console.log("Triggering")
+    console.log(Id)
+    console.log("Triggering to fetch by id")
     let Appointment
     try {
         // const url=`http://locolhost:5000/api/appointments/${Id}`
@@ -149,9 +149,9 @@ const getAppointmentByPatientId = async (req, res, next) => {
     const { Id } = req.params
     console.log(Id)
     console.log("Triggering Appointment In the Backend")
-    let Appointment
+    let Appointment;
     try {
-        Appointment = await Appointments.findOne({ "patientDetails.Id": Id })
+        Appointment = await Appointments.findOne({ "patientId": Id })
         console.log("triggering try block")
         console.log(Appointment)
 
@@ -205,8 +205,6 @@ const addAppointmentFromExcel = async (req, res, next) => {
 
     else {
         try {
-           
-
             await createdItem.save()
             res.status(201).json({ item: createdItem });
         } catch (err) {

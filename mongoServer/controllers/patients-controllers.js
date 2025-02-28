@@ -135,23 +135,30 @@ const getId = async (req, res, next) => {
 
 //CREATING PLACE
 const createPatient = async (req, res, next) => {
-    let newPatient;
-
-    newPatient = new Patient({
-        ...req.body,
-    })
-
     try {
-        await newPatient.save()
-        console.log("Triggering  try block")
+        const { email, ...updateData } = req.body; // Extract email from request body
+
+        // Check if a patient with this email already exists
+        console.log(req.body,"body")
+        let existingPatient = await Patient.findOne({ email });
+
+        if (existingPatient) {
+            // If patient exists, update their details
+            await Patient.findByIdAndUpdate(existingPatient._id, updateData, { new: true });
+            console.log("Existing patient updated:", existingPatient._id);
+            return res.status(200).json({ message: "Patient updated successfully", patientId: existingPatient._id });
+        } else {
+            // If no patient exists, create a new one
+            const newPatient = new Patient(req.body);
+            await newPatient.save();
+            console.log("New patient created:", newPatient._id);
+            return res.status(201).json({ message: "Patient created successfully", patientId: newPatient._id });
+        }
+    } catch (err) {
+        console.error("Error in createPatient:", err);
+        return next(new HttpError("Error processing patient request", 500));
     }
-    catch (err) {
-        console.log(err)
-        const error = new HttpError("Can not created Place please check inputFields", 500)
-        return next(error)
-    }
-    res.status(201)
-}
+};
 
 // UPDATE Patient
 const updatePatient = async (req, res, next) => {
@@ -502,16 +509,15 @@ const addPatientFromExcel = async (req, res, next) => {
         status = "Active",
     } = req.body;
 
-    console.log(req.body);
+    console.log(req.body,"body Here");
 
-    if (!firstname || !lastname || !dateofbirth || !gender || !contactnumber || !city) {
-        return res.status(400).send({ message: "Incomplete patient details." });
-    }
+    // if (!firstname || !lastname || !dateofbirth || !gender || !contactnumber ) {
+    //     return res.status(400).send({ message: "Incomplete patient details." });
+    // }
 
     try {
         // Check if a patient with the provided email exists
         let existingPatient = await Patient.findOne({ email });
-
         let patientId;
         if (existingPatient) {
             // Use the existing patientId if found
@@ -541,7 +547,7 @@ const addPatientFromExcel = async (req, res, next) => {
                 $set: {
                     patientId: patientId, // Assign the correct patientId
                     firstName: firstname,
-                    lastName: lastname,
+                    LastName: lastname,
                     dateOfBirth: excelDateToJSDate(dateofbirth),
                     gender: gender,
                     contactNumber: contactnumber,
