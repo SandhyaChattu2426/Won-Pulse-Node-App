@@ -63,9 +63,11 @@ const getId = async (req, res, next) => {
         if (room.length > 0) {
             // Get the last hospital document, sorted by _id in descending order
             const lastRoom = await Service.find({}).sort({ _id: -1 }).limit(1);
-
+            console.log(lastRoom,"lastRoom")
+                        
             // Extract the last hospital's hospitalId
             const lastRoomId = lastRoom[0].services.serviceId;
+            console.log(lastRoomId,"last@@")
 
             // Calculate the next hospitalId based on the last one
             // Extract the numeric part of the last hospitalId (assuming the format is HP000001)
