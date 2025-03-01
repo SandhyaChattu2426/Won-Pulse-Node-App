@@ -15,7 +15,7 @@ const ReportsSchema=new Schema({
         generationDate:{type:String},
         // serviceId:{type:mongoose.Types.ObjectId, required:true,ref:'services'}
     },
-    hospitalId:{type:String,required:true},
+    hospitalId:{type:String,},
     status:{type:String},
 })
 

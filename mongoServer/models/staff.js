@@ -19,7 +19,7 @@ const staffSchema = new Schema({
         nightShift:{type:String,required:false},
         online:{type:String,required:false},
         status: { type: String, required: true },
-        hospitalId: { type: String, required: true },
+        hospitalId: { type: String,},
         password:{ type: String, },
         role:{ type: String },
 // add emergencyContactdetails As per the requirement

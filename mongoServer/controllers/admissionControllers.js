@@ -236,7 +236,7 @@ const addAdmissionFromExcel = async (req, res, next) => {
         });
 
         if (!existingPatient) {
-            return res.status(404).json({ message: "Patient not found in the database." });
+            return res.status(404).json({ message: "Patient is not Registered" });
         }
 
         // 🔹 Check if the patient already has an admission

@@ -36,41 +36,88 @@ const getStaff = async (req, res, next) => {
 }
 // Creating StaffId
 const getId = async (req, res, next) => {
-    let newStaffId;
+    let newPatient;
+    let newPatientId;
     let ZerosCount;
-    let staffLength;
-    const str = "0";  // String to repeat for padding
-    console.log("BackendTriggering to get Staff Id");
+    let PatientLength;
+    const str = "0";  // String used for padding zeros
+    console.log("Backend Triggering to Get Patient Id");
 
     try {
-        // Fetch all staff records from the database
-        const staff = await Staff.find({});
+        // Fetch all patients from the database
+        const Patients = await Staff.find({});
+        // console.log("Current number of patients:", Patients.length);
+        console.log(Patients)
+        // If there are existing patients, generate the new patient ID based on the count
+        if (Patients.length > 0) {
+            const lastPatient = await Staff.find({}).sort({ _id: -1 }).limit(1);
+            const lastNumber = parseInt(lastPatient[0].staffId.substring(2))
+            console.log(lastNumber, "lastNumber")
+            const nextNumber = lastNumber + 1;
+            PatientLength = Patients.length;
+            ZerosCount = 6 - nextNumber.toString().length;
 
-        console.log("Current number of staff records:", staff.length);
-
-        // Calculate the number of staff records and how many leading zeros are needed
-        staffLength = staff.length;
-        ZerosCount = 6 - (staffLength.toString()).length;  // Ensure 6 digits for the ID
-
-        console.log("Zeros needed:", ZerosCount);
-
-        // Generate the new staff ID with leading zeros and a prefix of 'ST'
-        if (staff.length > 0) {
-            newStaffId = 'ST' + str.repeat(ZerosCount) + (staffLength + 1).toString();
-        } else {
-            // If no staff records exist, generate the first staff ID as 'ST000001'
-            newStaffId = 'ST' + '0'.repeat(5) + "1";
+            // Generate new patient ID (e.g., PA000001, PA000002, ...)
+            newPatientId = 'ST' + str.repeat(ZerosCount) + nextNumber.toString();
+        }
+        else {
+            // If no patients exist, start with PA000001
+            newPatientId = 'ST' + '0'.repeat(5) + "1";
         }
 
-        console.log("New Staff ID generated:", newStaffId);
+        console.log("Generated New Patient ID:", newPatientId);
 
-        // Send the generated ID in the response
-        res.json({ id: newStaffId });
+        // Send the new patient ID in the response
+        res.json({ id: newPatientId });
     } catch (err) {
-        const error = new HttpError("Couldn't Fetch the Staff Details", 500);
+        // Handle any errors
+        const error = new HttpError("Couldn't Fetch the Patient Details", 500);
         return next(error);
     }
 
+    // Create the new patient object (you should replace the mock data with real data from the request body)
+    // newPatient = new Patient({
+    //     patientId:newPatientId,
+    //     patientDetails: {
+    //         firstName: "John", // Example data, replace with request data
+    //         lastName: "Doe",  // Example data
+    //         DateOfBirth: "1990-01-01", // Example data
+    //         gender: "Male",  // Example data
+    //     },
+    //     emergencyContactDetails: {
+    //         firstName: "Jane",  // Example data
+    //         lastName: "Doe",  // Example data
+    //         contactNumber: "1234567890"  // Example data
+    //     },
+    //     adress: {
+    //         street: "123 Main St",  // Example data
+    //         city: "Cityville",  // Example data
+    //         state: "State",  // Example data
+    //         pincode: "123456",  // Example data
+    //     },
+    //     insurance: {
+    //         insuranceProvider: "HealthIns",  // Example data
+    //         policyHolder: "John Doe",  // Example data
+    //         policyHoldersName: "John Doe",  // Example data
+    //         relation: "Self",  // Example data
+    //     },
+    //     medicalHistory: {
+    //         currentMedicine: "Aspirin",  // Example data
+    //         previousSurgeries: "Appendectomy",  // Example data
+    //         chronicConditions: "None",  // Example data
+    //     },
+    //     ReasonsForVisit: "Routine checkup",  // Example data
+    //     preferredCommunications: ['sms', 'email'],  // Example data
+    // });
+
+    // try {
+    //     // Save the new patient to the database
+    //     await newPatient.save();
+    //     console.log("New patient saved successfully.");
+    // } catch (e) {
+    //     // Log error if saving the patient fails
+    //     console.log("Error saving patient:", e);
+    // }
 };
 
 //Get Staff By Id
@@ -175,6 +222,7 @@ const addStaffFromExcel = async (req, res, next) => {
 
         // Check if the staff member already exists by email
         let staff = await Staff.findOne({ email });
+        console.log(staff,"oldItem")
 
         if (staff) {
             // Staff exists, update their details without changing staffId
@@ -195,6 +243,7 @@ const addStaffFromExcel = async (req, res, next) => {
             staff.status = status || "Active";
 
             await staff.save();
+            console.log("triggering update")
             return res.status(200).json({ message: "Staff details updated successfully.", staff });
         } else {
             // Staff does not exist, create a new staff record

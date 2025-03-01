@@ -539,7 +539,7 @@ const addPatientFromExcel = async (req, res, next) => {
             const paddedNumber = newNumber.toString().padStart(6, "0");
             patientId = prefix + paddedNumber;
         }
-
+        console.log(req.body.contactnumber,"num")
         // Create or update the patient record
         const updatedPatient = await Patient.findOneAndUpdate(
             { email: email },

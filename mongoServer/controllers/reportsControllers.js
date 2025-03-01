@@ -5,6 +5,7 @@ const XLSX = require('xlsx');
 const fs = require('fs'); // For reading the file stream
 const path = require('path');
 const mongoose = require("mongoose");
+const Patients= require("../models/patient")
 
 const Reports = require('../models/reports')
 
@@ -184,6 +185,24 @@ const addReportFromExcel = async (req, res, next) => {
         generationdate,
         status = "Active",
     } = req.body;
+
+     let [firstName, ...lastNameParts] = patientname.trim().split(" ");
+        let lastName = lastNameParts.join(" "); // Handle multi-word last names
+    
+        try {
+            // 🔹 Search for patient in `Patient` collection using firstName & lastName
+            const existingPatient = await Patients.findOne({
+                firstName: new RegExp(`^${firstName}$`, "i"), // Case-insensitive match
+                LastName: new RegExp(`^${lastName}$`, "i"),
+            });
+            console.log(existingPatient,"patient")
+    
+            if (!existingPatient) {
+                return res.status(404).json({ message: "Patient is not Registered" });
+            }
+        }catch(e){
+            console.log(e)
+        }
 
     try {
         const existingReport = await Reports.findOne({
