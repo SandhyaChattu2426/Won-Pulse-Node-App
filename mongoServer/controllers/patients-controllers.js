@@ -6,8 +6,10 @@ const { get } = require('mongoose')
 // GET PATIENT BY ID
 const getPatientById = async (req, res, next) => {
     console.log('GET Request fro particular  patient ID')
-    const patientId = req.params.id
-    console.log(req.params)
+    const patientId = req.params.Id
+    console.log(req.params,
+        "params here"
+    )
     let patient;
 
     try {
@@ -24,6 +26,7 @@ const getPatientById = async (req, res, next) => {
         return next(error)
 
     }
+    console.log(patient,"patient")
 
     res.json({ patients: patient })
 }
@@ -135,6 +138,7 @@ const getId = async (req, res, next) => {
 
 //CREATING PLACE
 const createPatient = async (req, res, next) => {
+    console.log("triggering @")
     try {
         const { email, ...updateData } = req.body; // Extract email from request body
 

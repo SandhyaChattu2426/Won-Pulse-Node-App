@@ -74,50 +74,6 @@ const getId = async (req, res, next) => {
         const error = new HttpError("Couldn't Fetch the Patient Details", 500);
         return next(error);
     }
-
-    // Create the new patient object (you should replace the mock data with real data from the request body)
-    // newPatient = new Patient({
-    //     patientId:newPatientId,
-    //     patientDetails: {
-    //         firstName: "John", // Example data, replace with request data
-    //         lastName: "Doe",  // Example data
-    //         DateOfBirth: "1990-01-01", // Example data
-    //         gender: "Male",  // Example data
-    //     },
-    //     emergencyContactDetails: {
-    //         firstName: "Jane",  // Example data
-    //         lastName: "Doe",  // Example data
-    //         contactNumber: "1234567890"  // Example data
-    //     },
-    //     adress: {
-    //         street: "123 Main St",  // Example data
-    //         city: "Cityville",  // Example data
-    //         state: "State",  // Example data
-    //         pincode: "123456",  // Example data
-    //     },
-    //     insurance: {
-    //         insuranceProvider: "HealthIns",  // Example data
-    //         policyHolder: "John Doe",  // Example data
-    //         policyHoldersName: "John Doe",  // Example data
-    //         relation: "Self",  // Example data
-    //     },
-    //     medicalHistory: {
-    //         currentMedicine: "Aspirin",  // Example data
-    //         previousSurgeries: "Appendectomy",  // Example data
-    //         chronicConditions: "None",  // Example data
-    //     },
-    //     ReasonsForVisit: "Routine checkup",  // Example data
-    //     preferredCommunications: ['sms', 'email'],  // Example data
-    // });
-
-    // try {
-    //     // Save the new patient to the database
-    //     await newPatient.save();
-    //     console.log("New patient saved successfully.");
-    // } catch (e) {
-    //     // Log error if saving the patient fails
-    //     console.log("Error saving patient:", e);
-    // }
 };
 
 //Get Staff By Id

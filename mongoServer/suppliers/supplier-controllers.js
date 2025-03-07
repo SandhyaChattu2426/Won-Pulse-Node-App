@@ -4,14 +4,12 @@ const Suppliers = require('./suppliers')
 const suppliers = require('./suppliers')
 
 //Register Supplier
-
 const RegisterSupplier = async (req, res, next) => {
     const { supplierDetails, adress } = req.body
     console.log("Supplier block is triggering")
     const newsupplier = new Suppliers({
         ...req.body,
     })
-
     try {
         await newsupplier.save()
         console.log("Supplier is registered SuccessFully,triggering try-block")
@@ -24,7 +22,6 @@ const RegisterSupplier = async (req, res, next) => {
     res.json("supplier Created Sucessfully")
 
 }
-
 // GETTing Details
 
 const GetSuppliers = async (req, res, next) => {
@@ -38,7 +35,6 @@ const GetSuppliers = async (req, res, next) => {
     }
     res.json({ List })
 }
-
 // GetId
 const getId = async (req, res, next) => {
     let newSupplierId;
@@ -82,8 +78,6 @@ const getId = async (req, res, next) => {
         return next(error);
     }
 };
-
-
 const InventorySuppliers = async (req, res, next) => {
     // console.log("Inventory Suppliers")
     let List;
@@ -96,7 +90,6 @@ const InventorySuppliers = async (req, res, next) => {
     }
     res.json({ List })
 }
-
 
 const GetSupplierById = async (req, res, next) => {
     console.log("Triggering to fetch supplier Details")
@@ -112,7 +105,6 @@ const GetSupplierById = async (req, res, next) => {
     }
     res.json({ List })
 }
-
 const PharmacySuppliers = async (req, res, next) => {
     console.log("pharmacy Suppliers")
     let List;
@@ -125,7 +117,6 @@ const PharmacySuppliers = async (req, res, next) => {
     }
     res.json({ List })
 }
-
 const addSupplierFromExcel = async (req, res, next) => {
     console.log("Triggering here");
     let last, lastId, newId;

@@ -9,6 +9,6 @@ const roomsScheema = new Schema({
     roomType: { type: String, required: true },
     roomCharge: { type: String, required: true },
     status: { type: String, required: true },
-    hospitalId:{type:String, required :true}
+    hospitalId:{type:String}
 })
 module.exports = mongoose.model('rooms', roomsScheema)

@@ -61,6 +61,7 @@ app.use('/api/medicinebill', PharmaBillRoutes)
 app.use('/api/genralbill', BillRoutes)
 
 
+
 // app.use('/api/users', usersRoutes)
 const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -78,7 +79,7 @@ const generateOTP = () => {
 };
 
 const sendOTP = async (email, otp) => {
-    console.log(otp)
+    console.log(otp,"triffering")
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: email,
@@ -110,7 +111,8 @@ app.post('/send-email-otp-forPassword', async (req, res) => {
         console.log(user)
         // If a user with this email exists, return an error response
         if (user) {
-            const otp = generateOTP(); // Assume generateOTP() generates a random OTP
+            const otp = generateOTP();
+            console.log(otp) // Assume generateOTP() generates a random OTP
             otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
 
             // Send OTP to the email (assume sendOTP handles email delivery)
@@ -145,7 +147,7 @@ app.post('/send-email-otp', async (req, res) => {
         if (!user) {
             const otp = generateOTP(); // Assume generateOTP() generates a random OTP
             otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
-
+            console.log(otp)
             // Send OTP to the email (assume sendOTP handles email delivery)
             await sendOTP(email, otp);
             res.status(200).json({ message: 'OTP sent successfully!' });
@@ -405,7 +407,7 @@ app.post('/register-login', async (req, res) => {
             email_otp: req.body.email_otp || null,
             phone_otp: req.body.contact || null,
             company_details: companyDetails,
-            is_mfa_enabled: req.body.is_mfa_enabled || true,
+            is_mfa_enabled: req.body.is_mfa_enabled || "false",
             mfa_type: req.body.mfa_type || "email",
             passkey: req.body.passkey || null,
             biometric_data: req.body.biometric_data || null,
@@ -570,7 +572,7 @@ app.post('/login', async (req, res) => {
             const accessToken = jwt.sign({ userId: user.email }, secretKey, { expiresIn: '5h' });
             const refreshToken = jwt.sign({ userId: user.email }, secretRefreshKey, { expiresIn: '7d' });
 
-            res.json({ success: "Login SuccessFully", mfa: user.is_mfa_enabled, accessToken, refreshToken, role: "Super_Admin" });
+            res.json({ success: "Login SuccessFully", mfa: user.is_mfa_enabled, accessToken, refreshToken, role: "Super_Admin",mfaTypes:user.mfa_type });
         }
     } catch (err) {
         console.error('Error logging in:', err);

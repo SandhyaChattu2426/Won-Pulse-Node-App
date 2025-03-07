@@ -193,24 +193,7 @@ const getReportById=async (req,res,next)=>{
     }
 }
 
-const getPharmaNames=async(req,res,next)=>{
-    console.log("triggering to get Pharmacy Names")
-    try{
-        List = await Service.find({"services.serviceType":"Pharmacy"})
-        console.log(List)
-        const NameList=List.map(serviceItem=>({
-           
-            label:serviceItem.services.serviceName,
-            value:serviceItem.services.serviceName,
-            id:serviceItem.services.serviceId
-        }))
-        res.json({PharmaNames:NameList})
-        }
-        catch(e){
-            console.log(e)
-        }
 
-}
 
 const updatePrice=async(req,res,next)=>{
     console.log("triggering by god's grace ")
@@ -231,31 +214,69 @@ const updatePrice=async(req,res,next)=>{
  res.json("Price Updated SuccessFully")
 }
 
-const getGeneralServicesNames=async (req,res,next)=>{
-    console.log("Getting General Services Names")
-    try{
-    List = await Service.find({"services.serviceType":"GeneralServices"})
-    console.log(List)
-    const NameList=List.map(serviceItem=>({
-               label:serviceItem.services.serviceName,
-        value:serviceItem.services.serviceName,
-        id:serviceItem.services.serviceId
-    }))
-    res.json({serviceNames:NameList})
-    }
-    catch(e){
-        console.log(e)
-    }
 
-}
 
-const getServiceByCategory=async (req,res,next)=>{
-    // console.log("Triggering @mongoose")
-    // console.log(req.params,"parame")
-    const service=await Service.find({"services.category":"Inventory"})
-    // console.log(service,"services")
-    res.json({List:service})
-}
+
+
+const updateMfa = async (req, res, next) => {
+    console.log("triggering @mfa");
+    const { email } = req.params;
+    let { is_mfa_enabled, mfa_type, passkey } = req.body;
+    console.log("Received mfa_type:", mfa_type); // Debugging log
+
+    try {
+        const user = await User.findOne({ email });
+
+        if (user) {
+            // Ensure mfa_type is stored as an array
+            if (mfa_type) {
+                // Convert to an array if it's a string
+                if (!Array.isArray(mfa_type)) {
+                    mfa_type = [mfa_type];
+                }
+                user.mfa_type = [...new Set([...(user.mfa_type || []), ...mfa_type])];
+            }
+
+            if (is_mfa_enabled) {
+                user.is_mfa_enabled = is_mfa_enabled;
+            }
+
+            if (passkey) {
+                user.passkey = passkey;
+            }
+
+            await user.save();
+
+            return res.status(200).json({ message: "MFA settings updated successfully", user });
+        } else {
+            return res.status(404).json({ message: "User not found" });
+        }
+    } catch (error) {
+        console.error("Error occurred while updating MFA:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+const getUserByEmail = async (req, res, next) => {
+    try {
+        const { email } = req.params;
+        
+        if (!email) {
+            return res.status(400).json({ success: false, message: "Email is required" });
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        return res.status(200).json({ success: true, user });
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+};
+
 
 
 
@@ -268,8 +289,7 @@ exports.getServicesById=getServicesById
 exports.updatePassword=updatePassword
 exports.getReportNames=getReportNames
 exports.getReportById=getReportById
-exports.getPharmaNames=getPharmaNames
 exports.updatePrice=updatePrice
-exports.getGeneralServicesNames=getGeneralServicesNames
 exports.getServiceByName=getServiceByName
-exports.getServiceByCategory=getServiceByCategory
+exports.updateMfa=updateMfa
+exports.getUserByEmail=getUserByEmail
