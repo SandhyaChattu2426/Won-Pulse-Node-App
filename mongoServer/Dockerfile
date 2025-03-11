@@ -10,6 +10,7 @@ COPY package*.json ./
 # Install dependencies with a clean cache
 RUN npm install --legacy-peer-deps
 RUN npm install -g nodemon  # Ensure nodemon is globally installed
+RUN npm rebuild bcrypt --build-from-source
 
 # Copy the rest of the application code to the container
 COPY . .
