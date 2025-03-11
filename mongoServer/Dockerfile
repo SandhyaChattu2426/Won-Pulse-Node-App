@@ -8,7 +8,7 @@ WORKDIR /app
 RUN apk add --no-cache python3 g++ make
 
 # Copy package.json and package-lock.json to the container
-COPY package*.json ./
+COPY package*.json package-lock.json./
 
 # Install dependencies with a clean cache
 RUN npm install --legacy-peer-deps
