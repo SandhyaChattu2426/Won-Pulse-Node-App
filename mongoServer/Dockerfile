@@ -4,19 +4,14 @@ FROM node:18-alpine
 # Set working directory in the container
 WORKDIR /app
 
-# Install system dependencies for bcrypt
-RUN apk add --no-cache python3 g++ make
-
 # Copy package.json and package-lock.json to the container
-COPY mongoServer/package*.json mongoServer/package-lock.json./
+COPY package*.json ./
 
 # Install dependencies with a clean cache
-RUN npm install --legacy-peer-deps
-RUN npm install -g nodemon  # Ensure nodemon is globally installed
-RUN npm rebuild bcrypt --build-from-source || echo "Skipping bcrypt rebuild"
+RUN npm install --force
 
 # Copy the rest of the application code to the container
-COPY mongoServer/.
+COPY . .
 
 # Expose port (ensure this matches the port used by your app)
 EXPOSE 5000
