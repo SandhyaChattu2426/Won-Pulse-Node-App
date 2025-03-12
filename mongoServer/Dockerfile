@@ -5,10 +5,11 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Copy package.json and package-lock.json to the container
-COPY package*.json ./
+COPY package*.json package-lock.json./
 
 # Install dependencies with a clean cache
 RUN npm install --legacy-peer-deps
+RUN npm rebuild bcrypt --build-from-source
 
 # Copy the rest of the application code to the container
 COPY . .
