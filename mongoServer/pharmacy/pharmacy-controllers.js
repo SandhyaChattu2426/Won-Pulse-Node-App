@@ -89,10 +89,10 @@ const getMedicineById = async (req, res, next) => {
     // console.log('GET Request in Places')
     const medicineId = req.params.id
     // console.log(patientId)
+    console.log(medicineId,"medicineId")
     let medicine;
-
     try {
-        medicine = await Pharmacy.find({"medicineDetails.medicineId":medicineId})
+        medicine = await Pharmacy.find({medicineId:medicineId})
         console.log(medicine)
          console.log("triggering tryblock")
     }

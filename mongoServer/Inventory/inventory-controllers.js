@@ -78,10 +78,10 @@ const gettingALLInventories = async (req, res, next) => {
 
 const getInventoryById = async (req, res, next) => {
     const { Id } = req.params
-    console.log(Id)
+    console.log(Id,"here")
     let Item;
     try {
-        Item = await Inventory.findOne({ "inventoryId": Id })
+        Item = await Inventory.findOne({ inventoryId: Id })
         console.log(Item)
     } catch (e) {
         console.log(e)

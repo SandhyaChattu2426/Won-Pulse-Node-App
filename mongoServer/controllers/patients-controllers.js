@@ -3,6 +3,8 @@ const { v4: uuid } = require("uuid")
 const { validationResult } = require('express-validator')
 const Patient = require('../models/patient')
 const { get } = require('mongoose')
+const {uploadFileToS3Bucket}=require('../models/s3Bucket')
+
 // GET PATIENT BY ID
 const getPatientById = async (req, res, next) => {
     console.log('GET Request fro particular  patient ID')
@@ -581,6 +583,48 @@ const addPatientFromExcel = async (req, res, next) => {
     }
 };
 
+// generating url
+const generateNoteUrl = async (req, res, next) => {
+    console.log("Uploading File to S3 Bucket..."); 
+    console.log(req.file,'this si the file')
+        console.log(req.body,"body") 
+    try {
+        // Check for file
+        // console.log(req.file)
+        console.log(req.file,'this si the file')
+        console.log(req.body,"body")
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: "No file provided",
+            });
+        }
+
+        // Upload image to S3
+        console.log(req.file,"file @backend")
+        console.log(req.body,"body")
+        const fileUrl = await uploadFileToS3Bucket(req.file);
+        if (!fileUrl) {
+            return res.status(500).json({
+                success: false,
+                message: "Failed to upload file to S3",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "File uploaded successfully.",
+            fileUrl,
+            name:req.file.originalname
+        });
+    } catch (error) {
+        console.error("Error uploading File:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Error uploading File, try again.",
+        });
+    }
+};
 
 
 
@@ -594,3 +638,4 @@ exports.updatePatientStatus = updatePatientStatus
 exports.AddAppointment = AddAppointment
 exports.AddReport = AddReport
 exports.addPatientFromExcel = addPatientFromExcel
+exports.generateNoteUrl=generateNoteUrl

@@ -41,5 +41,8 @@ const HospitalSchema = new Schema({
     },
     password:{type:String},
     role:{type:String},
+    is_mfa_enabled:{type:String}||"false",
+    mfa_type: { type: [String], default: [] },
+    passkey: {type:String},
 })
 module.exports = mongoose.model('hospitals', HospitalSchema)

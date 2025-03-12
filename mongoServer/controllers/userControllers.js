@@ -3,15 +3,17 @@ const rooms = require('../models/rooms')
 const User = require('../models/Users')
 const { validationResult } = require('express-validator')
 const bcrypt = require('bcrypt');
+const staff = require('../models/staff');
 
 //Creating a room
-const getServiceByName=async(req,res,next)=>{
-    const {serviceName}=req.params
+const getServiceByName = async (req, res, next) => {
+    const { serviceName } = req.params
     try {
-        Item = await Service.findOne({ "services.serviceName": serviceName
-         })
+        Item = await Service.findOne({
+            "services.serviceName": serviceName
+        })
         console.log(Item)
-        res.json({service:Item})
+        res.json({ service: Item })
 
     } catch (e) {
         console.log(e)
@@ -19,7 +21,7 @@ const getServiceByName=async(req,res,next)=>{
 }
 
 const createService = async (req, res, next) => {
-    console.log("Creating Service",req.body)
+    console.log("Creating Service", req.body)
     try {
         // here i want to check whether serviceName is already existed in the database or not ,
         // so I want to call the function getServiceByName,if the response is getted , i dont want to save
@@ -27,7 +29,7 @@ const createService = async (req, res, next) => {
             ...req.body,
 
         })
-       
+
         service.save()
     } catch (e) {
         console.log(e)
@@ -53,7 +55,7 @@ const getId = async (req, res, next) => {
     let newRoomId;
     let RoomsLength;
     const str = "0";
-    
+
     console.log("Backend triggering to get ID");
 
     try {
@@ -66,7 +68,7 @@ const getId = async (req, res, next) => {
 
             // Extract the last hospital's hospitalId
             const lastRoomId = lastRoom[0].services.serviceId;
-            
+
             // Calculate the next hospitalId based on the last one
             // Extract the numeric part of the last hospitalId (assuming the format is HP000001)
             const lastNumber = parseInt(lastRoomId.substring(2));  // Extracts the number part after 'HP'
@@ -86,8 +88,8 @@ const getId = async (req, res, next) => {
         res.json({ id: newRoomId });
 
     } catch (err) {
-       console.log(err)
-        
+        console.log(err)
+
     }
 };
 
@@ -95,18 +97,18 @@ const getId = async (req, res, next) => {
 
 const getServicesById = async (req, res, next) => {
     const { Id } = req.params
-    
+
     console.log("getServiceById is triggering")
     let Item;
     try {
         Item = await Service.findOne({ "services.serviceId": Id })
         console.log(Item)
-        res.json({service:Item})
+        res.json({ service: Item })
 
     } catch (e) {
         console.log(e)
     }
-    
+
 }
 // update Password
 const updatePassword = async (req, res, next) => {
@@ -114,7 +116,7 @@ const updatePassword = async (req, res, next) => {
     console.log(req.params)
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
-         res.status(422)
+        res.status(422)
         return next(new HttpError('Invalid inputs passed, please check your data'))
     }
 
@@ -162,92 +164,137 @@ const updatePassword = async (req, res, next) => {
 
 // Conditionally renders
 
-const getReportNames=async (req,res,next)=>{
+const getReportNames = async (req, res, next) => {
     console.log("Getting report Names")
-    try{
-    List = await Service.find({"services.serviceType":"Reports"})
-    console.log(List)
-    const NameList=List.map(serviceItem=>({
-       
-        label:serviceItem.services.serviceName,
-        value:serviceItem.services.serviceName,
-        id:serviceItem.services.serviceId
-    }))
-    res.json({serviceNames:NameList})
+    try {
+        List = await Service.find({ "services.serviceType": "Reports" })
+        console.log(List)
+        const NameList = List.map(serviceItem => ({
+
+            label: serviceItem.services.serviceName,
+            value: serviceItem.services.serviceName,
+            id: serviceItem.services.serviceId
+        }))
+        res.json({ serviceNames: NameList })
     }
-    catch(e){
+    catch (e) {
         console.log(e)
     }
 
 }
 
-const getReportById=async (req,res,next)=>{
+const getReportById = async (req, res, next) => {
     console.log(req.params)
-  
-    try{
-        const report=await Service.find({"services.serviceId":"SR0001"})
+
+    try {
+        const report = await Service.find({ "services.serviceId": "SR0001" })
         console.log(report)
     }
-    catch(e){
+    catch (e) {
         console.log(e)
     }
 }
 
 
 
-const updatePrice=async(req,res,next)=>{
+const updatePrice = async (req, res, next) => {
     console.log("triggering by god's grace ")
-    console.log(req.params,"reqParams")//   { Id: 'SR000012' } reqParams
-    console.log(req.body,"body")// { totalPrice: '12' }
-    const {Id}=req.params
-    const {totalPrice}=req.body
-    const item=await Service.findOne({"services.serviceId": Id})
-    console.log(item,"before Update")
-    try{
-     item.services.totalPrice=totalPrice
-    await item.save()
-    console.log(item,"after update")
-    }catch(e){
+    console.log(req.params, "reqParams")//   { Id: 'SR000012' } reqParams
+    console.log(req.body, "body")// { totalPrice: '12' }
+    const { Id } = req.params
+    const { totalPrice } = req.body
+    const item = await Service.findOne({ "services.serviceId": Id })
+    console.log(item, "before Update")
+    try {
+        item.services.totalPrice = totalPrice
+        await item.save()
+        console.log(item, "after update")
+    } catch (e) {
         console.log(e)
     }
 
- res.json("Price Updated SuccessFully")
+    res.json("Price Updated SuccessFully")
 }
 
 
 
 
+// updated for saturday
+// const updateMfa = async (req, res, next) => {
+//     console.log("triggering @mfa");
+//     const { email } = req.params;
+//     let { is_mfa_enabled, mfa_type, passkey } = req.body;
+//     console.log("Received mfa_type:", mfa_type); // Debugging log
 
+//     try {
+//         const user = await User.findOne({ email });
+//         const staff=await staff.findOne({email})
+//         if (user) {
+//             // Ensure mfa_type is stored as an array
+//             if (mfa_type) {
+//                 // Convert to an array if it's a string
+//                 if (!Array.isArray(mfa_type)) {
+//                     mfa_type = [mfa_type];
+//                 }
+//                 user.mfa_type = [...new Set([...(user.mfa_type || []), ...mfa_type])];
+//             }
+
+//             if (is_mfa_enabled) {
+//                 user.is_mfa_enabled = is_mfa_enabled;
+//             }
+
+//             if (passkey) {
+//                 user.passkey = passkey;
+//             }
+
+//             await user.save();
+
+//             return res.status(200).json({ message: "MFA settings updated successfully", user });
+//         } else {
+//             return res.status(404).json({ message: "User not found" });
+//         }
+//     } catch (error) {
+//         console.error("Error occurred while updating MFA:", error);
+//         return res.status(500).json({ message: "Internal server error" });
+//     }
+// };
 const updateMfa = async (req, res, next) => {
     console.log("triggering @mfa");
     const { email } = req.params;
     let { is_mfa_enabled, mfa_type, passkey } = req.body;
-    console.log("Received mfa_type:", mfa_type); // Debugging log
+    console.log("Received mfa_type:", mfa_type);
 
     try {
-        const user = await User.findOne({ email });
+        let entityType = "user";
+        let entity = await User.findOne({ email });
 
-        if (user) {
-            // Ensure mfa_type is stored as an array
+        if (!entity) {
+            entity = await staff.findOne({ email });
+            entityType = "staff";
+        }
+
+        if (entity) {
             if (mfa_type) {
-                // Convert to an array if it's a string
-                if (!Array.isArray(mfa_type)) {
-                    mfa_type = [mfa_type];
-                }
-                user.mfa_type = [...new Set([...(user.mfa_type || []), ...mfa_type])];
+                // if (!Array.isArray(mfa_type)) {
+                //     mfa_type = [mfa_type]; // Convert to an array if it's a string
+                // }
+                entity.mfa_type = [...new Set([...(entity.mfa_type || []), mfa_type])];
             }
 
-            if (is_mfa_enabled) {
-                user.is_mfa_enabled = is_mfa_enabled;
-            }
+            // if (is_mfa_enabled !== undefined) {
+            entity.is_mfa_enabled = true;
+            // }
 
             if (passkey) {
-                user.passkey = passkey;
+                entity.passkey = passkey;
             }
 
-            await user.save();
+            await entity.save();
 
-            return res.status(200).json({ message: "MFA settings updated successfully", user });
+            return res.status(200).json({
+                message: "MFA settings updated successfully",
+                [entityType]: entity
+            });
         } else {
             return res.status(404).json({ message: "User not found" });
         }
@@ -257,20 +304,32 @@ const updateMfa = async (req, res, next) => {
     }
 };
 
+
 const getUserByEmail = async (req, res, next) => {
     try {
         const { email } = req.params;
-        
+
         if (!email) {
             return res.status(400).json({ success: false, message: "Email is required" });
         }
 
         const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(404).json({ success: false, message: "User not found" });
+        // only for saturday
+        const staffOne = await staff.findOne({ email });
+        console.log(staffOne)
+        if (user) {
+            return res.status(200).json({ success: true, user });
+            // return res.status(404).json({ success: false, message: "User not found" });
+        }
+        if (staff) {
+            return res.status(200).json({ success: true, staffOne });
+        }
+        else {
+            return res.status(200).json({ msg: "User NotFound" });
+
         }
 
-        return res.status(200).json({ success: true, user });
+
     } catch (error) {
         console.error("Error fetching user:", error);
         return res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -282,14 +341,14 @@ const getUserByEmail = async (req, res, next) => {
 
 
 
-exports.createService=createService
-exports.GetServices=GetServices
-exports.getId=getId
-exports.getServicesById=getServicesById
-exports.updatePassword=updatePassword
-exports.getReportNames=getReportNames
-exports.getReportById=getReportById
-exports.updatePrice=updatePrice
-exports.getServiceByName=getServiceByName
-exports.updateMfa=updateMfa
-exports.getUserByEmail=getUserByEmail
+exports.createService = createService
+exports.GetServices = GetServices
+exports.getId = getId
+exports.getServicesById = getServicesById
+exports.updatePassword = updatePassword
+exports.getReportNames = getReportNames
+exports.getReportById = getReportById
+exports.updatePrice = updatePrice
+exports.getServiceByName = getServiceByName
+exports.updateMfa = updateMfa
+exports.getUserByEmail = getUserByEmail

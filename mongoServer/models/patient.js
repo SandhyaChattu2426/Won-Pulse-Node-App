@@ -44,7 +44,9 @@ const patientSchema = new Schema({
         resultStatus:String,
 
     }],
-    hospitalId:{type:String}
+    registrationFiles:[{}],
+    hospitalId:{type:String},
+    fullName:{type:String}
 })
 
 module.exports = mongoose.model('Patient', patientSchema)

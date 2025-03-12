@@ -24,6 +24,7 @@ const PharmaBillRoutes = require('./routes/pharmaBillRoutes')
 const BillRoutes = require('./routes/billRoutes')
 const Login = require('./models/Users');
 const staff = require("./models/staff");
+const dashboardRoutes=require('./routes/dashboardRoutes')
 require('dotenv').config();
 const secretKey = process.env.JWT_SECRET;
 const secretRefreshKey = process.env.JWT_REFRESH_SECRET;
@@ -59,6 +60,9 @@ app.use('/api/service', ServiceRoutes)
 app.use('/api/user', UserRoutes)
 app.use('/api/medicinebill', PharmaBillRoutes)
 app.use('/api/genralbill', BillRoutes)
+app.use('/api/dashboard', dashboardRoutes)
+
+
 
 
 
@@ -101,34 +105,86 @@ const sendOTP = async (email, otp) => {
     return transporter.sendMail(mailOptions);
 };
 
+//sat purpose
+// app.post('/send-email-otp-forPassword', async (req, res) => {
+//     const { email } = req.body;
+//     console.log('Received email:', email);
+
+//     // Check if the email already exists in the database
+//     try {
+//         const user = await Login.findOne({ email: email });
+//         console.log(user,"user") 
+//         const StaffOne=await staff.findOne({email:email})
+//         // MongoDB query using Mongoose
+//         console.log(user)
+//         console.log(StaffOne)
+//         // If a user with this email exists, return an error response
+//         if (user) {
+//             const otp = generateOTP();
+//             console.log(otp) // Assume generateOTP() generates a random OTP
+//             otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
+
+//             // Send OTP to the email (assume sendOTP handles email delivery)
+//             await sendOTP(email, otp);
+
+//             console.log('Email OTP sent successfully.');
+//             // Return success response if OTP is sent successfully
+//             console.log(otpStorage)
+//             res.status(200).json({ message: 'OTP sent successfully!' });
+
+//         }
+//         // if(StaffOne){
+//         //     const otp = generateOTP();
+//         //     console.log(otp) // Assume generateOTP() generates a random OTP
+//         //     otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
+
+//         //     // Send OTP to the email (assume sendOTP handles email delivery)
+//         //     await sendOTP(email, otp);
+
+//         //     console.log('Email OTP sent successfully.');
+//         //     // Return success response if OTP is sent successfully
+//         //     console.log(otpStorage)
+//         //     res.status(200).json({ message: 'OTP sent successfully!' });
+//         // }
+        
+//         else {
+//             return res.status(400).json({ message: 'User does not Exist' });
+
+//         }
+
+//     } catch (error) {
+//         console.log('Error checking email or sending OTP:', error);
+//         res.status(500).json({ error, message: 'Internal Server Error.' });
+//     }
+// });
+
 app.post('/send-email-otp-forPassword', async (req, res) => {
     const { email } = req.body;
     console.log('Received email:', email);
 
-    // Check if the email already exists in the database
     try {
-        const user = await Login.findOne({ email: email }); // MongoDB query using Mongoose
-        console.log(user)
-        // If a user with this email exists, return an error response
-        if (user) {
-            const otp = generateOTP();
-            console.log(otp) // Assume generateOTP() generates a random OTP
-            otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
+        // Check if email exists in either Login or Staff collection
+        const user = await Login.findOne({ email: email });
+        const staffOne = await staff.findOne({ email: email });
 
-            // Send OTP to the email (assume sendOTP handles email delivery)
-            await sendOTP(email, otp);
+        console.log(user, "user");
+        console.log(staffOne, "staff");
+
+        if (user || staffOne) {
+            const otp = generateOTP(); // Assume generateOTP() generates a random OTP
+            console.log(otp);
+
+            otpStorage[email] = { otp, expiry: Date.now() + 120000 }; // Store OTP with a 2-minute expiry
+
+            await sendOTP(email, otp); // Send OTP to the email
 
             console.log('Email OTP sent successfully.');
-            // Return success response if OTP is sent successfully
-            console.log(otpStorage)
-            res.status(200).json({ message: 'OTP sent successfully!' });
+            console.log(otpStorage);
 
+            return res.status(200).json({ message: 'OTP sent successfully!' });
+        } else {
+            return res.status(400).json({ message: 'User does not exist' });
         }
-        else {
-            return res.status(400).json({ message: 'User does not Exist' });
-
-        }
-
     } catch (error) {
         console.log('Error checking email or sending OTP:', error);
         res.status(500).json({ error, message: 'Internal Server Error.' });
@@ -408,7 +464,6 @@ app.post('/register-login', async (req, res) => {
             phone_otp: req.body.contact || null,
             company_details: companyDetails,
             is_mfa_enabled: req.body.is_mfa_enabled || "false",
-            mfa_type: req.body.mfa_type || "email",
             passkey: req.body.passkey || null,
             biometric_data: req.body.biometric_data || null,
             authenticator_secret: req.body.authenticator_secret || null,
@@ -543,11 +598,12 @@ app.post('/login', async (req, res) => {
             if (!hospitals) {
                 // return res.status(400).json({ message: 'Invalid Email' });
                 const staffOne = await staff.findOne({ "email": req.body.email })
+                console.log(staffOne,"staffOne Here")
                 const isMatch = await bcrypt.compare(req.body.password, staffOne.password);
                 const accessToken = jwt.sign({ userId: staffOne.email }, secretKey, { expiresIn: '5h' });
-                const refreshToken = jwt.sign({ userId: staffOne.email }, secretRefreshKey, { expiresIn: '7d' });
+                const refreshToken = jwt.sign({ userId: staffOne.email }, secretRefreshKey, { expiresIn: '7d' },);
 
-                return res.json({ success: "Login SuccessFully", accessToken, refreshToken });
+                return res.json({ success: "Login SuccessFully", accessToken, refreshToken,mfa:staffOne.is_mfa_enabled,role:staffOne.jobRole,mfaTypes:staffOne.mfa_type });
             }
 
             const isMatch = await bcrypt.compare(req.body.password, hospitals.password);
@@ -572,7 +628,7 @@ app.post('/login', async (req, res) => {
             const accessToken = jwt.sign({ userId: user.email }, secretKey, { expiresIn: '5h' });
             const refreshToken = jwt.sign({ userId: user.email }, secretRefreshKey, { expiresIn: '7d' });
 
-            res.json({ success: "Login SuccessFully", mfa: user.is_mfa_enabled, accessToken, refreshToken, role: "Super_Admin",mfaTypes:user.mfa_type });
+            res.json({ success: "Login SuccessFully", mfa: user.is_mfa_enabled, accessToken, refreshToken, role: "staff",mfaTypes:user.mfa_type });
         }
     } catch (err) {
         console.error('Error logging in:', err);
@@ -626,6 +682,16 @@ app.use((error, req, res, next) => {
     res.status(error.code || 500)
     res.json({ message: error.message || 'An Unknown error occured' })
 })
+// by me
+app.use(cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+// ✅ Middleware
+app.use(express.json()); // To handle JSON requests
+app.use(express.urlencoded({ extended: true })); 
 
 app.get("/")
 mongoose.connect(`mongodb+srv://sandhya:123@cluster0.ddkdz.mongodb.net/wonpulse?retryWrites=true&w=majority&appName=Cluster0`).then(app.listen(5000, () => {

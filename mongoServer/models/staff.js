@@ -16,13 +16,16 @@ const staffSchema = new Schema({
         department: { type: String, required: true },
         employmentType: { type: String, required: true },
         qualification: { type: String, required: true },
-        nightShift:{type:String,required:false},
-        online:{type:String,required:false},
+        nightShift: { type: String, required: false },
+        online: { type: String, required: false },
         status: { type: String, required: true },
-        hospitalId: { type: String,},
-        password:{ type: String, },
-        role:{ type: String },
-// add emergencyContactdetails As per the requirement
+        hospitalId: { type: String, },
+        password: { type: String, },
+        role: { type: String },
+        is_mfa_enabled: { type: String ,default: "false" } ,
+        mfa_type: { type: [String], default: [] },
+        passkey: { type: String },
+        // add emergencyContactdetails As per the requirement
 })
 
 module.exports = mongoose.model('Staff', staffSchema)
