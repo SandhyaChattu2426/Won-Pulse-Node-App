@@ -8,10 +8,13 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies with a clean cache
-RUN npm install --force
+RUN npm install --legacy-peer-deps
 
 # Copy the rest of the application code to the container
 COPY . .
+
+# Grant execution permission to node_modules binaries
+RUN chmod -R 777 node_modules
 
 # Expose port (ensure this matches the port used by your app)
 EXPOSE 5000
