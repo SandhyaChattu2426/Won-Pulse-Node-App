@@ -18,7 +18,7 @@ COPY . .
 RUN chmod -R 777 node_modules
 
 # Expose port (ensure this matches the port used by your app)
-EXPOSE 5000
+EXPOSE 5002
 
 # Command to run the React app
 CMD ["npm", "start"]  
