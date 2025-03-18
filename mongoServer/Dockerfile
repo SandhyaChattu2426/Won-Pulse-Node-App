@@ -1,22 +1,29 @@
-# Use official Node.js image as base
-FROM node:18-alpine
+# Use official Node.js image
+FROM --platform=linux/amd64 node:18-alpine  
 
-# Set working directory in the container
+# Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json to the container
-COPY package*.json package-lock.json./
+# Install required dependencies for bcrypt and build tools
+RUN apk add --no-cache python3 make g++ bash
 
-# Install dependencies with a clean cache
-RUN npm install --force
+# Copy package.json and package-lock.json
+COPY package*.json ./
 
+# Install dependencies using legacy-peer-deps
+RUN npm ci --legacy-peer-deps
 
-# Copy the rest of the application code to the container
+# Ensure bcrypt is correctly built
+RUN npm rebuild bcrypt --build-from-source
+
+# Copy the application source
 COPY . .
 
+# Set proper permissions
+RUN chmod -R 777 /app/node_modules
 
-# Expose port (ensure this matches the port used by your app)
-EXPOSE 5002
+# Expose port 5000 (ensure this matches your app's port)
+EXPOSE 5000
 
-# Command to run the React app
-CMD ["npm", "start"]  
+# Start the application
+CMD ["npm", "start"]
