@@ -12,6 +12,7 @@ const AppointmentsSchema = new Schema({
     paymentType: { type: String, required: true },
     status: { type: String, required: true },
     hospitalId:{ type: String},
+    month:{type:String}
 })
 
 module.exports = mongoose.model('appointments', AppointmentsSchema)

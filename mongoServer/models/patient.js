@@ -44,7 +44,10 @@ const patientSchema = new Schema({
         resultStatus:String,
 
     }],
-    registrationFiles:[{}],
+    files:[{
+        name:{type:String},
+        url:{type:String}
+    }],
     hospitalId:{type:String},
     fullName:{type:String}
 })

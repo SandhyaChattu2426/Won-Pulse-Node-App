@@ -1,5 +1,10 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
+const layout= new Schema({
+    widgetId:{type:String},
+    reportId:{type:String},
+})
+
 
 const userSchema = new Schema({
     user_id: {type:String},
@@ -11,7 +16,7 @@ const userSchema = new Schema({
     title:{type:String},
     user_status: {type:String},
     selected_layout: {type:String},
-    dashboard_layouts: {type:String},
+    dashboard_layouts: [layout],
     password: {type:String},
     login_key:{type:String},
     reset_password: {type:String},

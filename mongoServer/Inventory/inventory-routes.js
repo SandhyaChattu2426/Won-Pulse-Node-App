@@ -4,6 +4,8 @@ const router = express.Router()
 const inventoryControllers=require('./inventory-controllers')
 router.post('/upload-excel',inventoryControllers.addInventoryFromExcel)
 router.post('/', inventoryControllers.createInventory)
+router.get('/chartdata', inventoryControllers.getChartData)
+
 router.patch('/instock/quantity', inventoryControllers.UpdateInventoryQuantity)
 router.get('/names',inventoryControllers.getInvNames)
 router.get('/invby/:Id', inventoryControllers.getInventoryById)

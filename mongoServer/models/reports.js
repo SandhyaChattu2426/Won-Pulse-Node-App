@@ -17,6 +17,11 @@ const ReportsSchema=new Schema({
     },
     hospitalId:{type:String,},
     status:{type:String},
-})
+    files:[{
+        name:{type:String},
+        url:{type:String}
+    }],
+}
+)
 
 module.exports = mongoose.model('reports', ReportsSchema)

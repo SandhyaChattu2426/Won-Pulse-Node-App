@@ -1,13 +1,14 @@
 const { response } = require('express')
-const {services}=require('../models/Services')
+const { services } = require('../models/Services')
 const HttpError = require('../models/http-error')
 const XLSX = require('xlsx');
 const fs = require('fs'); // For reading the file stream
 const path = require('path');
 const mongoose = require("mongoose");
-const Patients= require("../models/patient")
+const Patients = require("../models/patient")
 
 const Reports = require('../models/reports')
+const {uploadFileToS3Bucket}=require('../models/s3Bucket')
 
 //Register Supplier
 
@@ -36,6 +37,7 @@ const GetReports = async (req, res, next) => {
     let List;
     try {
         List = await Reports.find({})
+        console.log(List,"reportsList here")
     }
     catch (e) {
         console.log(e)
@@ -186,23 +188,23 @@ const addReportFromExcel = async (req, res, next) => {
         status = "Active",
     } = req.body;
 
-     let [firstName, ...lastNameParts] = patientname.trim().split(" ");
-        let lastName = lastNameParts.join(" "); // Handle multi-word last names
-    
-        try {
-            // 🔹 Search for patient in `Patient` collection using firstName & lastName
-            const existingPatient = await Patients.findOne({
-                firstName: new RegExp(`^${firstName}$`, "i"), // Case-insensitive match
-                LastName: new RegExp(`^${lastName}$`, "i"),
-            });
-            console.log(existingPatient,"patient")
-    
-            if (!existingPatient) {
-                return res.status(404).json({ message: "Patient is not Registered" });
-            }
-        }catch(e){
-            console.log(e)
+    let [firstName, ...lastNameParts] = patientname.trim().split(" ");
+    let lastName = lastNameParts.join(" "); // Handle multi-word last names
+
+    try {
+        // 🔹 Search for patient in `Patient` collection using firstName & lastName
+        const existingPatient = await Patients.findOne({
+            firstName: new RegExp(`^${firstName}$`, "i"), // Case-insensitive match
+            LastName: new RegExp(`^${lastName}$`, "i"),
+        });
+        console.log(existingPatient, "patient")
+
+        if (!existingPatient) {
+            return res.status(404).json({ message: "Patient is not Registered" });
         }
+    } catch (e) {
+        console.log(e)
+    }
 
     try {
         const existingReport = await Reports.findOne({
@@ -246,6 +248,48 @@ const addReportFromExcel = async (req, res, next) => {
     }
 };
 
+const generateNoteUrl = async (req, res, next) => {
+    console.log("Uploading File to S3 Bucket..."); 
+    console.log(req.file,'this si the file')
+        console.log(req.body,"body") 
+    try {
+        // Check for file
+        // console.log(req.file)
+        console.log(req.file,'this si the file')
+        console.log(req.body,"body")
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: "No file provided",
+            });
+        }
+
+        // Upload image to S3
+        console.log(req.file,"file @backend")
+        console.log(req.body,"body")
+        const fileUrl = await uploadFileToS3Bucket(req.file);
+        if (!fileUrl) {
+            return res.status(500).json({
+                success: false,
+                message: "Failed to upload file to S3",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "File uploaded successfully.",
+            fileUrl,
+            name:req.file.originalname
+        });
+    } catch (error) {
+        console.error("Error uploading File:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Error uploading File, try again.",
+        });
+    }
+};
+
 
 
 
@@ -257,3 +301,4 @@ exports.updateReportStatus = updateReportStatus
 exports.getReportByPatientId = getReportByPatientId
 exports.getReportById = getReportById
 exports.addReportFromExcel = addReportFromExcel
+exports.generateNoteUrl=generateNoteUrl

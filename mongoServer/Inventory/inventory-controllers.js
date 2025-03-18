@@ -233,9 +233,13 @@ const updateQuantity = async (req, res, next) => {
 }
 
 const addInventoryFromExcel = async (req, res, next) => {
-    console.log("Triggering here")
+    // console.log("Triggering here")
     let last, lastId, newId;
     let createdItem;
+    function excelDateToJSDate(serialDate) {
+        const jsonDate= new Date((serialDate - 25569) * 86400 * 1000);
+        return jsonDate.toISOString().split("T")[0];
+    }
 
     try {
         const totalItems = await Inventory.countDocuments();
@@ -251,91 +255,9 @@ const addInventoryFromExcel = async (req, res, next) => {
         const newNumber = lastId + 1;
         const paddedNumber = newNumber.toString().padStart(6, "0");
         newId = prefix + paddedNumber;
-        console.log(newId)
     } catch (err) {
         return next(new HttpError(`Creating report ID failed, Please try again. ${err}`, 500));
     }
-
-    // Validate inputs
-    // const errors = validationResult(req);
-    // if (!errors.isEmpty()) {
-    //     return next(new HttpError("Invalid inputs passed, please check your data", 422));
-    // }
-
-    console.log(req.body, "request")
-    // let {
-    //     staffId:req.body.,
-    //     fullName:req.body.,
-    //     dateOfBirth:req.body.,
-    //     gender:req.body.,
-    //     email:req.body.,
-    //     contactNumber:req.body.,
-    //     street:req.body.,
-    //     city:req.body.,
-    //     state:req.body.,
-    //     zipcode:req.body.,
-    //     jobRole:req.body.,
-    //     department:req.body.,
-    //     employmentType:req.body.,
-    //     qualification:req.body.,
-    //     nightShift:req.body.,
-    //     online:req.body.,
-    //     status:req.body.,
-
-    // } = req.body;
-
-
-    //  try {
-    //     let existingItem;
-
-    //     // ✅ 1️⃣ Check for existing item using `item_id`
-    //     if (req.body.reportId) {
-    //         existingItem = await Reports.findOne({ item_id });
-    //     }
-
-    //     if (existingItem) {
-    //         // ✅ Update existing item by `item_id`
-    //         const updatedItem = await Reports.findOneAndUpdate(
-    //             { item_id },
-    //             { $set: req.body },
-    //             { new: true }
-    //         );
-
-    //         return res.status(200).json({
-    //             message: "Item updated successfully.",
-    //             updatedItem,
-    //         });
-    //     } else {
-    //         // ✅ 2️⃣ If no `item_id`, check for existing item by `item_category` and `item_brand`
-    //         existingItem = await Reports.findOne({
-    //             item_name,
-    //             item_brand,
-    //         });
-
-    //         if (existingItem) {
-    //             // ✅ If found, update the existing record
-    //             const updatedItem = await Reports.findOneAndUpdate(
-    //                 { item_name, item_brand },
-    //                 { $set: req.body },
-    //                 { new: true }
-    //             );
-
-    //             return res.status(200).json({
-    //                 message: "Item updated successfully.",
-    //                 updatedItem,
-    //             });
-    //         }
-    //     }
-    // } catch (err) {
-    //     return next(new HttpError(`Error checking for existing item: ${err}`, 500));
-    // }
-
-    // Create a new inventory item
-    // const existItem = await Inventory.findOne({ servicename: req.body.serviceName });  // You can use email or staffId for uniqueness
-    // if (existItem) {
-    //     return res.status(400).json({ message: "Item already exists.." });
-    // }
-
 
     createdItem = new Inventory({
         inventoryId: newId, // Keeping as String for flexibility
@@ -344,9 +266,9 @@ const addInventoryFromExcel = async (req, res, next) => {
         quantity: req.body.quantity, // Changed to Number
         units: req.body.units,
         quantityInStock: req.body.quantityinstock, // Changed to Number
-        receivedDate: req.body.receiveddate, // Changed to Date
-        manufactureDate: req.body.manufacturedate, // Changed to Date
-        expairyDate: req.body.expairydate, // Fixed typo and changed to Date
+        receivedDate: excelDateToJSDate(req.body.receiveddate),
+        manufactureDate: excelDateToJSDate(req.body.manufacturedate),
+        expairyDate: excelDateToJSDate(req.body.expairydate),
         minimumLevel: req.body.minimumlevel, // Changed to Number
         reorderLevel: req.body.reorderlevel, // Changed to Number
         storageLocation: req.body.storagelocation,
@@ -363,12 +285,9 @@ const addInventoryFromExcel = async (req, res, next) => {
     }
     else {
         try {
-            // const sess = await mongoose.startSession();
-            // sess.startTransaction();
-            // await createdItem.save({ session: sess });
-            // await sess.commitTransaction();
-            // sess.endSession();
-
+        
+            // console.log(createdItem,"Item Here")
+            // console.log(new Date(req.body.receivedDate),req.body.receivedDate)// Invalid Date undefined
             await createdItem.save()
             res.status(201).json({ item: createdItem });
         } catch (err) {
@@ -376,6 +295,77 @@ const addInventoryFromExcel = async (req, res, next) => {
         }
     }
 }
+
+const getChartData = async (req, res, next) => {
+    // Predefined color map for categories
+    const categoryColors = {
+        "Equipment": "rgba(76, 175, 80, 1)", // Green
+        "Hospital-Inventories": "rgba(149, 125, 205, 1)", // Purple
+        "Lab-Inventories": "rgba(255, 167, 38, 1)", // Orange
+        "Pharmacy": "rgba(76, 175, 80, 1)", // Green
+        "General": "rgba(244, 67, 54, 1)" // Red
+    };
+
+    try {
+        const inventoryData = await Inventory.aggregate([
+            {
+                $group: {
+                    _id: {
+                        category: "$category",
+                        receivedMonth: { $month: "$receivedDate" }, // Extract month
+                    },
+                    totalQuantity: { $sum: "$quantity" } // Sum up quantities
+                }
+            },
+            {
+                $group: {
+                    _id: "$_id.category",
+                    data: {
+                        $push: {
+                            month: "$_id.receivedMonth",
+                            totalQuantity: "$totalQuantity"
+                        }
+                    }
+                }
+            }
+        ]);
+
+        // Default labels (Jan to Dec)
+        const allLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        // Determine the latest month with data
+        let maxMonth = 0; // Initialize with zero (no data)
+
+        const datasets = inventoryData.map(categoryData => {
+            const monthData = new Array(12).fill(0);
+
+            // Map received data to respective months
+            categoryData.data.forEach(entry => {
+                monthData[entry.month - 1] = entry.totalQuantity; // Adjust index (MongoDB months are 1-based)
+                if (entry.month > maxMonth) {
+                    maxMonth = entry.month; // Track the latest month with data
+                }
+            });
+
+            return {
+                label: categoryData._id, // Category name
+                data: monthData.slice(0, maxMonth), // Trim data to the last available month
+                borderColor: categoryColors[categoryData._id] || "rgba(0, 0, 0, 1)", // Default black if not found
+                backgroundColor: categoryColors[categoryData._id]?.replace("1)", "0.3)") || "rgba(0, 0, 0, 0.3)" // Lighter for background
+            };
+        });
+
+        // Trim labels up to the last month with data
+        const labels = allLabels.slice(0, maxMonth);
+
+        res.json({ labels, datasets });
+    } catch (error) {
+        console.error("Error fetching inventory chart data:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+
 
 exports.createInventory = createInventory
 exports.getId = getId
@@ -388,4 +378,5 @@ exports.getInvNames = getInvNames
 exports.getInventoryByName = getInventoryByName
 exports.updateQuantity = updateQuantity
 exports.addInventoryFromExcel = addInventoryFromExcel
+exports.getChartData=getChartData
 

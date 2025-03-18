@@ -239,10 +239,9 @@ const addAdmissionFromExcel = async (req, res, next) => {
             return res.status(404).json({ message: "Patient is not Registered" });
         }
 
-        // 🔹 Check if the patient already has an admission
         const existingAdmission = await Admission.findOne({ patientId: existingPatient._id });
 
-        // 🔹 Create admission object
+        // 🔹 Create admission 
         const updateFields = {
             admissionId: existingAdmission ? existingAdmission.admissionId : newId,
             patientName: patientname,

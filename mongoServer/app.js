@@ -25,9 +25,14 @@ const BillRoutes = require('./routes/billRoutes')
 const Login = require('./models/Users');
 const staff = require("./models/staff");
 const dashboardRoutes=require('./routes/dashboardRoutes')
+const { MongoClient } = require("mongodb");
+const dashboardReportRoutes=require('./routes/DashboardReports')
+
 require('dotenv').config();
 const secretKey = process.env.JWT_SECRET;
 const secretRefreshKey = process.env.JWT_REFRESH_SECRET;
+const uri = process.env.MONGO_URI || "mongodb+srv://sandhya:123@cluster0.ddkdz.mongodb.net/wonpulse?retryWrites=true&w=majority";
+const client = new MongoClient(uri);
 app.use(bodyParser.json())
 
 // app.use((req, res, next) => {
@@ -61,6 +66,7 @@ app.use('/api/user', UserRoutes)
 app.use('/api/medicinebill', PharmaBillRoutes)
 app.use('/api/genralbill', BillRoutes)
 app.use('/api/dashboard', dashboardRoutes)
+app.use('/api/dashboardReports',dashboardReportRoutes)
 
 
 
@@ -417,6 +423,7 @@ app.post('/verify-login-otp', (req, res) => {
 // Register Login
 app.post('/register-login', async (req, res) => {
     const { email, password, fullName, contact } = req.body;
+    console.log(req.body.dashlay,"body")
     if (!email || !password || !fullName) {
         return res.status(400).json({ success: false, message: 'Email, password, and user name are required.' });
     }
@@ -668,6 +675,168 @@ app.get("/generate", (req, res) => {
         });
     });
 });
+
+app.post('/get/report-data', async (req, res) => {
+    // console.log("getting")
+    const { aggregation, groupBy, selectedTable, stackBy, filterConditions, dateLabel } = req.body;
+    // console.log(aggregation, groupBy, selectedTable, stackBy, filterConditions, dateLabel)
+    try {
+        await client.connect();
+        const db = client.db('wonpulse');
+        const collection = db.collection(selectedTable);
+        // console.log(collection)
+
+        if (!selectedTable) {
+            return res.status(400).send({ error: 'Selected table is required.' });
+        }
+
+        // Build filters
+        const filters = {};
+        if (filterConditions && filterConditions.length > 0) {
+            filterConditions.forEach(({ column, operation, value }) => {
+                if (!column || !operation || value === undefined) {
+                    // console.warn('Invalid filter condition:', { column, operation, value });
+                    return; // Skip invalid conditions
+                }
+
+                // Ensure correct data type for value
+                if (!isNaN(value)) {
+                    value = Number(value);
+                }
+
+                switch (operation) {
+                    case 'Contains':
+                        filters[column] = { $regex: new RegExp(value, 'i') }; // Case-insensitive partial match
+                        break;
+
+                    case 'Equals':
+                        filters[column] = { $eq: value }; // Exact match
+                        break;
+
+                    case 'Greater Than':
+                        filters[column] = { $gt: value }; // Greater than
+                        break;
+
+                    case 'Less Than':
+                        filters[column] = { $lt: value }; // Less than
+                        break;
+
+                    case 'Greater Than or Equal To':
+                        filters[column] = { $gte: value }; // Greater than or equal to
+                        break;
+
+                    case 'Less Than or Equal To':
+                        filters[column] = { $lte: value }; // Less than or equal to
+                        break;
+
+                    case 'Starts With':
+                        filters[column] = { $regex: new RegExp(`^${value}`, 'i') }; // Starts with
+                        break;
+
+                    case 'Ends With':
+                        filters[column] = { $regex: new RegExp(`${value}$`, 'i') }; // Ends with
+                        break;
+
+                    case 'Is Empty':
+                        filters[column] = { $in: [null, ''] }; // Match null or empty string
+                        break;
+
+                    case 'Is Not Empty':
+                        filters[column] = { $nin: [null, ''] }; // Exclude null and empty string
+                        break;
+
+                    case 'Is Any Of':
+                        filters[column] = { $in: Array.isArray(value) ? value : [value] }; // Match any value in the array
+                        break;
+
+                    default:
+                        console.warn('Unsupported operation:', operation);
+                        break;
+                }
+            });
+
+            // console.log('Generated filters:', filters);
+        }
+        // If dateLabel is provided, generate a specific aggregation
+        if (dateLabel && groupBy) {
+            console.log(dateLabel,"dataLabel")
+
+            const dateLabelFormat = dateLabel.label === 'Month' ? '%B' : '%Y-%m-%d';
+
+            const pipeline = [
+                { $match: filters },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: dateLabelFormat, date: `$${groupBy}` } },
+                        count: { $count: {} }
+                    }
+                },
+                { $sort: { _id: 1 } }
+            ];
+
+            const results = await collection.aggregate(pipeline).toArray();
+            return res.send({ generatedReportData: results, orderByResult: [] });
+        }
+
+        // General report data aggregation
+        const pipeline = [];
+
+        // Apply filters
+        if (Object.keys(filters).length > 0) {
+            pipeline.push({ $match: filters });
+        }
+
+        // Grouping and aggregation
+        if (aggregation && groupBy) {
+            const groupStage = {
+                _id: `$${groupBy}`,
+                [`${groupBy}_count`]: { $sum: 1 },
+            };
+
+            if (stackBy) {
+                groupStage._id = {
+                    groupBy: `$${groupBy}`,
+                    stackBy: `$${stackBy}`,
+                };
+            }
+
+            pipeline.push({ $group: groupStage });
+        }
+
+        // Sorting
+        if (groupBy) {
+            pipeline.push({ $sort: { _id: 1 } });
+        }
+
+        const reportResult = await collection.aggregate(pipeline).toArray();
+
+        // Generate orderBy query
+        const orderByPipeline = [
+            { $match: filters },
+            { $sort: { [groupBy || '_id']: 1 } },
+            { $limit: 100 }
+        ];
+
+        const orderByResult = await collection.aggregate(orderByPipeline).toArray();
+
+        // console.log(reportResult);
+        // console.log(reportResult.map(item => ({ [groupBy]: item?._id?.groupBy || item._id, [Object.keys(item)[1]]: Object.values(item)[1] })))
+
+        res.send({ generatedReportData: reportResult.map(item => ({ [groupBy]: item?._id?.groupBy || item._id, [Object.keys(item)[1]]: Object.values(item)[1] })), orderByResult });
+    } catch (error) {
+        console.log('Error fetching report data:', error);
+        res.status(500).send({ error: 'An error occurred while fetching report data.' });
+    }
+    //  finally {
+    //     await client.close();
+    // }
+});
+
+
+
+
+
+
 
 app.use((req, res, next) => {
     const error = new HttpError('Could not find this route .', 404)

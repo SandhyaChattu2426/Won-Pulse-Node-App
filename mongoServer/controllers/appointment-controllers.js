@@ -167,6 +167,7 @@ const addAppointmentFromExcel = async (req, res, next) => {
     console.log("Triggering here")
     let last, lastId, newId;
     let createdItem;
+    
     try {
         const totalItems = await Appointments.countDocuments();
         if (totalItems > 0) {
@@ -188,14 +189,22 @@ const addAppointmentFromExcel = async (req, res, next) => {
 
     console.log(req.body, "request")
     // Create a new inventory item
+    let appointmentDate = req.body.appointmentdate;
+
+    if (!isNaN(appointmentDate)) { 
+        let excelDate = new Date((appointmentDate - 25569) * 86400000); 
+        appointmentDate = excelDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }); 
+        // Output will be in "14 FEB 2024" format
+    }
     createdItem = new Appointments({
         appointmentId:newId,
-        appointmentDate: req.body.appointmentdate,
+        appointmentDate: appointmentDate,
         appointmentTime: req.body.appointmenttime,
         doctorName: req.body.doctorname,
         patientId: req.body.patientid,
         patientName: req.body.patientname,
         paymentType: req.body.paymenttype,
+        month:req.body.month,
         status: req.body.status
     });
 
