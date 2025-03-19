@@ -1,29 +1,26 @@
-# Use Node.js alpine image
-FROM --platform=linux/amd64 node:18-alpine  
+# Use an official Node.js image
+FROM node:16-alpine
 
-# Set working directory
-WORKDIR /app
+# Set user to root for installation
+USER root
 
-# Add a non-root user
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-USER appuser
-
-# Install dependencies for bcrypt
+# Install required dependencies
 RUN apk add --no-cache python3 make g++ bash
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
+# Create and set working directory
+WORKDIR /app
 
-# Install dependencies with proper permissions
-RUN npm install --legacy-peer-deps --unsafe-perm
+# Switch back to a non-root user (optional for security)
+USER node
 
-# Rebuild bcrypt with the correct permissions
-RUN npm rebuild bcrypt --build-from-source --unsafe-perm
+# Copy and install dependencies
+COPY package.json ./
+RUN npm install --legacy-peer-deps
 
-# Copy the application source
+# Copy rest of the application
 COPY . .
 
-# Expose port 5000
+# Expose the application port
 EXPOSE 5000
 
 # Start the application
