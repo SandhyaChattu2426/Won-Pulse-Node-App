@@ -1,8 +1,12 @@
-# Use a lightweight Node.js image
+# Use Node.js alpine image
 FROM --platform=linux/amd64 node:18-alpine  
 
 # Set working directory
 WORKDIR /app
+
+# Add a non-root user
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
 
 # Install dependencies for bcrypt
 RUN apk add --no-cache python3 make g++ bash
@@ -10,19 +14,16 @@ RUN apk add --no-cache python3 make g++ bash
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install --legacy-peer-deps
+# Install dependencies with proper permissions
+RUN npm install --legacy-peer-deps --unsafe-perm
 
-# Rebuild bcrypt
-RUN npm rebuild bcrypt --build-from-source
+# Rebuild bcrypt with the correct permissions
+RUN npm rebuild bcrypt --build-from-source --unsafe-perm
 
 # Copy the application source
 COPY . .
 
-# Set proper permissions
-RUN chmod -R 777 /app/node_modules
-
-# Expose the application port
+# Expose port 5000
 EXPOSE 5000
 
 # Start the application
