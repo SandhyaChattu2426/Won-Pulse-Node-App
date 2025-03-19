@@ -14,11 +14,19 @@ WORKDIR /app
 USER node
 
 # Copy and install dependencies
-COPY package.json ./
+COPY package.json  package-lock.json./
+
+# Change ownership of the app directory to node user
+RUN chown -R node:node /app
+
+# Switch to node user
+USER node
+
+# Install dependencies
 RUN npm install --legacy-peer-deps
 
 # Copy rest of the application
-COPY . .
+COPY --chown=node:node. .
 
 # Expose the application port
 EXPOSE 5000
