@@ -5,13 +5,13 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Copy package files first to leverage Docker cache
-COPY package.json package-lock.json ./
+COPY mongoServer/package.json mongoServer/package-lock.json ./
 
 # Install dependencies
 RUN npm ci --legacy-peer-deps
 
 # Copy remaining application files
-COPY . .
+COPY mongoServer/. .
 
 # Expose the application port
 EXPOSE 5000
