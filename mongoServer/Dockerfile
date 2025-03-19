@@ -4,17 +4,14 @@ FROM node:18-alpine
 # Set user to root for installation
 USER root
 
-# Install required dependencies
-RUN apk add --no-cache python3 make g++ bash
-
-# Create and set working directory
+# Set working directory
 WORKDIR /app
 
-# Switch back to a non-root user (optional for security)
-USER node
+# Install dependencies
+RUN apk add --no-cache python3 make g++ bash
 
-# Copy and install dependencies
-COPY package.json  package-lock.json./
+# Copy package files first to leverage Docker cache
+COPY package.json package-lock.json /app/
 
 # Change ownership of the app directory to node user
 RUN chown -R node:node /app
@@ -23,10 +20,10 @@ RUN chown -R node:node /app
 USER node
 
 # Install dependencies
-RUN npm install --legacy-peer-deps
+RUN npm install --legacy-peer-deps --unsafe-perm=true
 
-# Copy rest of the application
-COPY --chown=node:node. .
+# Copy remaining application files
+COPY --chown=node:node . /app/
 
 # Expose the application port
 EXPOSE 5000
