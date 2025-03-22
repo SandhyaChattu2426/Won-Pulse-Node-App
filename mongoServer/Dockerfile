@@ -1,22 +1,20 @@
-# Use official Node.js image as base
+# Use an official Node.js image
 FROM node:18-alpine
 
-# Set working directory in the container
+# Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json to the container
-COPY package*.json package-lock.json./
+# Copy package files first to leverage Docker cache
+COPY mongoServer/package.json mongoServer/package-lock.json ./
 
-# Install dependencies with a clean cache
-RUN npm install --force
+# Install dependencies
+RUN npm ci --legacy-peer-deps
 
+# Copy remaining application files
+COPY mongoServer/. .
 
-# Copy the rest of the application code to the container
-COPY . .
+# Expose the application port
+EXPOSE 5000
 
-
-# Expose port (ensure this matches the port used by your app)
-EXPOSE 5002
-
-# Command to run the React app
-CMD ["npm", "start"]  
+# Start the application (avoid nodemon in production)
+CMD ["node", "app.js"]
