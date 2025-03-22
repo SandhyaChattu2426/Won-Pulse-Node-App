@@ -11,7 +11,7 @@ COPY mongoServer/package.json mongoServer/package-lock.json ./
 RUN npm ci --legacy-peer-deps
 
 # Copy remaining application files
-COPY mongoServer/. .
+COPY . .
 
 # Expose the application port
 EXPOSE 5000
