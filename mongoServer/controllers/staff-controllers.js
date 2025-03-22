@@ -268,6 +268,77 @@ const checkEmail=async(req,res,next)=>{
     }
 }
 
+const getStaffChartData = async (req, res, next) => {
+    console.log("Fetching Staff Registration Data");
+
+    // Define color mapping for departments
+    const departmentColors = {
+        "Cardiology": "rgba(244, 67, 54, 1)", // Red
+        "Neurology": "rgba(33, 150, 243, 1)", // Blue
+        "Orthopedics": "rgba(76, 175, 80, 1)", // Green
+        "General Medicine": "rgba(255, 167, 38, 1)", // Orange
+        "Pediatrics": "rgba(149, 125, 205, 1)" // Purple
+    };
+
+    try {
+        const staffData = await Staff.aggregate([
+            {
+                $group: {
+                    _id: {
+                        department: "$department",
+                        registeredMonth: { $month: "$registeredOn" } // Extract month from registeredOn
+                    },
+                    totalCount: { $sum: 1 } // Count number of staff members
+                }
+            },
+            {
+                $group: {
+                    _id: "$_id.department",
+                    data: {
+                        $push: {
+                            month: "$_id.registeredMonth",
+                            totalCount: "$totalCount"
+                        }
+                    }
+                }
+            }
+        ]);
+
+        // Labels for months (Jan to Dec)
+        const allLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        let maxMonth = 0; // Track the latest month with data
+
+        // Format data for Chart.js
+        const datasets = staffData.map(departmentData => {
+            const monthData = new Array(12).fill(0);
+
+            departmentData.data.forEach(entry => {
+                monthData[entry.month - 1] = entry.totalCount; // Adjust for zero-based index
+                if (entry.month > maxMonth) {
+                    maxMonth = entry.month; // Track latest month with data
+                }
+            });
+
+            return {
+                label: departmentData._id, // Department name
+                data: monthData.slice(0, maxMonth), // Trim data up to latest month
+                borderColor: departmentColors[departmentData._id] || "rgba(0, 0, 0, 1)", // Default black
+                backgroundColor: departmentColors[departmentData._id]?.replace("1)", "0.3)") || "rgba(0, 0, 0, 0.3)" // Lighter background
+            };
+        });
+
+        // Trim labels up to the latest month with data
+        const labels = allLabels.slice(0, maxMonth);
+
+        res.json({ labels, datasets });
+    } catch (error) {
+        console.error("Error fetching staff registration chart data:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+
 
 
 
@@ -280,3 +351,4 @@ exports.updateStaffStatus = updateStaffStatus
 exports.addStaffFromExcel = addStaffFromExcel
 exports.getStaffByHplId=getStaffByHplId
 exports.checkEmail=checkEmail
+exports.getStaffChartData = getStaffChartData

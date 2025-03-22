@@ -11,7 +11,7 @@ router.post('/', billControllers.createBill)
 // router.get('/patient/:Id',PharmaBillControllers.getBillByPatientId)
 router.get('/:Id',billControllers.getBillByBillId)
 //  router.get('/:Id', appointmentControllers.geet)
- router.get('/', billControllers.getBills)
+ router.get('/hospital/:hospitalId', billControllers.getBills)
 // router.patch('/Id', appointmentControllers.updateAppointments)
 // router.patch('/status/:Id',appointmentControllers.updateAppointmentStatus)
 

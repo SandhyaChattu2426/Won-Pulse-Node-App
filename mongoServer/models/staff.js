@@ -25,6 +25,8 @@ const staffSchema = new Schema({
         is_mfa_enabled: { type: String ,default: "false" } ,
         mfa_type: { type: [String], default: [] },
         passkey: { type: String },
+        registeredOn: { type: Date, default: Date.now },
+
         // add emergencyContactdetails As per the requirement
 })
 

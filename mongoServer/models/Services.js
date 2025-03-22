@@ -27,8 +27,29 @@ const ServicesSchema=new Schema({
         return this.services?.category === 'Pharmacy';
     },
 },
-  hospitalId:{type:String}
+  hospitalId:{type:String},
+  AddedBy:{type:String},
+  createdAt: {
+    type: Date,
+    default: Date.now // Automatically sets the date when the document is created
+  },
+  // write this function to update on Checking detailed View
+  UpdatedBy:{type:String},
+  UpdatedOn:{type:Date},
     
 })
+ServicesSchema.pre('save', function (next) {
+  if (this.isModified()) {
+    this.UpdatedOn = new Date();
+  }
+  next();
+});
+
+// 🔹 Auto-update `UpdatedOn` before update
+ServicesSchema.pre('findOneAndUpdate', function (next) {
+  this.set({ UpdatedOn: new Date() });
+  next();
+});
+
 
 module.exports = mongoose.model('services', ServicesSchema)

@@ -19,6 +19,12 @@ const supplierSchema = new Schema({
     },
     category: { type: String, required: true },
     
-    status: { type: String, required: true }
+    status: { type: String, required: true },
+    hospitalId: { type: String },
+    AddedBy: { type: String },
+    createdAt: {
+        type: Date,
+        default: Date.now // Automatically sets the date when the document is created
+    },
 })
 module.exports = mongoose.model('suppliers', supplierSchema)

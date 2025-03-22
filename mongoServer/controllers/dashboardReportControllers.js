@@ -7,7 +7,6 @@ const Report = require('../models/DashBoardReport')
 
 
 const getReports = async (req, res, next) => {
-    console.log("trigger")
     let last
     let lastId
     let newId
@@ -30,18 +29,15 @@ const getReports = async (req, res, next) => {
 
     }
     catch (err) {
-        console.log(err,"er")
         const error = new HttpError(`Creating Report failed, Please try again. ${err}`, 500)
         return next(error)
     }
 
     let reports
-    console.log(Report,"RP")
     try {
         reports = await Report.find({})
         // .skip(0)
         // .limit(20)
-        console.log(reports)
 
     }
     catch (err) {
@@ -129,7 +125,7 @@ const getReportById = async (req, res, next) => {
 // }
 
 const putId = async (req, res, next) => {
-    console.log("Triggering report creation...");
+    // console.log("Triggering report creation...");
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -155,7 +151,7 @@ const putId = async (req, res, next) => {
         });
 
         await createdReport.save(); // Save the report
-        console.log("Report saved successfully");
+        // console.log("Report saved successfully");
         res.status(201).json({ report: createdReport });
     } catch (err) {
         console.error("Error saving report:", err);
@@ -244,7 +240,7 @@ const updateReport = async (req, res, next) => {
     let report
     try {
         report = await Report.find({ report_id: reportId })
-        console.log(report)
+        // console.log(report)
 
     }
     catch (err) {
@@ -287,7 +283,7 @@ const updateReport = async (req, res, next) => {
 
 const searchReport = async (req, res, next) => {
     const search = req.params.sid;
-    console.log(req.query)
+    // console.log(req.query)
     let reports
     try {
         reports = await Report.find({

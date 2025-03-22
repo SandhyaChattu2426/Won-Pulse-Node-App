@@ -64,10 +64,10 @@ const getId = async (req, res, next) => {
 };
 
 const getBills = async (req, res, next) => {
-    // console.log("getting Appointments please wait")
+    const {hospitalId}=req.params
     let appointments
     try {
-        appointments = await GeneralBill.find({})
+        appointments = await GeneralBill.find({hospitalId:hospitalId})
         // console.log(appointments)
     }
     catch (e) {
@@ -75,7 +75,7 @@ const getBills = async (req, res, next) => {
     }
     res.json({ appointments })
 }
-const getBillByBillId=async(req,res,next)=>{
+const getBillByBillId=async(req,res)=>{
     const {Id}=req.params
      console.log(Id)
     let Bill;

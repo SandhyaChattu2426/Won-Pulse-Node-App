@@ -12,7 +12,6 @@ const createAppointment = async (req, res, next) => {
     // console.log(req.body)
     try {
         await newAppointment.save()
-        console.log("triggering try block by lords grace")
     }
     catch (e) {
         console.log(e)
@@ -72,11 +71,10 @@ const getId = async (req, res, next) => {
 
 // GETTING ALL THE APPOINTMENTS
 const getAppointments = async (req, res, next) => {
-    // console.log("getting Appointments please wait")
+const {hospitalId}=req.params;
     let appointments
     try {
-        appointments = await Appointments.find({})
-        // console.log(appointments)
+        appointments = await Appointments.find({hospitalId:hospitalId})
     }
     catch (e) {
         console.log(e)
@@ -177,7 +175,6 @@ const addAppointmentFromExcel = async (req, res, next) => {
         } else {
             lastId = 0;
         }
-
         const prefix = "AP";
         const newNumber = lastId + 1;
         const paddedNumber = newNumber.toString().padStart(6, "0");

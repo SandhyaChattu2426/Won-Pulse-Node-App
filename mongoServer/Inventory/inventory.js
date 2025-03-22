@@ -1,4 +1,5 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+const { addAdmissionFromExcel } = require('../controllers/admissionControllers');
 const Schema = mongoose.Schema
 const InventorySchema = new Schema({
   inventoryId: { type: String, required: true }, // Keeping as String for flexibility
@@ -23,7 +24,16 @@ const InventorySchema = new Schema({
     type: String, 
   },
   status: { type: String, required: true, enum: ['Active', 'Inactive'] },
-  hospitalId:{type:String} // Limited to specific values
+  hospitalId:{type:String} ,
+  staffId:{type:String},
+  AddedBy:{type:String},
+  createdAt: {
+    type: Date,
+    default: Date.now // Automatically sets the date when the document is created
+  },
+  UpdatedBy:{type:String},
+  UpdatedOn:{type:Date},
+    
 });
 
 

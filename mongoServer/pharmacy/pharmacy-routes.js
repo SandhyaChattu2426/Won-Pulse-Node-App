@@ -4,7 +4,7 @@ const { check } = require('express-validator')
 const HttpError = require('../models/http-error')
 const pharmacyControllers=require('./pharmacy-controllers')
 
-router.get('/chartdata',pharmacyControllers.getChartData);
+router.get('/charts',pharmacyControllers.getChartData );
 router.post('/upload-excel',pharmacyControllers.addPharmacyFromExcel);
 router.post('/',pharmacyControllers.RegisterMedicine);
 router.patch('/instock/quantity',pharmacyControllers.UpdatePharmacyQuantity)

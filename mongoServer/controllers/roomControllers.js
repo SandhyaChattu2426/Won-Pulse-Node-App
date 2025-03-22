@@ -1,7 +1,6 @@
 const rooms = require('../models/rooms')
 const Room = require('../models/rooms')
 
-//Creating a room
 
 const createRoom = (req, res, next) => {
     console.log("room Details")
@@ -22,10 +21,10 @@ const createRoom = (req, res, next) => {
 
 // Get Room Details (All)
 const GetRooms = async (req, res, next) => {
-    console.log("triggeing GET Pharmacy")
+    const {hospitalId}=req.params
     let List;
     try {
-        List = await Room.find({})
+        List = await Room.find({hospitalId:hospitalId})
     }
     catch (e) {
         console.log(e)

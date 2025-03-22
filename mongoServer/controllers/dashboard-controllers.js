@@ -4,7 +4,7 @@ const uri = process.env.MONGO_URI || "mongodb+srv://sandhya:123@cluster0.ddkdz.m
 const client = new MongoClient(uri);
 
 const GetDashboardData = async (req, res, next) => {
-    console.log("Triggering GET GroupByCollection");
+    // console.log("Triggering GET GroupByCollection");
 
     try {
         await client.connect();

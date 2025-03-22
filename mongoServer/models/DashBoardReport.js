@@ -21,7 +21,7 @@ const reportsSchema = new Schema({
     group_by: { type: String, },
     stack_by: { type: String, },
     aggregation: { type: String, },
-    date_label: { type: String, },
+    date_label: { type: String,default:null },
     visibility: { type: String, },
     gauge_report_fields: { type: String, },
     display_table: { type: String, },

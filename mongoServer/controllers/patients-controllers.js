@@ -626,6 +626,75 @@ const generateNoteUrl = async (req, res, next) => {
     }
 };
 
+const getPatientChartData = async (req, res, next) => {
+    console.log("Fetching Patient Registration Data");
+
+    // Define color mapping for categories
+    const categoryColors = {
+        "EmergencyAdmission": "rgba(244, 67, 54, 1)", // Red
+        "Normal": "rgba(76, 175, 80, 1)", // Green
+        "General": "rgba(33, 150, 243, 1)" // Blue
+    };
+
+    try {
+        const patientData = await Patient.aggregate([
+            {
+                $group: {
+                    _id: {
+                        category: "$category",
+                        registeredMonth: { $month: "$registeredOn" } // Extract month from registeredOn
+                    },
+                    totalCount: { $sum: 1 } // Count number of patients
+                }
+            },
+            {
+                $group: {
+                    _id: "$_id.category",
+                    data: {
+                        $push: {
+                            month: "$_id.registeredMonth",
+                            totalCount: "$totalCount"
+                        }
+                    }
+                }
+            }
+        ]);
+
+        // Labels for months (Jan to Dec)
+        const allLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        let maxMonth = 0; // Track the latest month with data
+
+        // Format data for Chart.js
+        const datasets = patientData.map(categoryData => {
+            const monthData = new Array(12).fill(0);
+
+            categoryData.data.forEach(entry => {
+                monthData[entry.month - 1] = entry.totalCount; // Adjust for zero-based index
+                if (entry.month > maxMonth) {
+                    maxMonth = entry.month; // Track latest month with data
+                }
+            });
+
+            return {
+                label: categoryData._id, // Category name
+                data: monthData.slice(0, maxMonth), // Trim data up to latest month
+                borderColor: categoryColors[categoryData._id] || "rgba(0, 0, 0, 1)", // Default black
+                backgroundColor: categoryColors[categoryData._id]?.replace("1)", "0.3)") || "rgba(0, 0, 0, 0.3)" // Lighter background
+            };
+        });
+
+        // Trim labels up to the latest month with data
+        const labels = allLabels.slice(0, maxMonth);
+
+        res.json({ labels, datasets });
+    } catch (error) {
+        console.error("Error fetching patient registration chart data:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+
 
 
 exports.getPatientById = getPatientById
@@ -639,3 +708,4 @@ exports.AddAppointment = AddAppointment
 exports.AddReport = AddReport
 exports.addPatientFromExcel = addPatientFromExcel
 exports.generateNoteUrl=generateNoteUrl
+exports.getPatientChartData = getPatientChartData

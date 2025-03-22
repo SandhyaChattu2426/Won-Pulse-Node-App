@@ -7,10 +7,10 @@ const users=require('../models/Users')
 
 
 const updateMfa = async (req, res, next) => {
-    console.log("triggering @mfa");
+    // console.log("triggering @mfa");
     const { email } = req.params;
     let { is_mfa_enabled, mfa_type, passkey } = req.body;
-    console.log("Received mfa_type:", mfa_type);
+    // console.log("Received mfa_type:", mfa_type);
 
     try {
         let entityType = "user";
@@ -63,7 +63,7 @@ const getUserByEmail = async (req, res, next) => {
         const user = await User.findOne({ email });
         // only for saturday
         const staffOne = await staff.findOne({ email });
-        console.log(staffOne)
+        // console.log(staffOne)
         if (user) {
             return res.status(200).json({ success: true, user });
             // return res.status(404).json({ success: false, message: "User not found" });
@@ -93,7 +93,7 @@ const getLoginById = async (req, res, next) => {
         let login
         try {
             login = await users.find({ email: email })
-            console.log(login,"login")
+            // console.log(login,"login")
     
         } catch (err) {
             const error = new HttpError(`Something went wrong, could not find a login.${err}`, 500)
@@ -134,7 +134,7 @@ const updateLayout = async (req, res, next) => {
 
     const { dashboard_layouts
     } = req.body
-    console.log(dashboard_layouts,"layouts")
+    // console.log(dashboard_layouts,"layouts")
     const email = req.params.sid
 
     let login

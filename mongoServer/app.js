@@ -24,9 +24,9 @@ const PharmaBillRoutes = require('./routes/pharmaBillRoutes')
 const BillRoutes = require('./routes/billRoutes')
 const Login = require('./models/Users');
 const staff = require("./models/staff");
-const dashboardRoutes=require('./routes/dashboardRoutes')
+const dashboardRoutes = require('./routes/dashboardRoutes')
 const { MongoClient } = require("mongodb");
-const dashboardReportRoutes=require('./routes/DashboardReports')
+const dashboardReportRoutes = require('./routes/DashboardReports')
 
 require('dotenv').config();
 const secretKey = process.env.JWT_SECRET;
@@ -66,7 +66,7 @@ app.use('/api/user', UserRoutes)
 app.use('/api/medicinebill', PharmaBillRoutes)
 app.use('/api/genralbill', BillRoutes)
 app.use('/api/dashboard', dashboardRoutes)
-app.use('/api/dashboardReports',dashboardReportRoutes)
+app.use('/api/dashboardReports', dashboardReportRoutes)
 
 
 
@@ -89,7 +89,7 @@ const generateOTP = () => {
 };
 
 const sendOTP = async (email, otp) => {
-    console.log(otp,"triffering")
+    // console.log(otp, "triffering")
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: email,
@@ -152,7 +152,7 @@ const sendOTP = async (email, otp) => {
 //         //     console.log(otpStorage)
 //         //     res.status(200).json({ message: 'OTP sent successfully!' });
 //         // }
-        
+
 //         else {
 //             return res.status(400).json({ message: 'User does not Exist' });
 
@@ -166,40 +166,40 @@ const sendOTP = async (email, otp) => {
 
 app.post('/send-email-otp-forPassword', async (req, res) => {
     const { email } = req.body;
-    console.log('Received email:', email);
+    // console.log('Received email:', email);
 
     try {
         // Check if email exists in either Login or Staff collection
         const user = await Login.findOne({ email: email });
         const staffOne = await staff.findOne({ email: email });
 
-        console.log(user, "user");
-        console.log(staffOne, "staff");
+        // console.log(user, "user");
+        // console.log(staffOne, "staff");
 
         if (user || staffOne) {
             const otp = generateOTP(); // Assume generateOTP() generates a random OTP
-            console.log(otp);
+            // console.log(otp);
 
             otpStorage[email] = { otp, expiry: Date.now() + 120000 }; // Store OTP with a 2-minute expiry
 
             await sendOTP(email, otp); // Send OTP to the email
 
-            console.log('Email OTP sent successfully.');
-            console.log(otpStorage);
+            // console.log('Email OTP sent successfully.');
+            // console.log(otpStorage);
 
             return res.status(200).json({ message: 'OTP sent successfully!' });
         } else {
             return res.status(400).json({ message: 'User does not exist' });
         }
     } catch (error) {
-        console.log('Error checking email or sending OTP:', error);
+        // console.log('Error checking email or sending OTP:', error);
         res.status(500).json({ error, message: 'Internal Server Error.' });
     }
 });
 
 app.post('/send-email-otp', async (req, res) => {
     const { email } = req.body;
-    console.log(email)
+    // console.log(email)
 
     // Check if the email already exists in the database
     try {
@@ -209,7 +209,7 @@ app.post('/send-email-otp', async (req, res) => {
         if (!user) {
             const otp = generateOTP(); // Assume generateOTP() generates a random OTP
             otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
-            console.log(otp)
+            // console.log(otp)
             // Send OTP to the email (assume sendOTP handles email delivery)
             await sendOTP(email, otp);
             res.status(200).json({ message: 'OTP sent successfully!' });
@@ -220,7 +220,7 @@ app.post('/send-email-otp', async (req, res) => {
         }
 
     } catch (error) {
-        console.log('Error checking email or sending OTP:', error);
+        // console.log('Error checking email or sending OTP:', error);
         res.status(500).json({ error, message: 'Internal Server Error.' });
     }
 });
@@ -236,7 +236,7 @@ app.post('/send-hospital-email-otp', async (req, res) => {
             const otp = generateOTP(); // Assume generateOTP() generates a random OTP
             otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
 
-            console.log(otp);
+            // console.log(otp);
 
             // Send OTP to the email (assume sendOTP handles email delivery)
             await sendOTP(email, otp);
@@ -248,7 +248,7 @@ app.post('/send-hospital-email-otp', async (req, res) => {
         }
 
     } catch (error) {
-        console.log('Error checking email or sending OTP:', error);
+        // console.log('Error checking email or sending OTP:', error);
         res.status(500).json({ error, message: 'Internal Server Error.' });
     }
 });
@@ -263,7 +263,7 @@ app.post('/send-staff-email-otp', async (req, res) => {
             const otp = generateOTP(); // Assume generateOTP() generates a random OTP
             otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
 
-            console.log(otp);
+            // console.log(otp);
 
             // Send OTP to the email (assume sendOTP handles email delivery)
             await sendOTP(email, otp);
@@ -275,15 +275,15 @@ app.post('/send-staff-email-otp', async (req, res) => {
         }
 
     } catch (error) {
-        console.log('Error checking email or sending OTP:', error);
+        // console.log('Error checking email or sending OTP:', error);
         res.status(500).json({ error, message: 'Internal Server Error.' });
     }
 });
 
 const sendOTPStaff = async (email, Id) => {
-    console.log("triggering SendOtPHospital")
-    console.log(email, "email")
-    console.log(Id, "Id")
+    // console.log("triggering SendOtPHospital")
+    // console.log(email, "email")
+    // console.log(Id, "Id")
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: email,
@@ -299,10 +299,10 @@ const sendOTPStaff = async (email, Id) => {
 };
 
 app.post('/EmailStaff', async (req, res) => {
-    console.log("Triggering @staff ")
-    console.log(req.body)
+    // console.log("Triggering @staff ")
+    // console01.log(req.body)
     const { email, Id } = req.body;
-    console.log('Received email:', email);
+    // console.log('Received email:', email);
 
     // Check if the email already exists in the database
     try {
@@ -322,16 +322,16 @@ app.post('/EmailStaff', async (req, res) => {
         // }
 
     } catch (error) {
-        console.log('Error checking email or sending OTP:', error);
+        // console.log('Error checking email or sending OTP:', error);
         res.status(500).json({ error, message: 'Internal Server Error.' });
     }
 });
 // FUnction to send email after registering the hospital by sandhya
 app.post('/EmailHospital', async (req, res) => {
-    console.log("Triggering")
-    console.log(req.body)
+    // console.log("Triggering")
+    // console.log(req.body)
     const { email, Id } = req.body;
-    console.log('Received email:', email);
+    // console.log('Received email:', email);
 
     // Check if the email already exists in the database
     try {
@@ -351,14 +351,14 @@ app.post('/EmailHospital', async (req, res) => {
         // }
 
     } catch (error) {
-        console.log('Error checking email or sending OTP:', error);
+        // console.log('Error checking email or sending OTP:', error);
         res.status(500).json({ error, message: 'Internal Server Error.' });
     }
 });
 const sendOTPHospital = async (email, Id) => {
-    console.log("triggering SendOtPHospital")
-    console.log(email, "email")
-    console.log(Id, "Id")
+    // console.log("triggering SendOtPHospital")
+    // console.log(email, "email")
+    // console.log(Id, "Id")
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: email,
@@ -376,7 +376,7 @@ const sendOTPHospital = async (email, Id) => {
 // FUNCTION TO VERIFY THE OTP
 const verifyOtp = (email, otp) => {
     const storedOtpData = otpStorage[email];
-    console.log(storedOtpData.otp, "*****")
+    // console.log(storedOtpData.otp, "*****")
 
     try {
         if (!storedOtpData) {
@@ -390,7 +390,7 @@ const verifyOtp = (email, otp) => {
 
         // Verify the OTP
         if (storedOtpData.otp === otp) {
-            console.log("ok,working")
+            // console.log("ok,working")
             return { status: 200, message: 'OTP verified successfully!' };
         } else {
             return { status: 400, message: 'Invalid OTP.' };
@@ -411,10 +411,10 @@ app.post('/verify-otp', (req, res) => {
 //login otp verification
 app.post('/verify-login-otp', (req, res) => {
     const { email, otp } = req.body;
-    console.log(email, otp)
+    // console.log(email, otp)
 
     const result = verifyOtp(email, otp);
-    console.log(result)
+    // console.log(result)
 
     return res.status(result.status).json({ message: result.message });
 })
@@ -423,7 +423,7 @@ app.post('/verify-login-otp', (req, res) => {
 // Register Login
 app.post('/register-login', async (req, res) => {
     const { email, password, fullName, contact } = req.body;
-    console.log(req.body.dashlay,"body")
+    // console.log(req.body.dashlay, "body")
     if (!email || !password || !fullName) {
         return res.status(400).json({ success: false, message: 'Email, password, and user name are required.' });
     }
@@ -485,9 +485,9 @@ app.post('/register-login', async (req, res) => {
 });
 
 app.post('/verify-hospital', async (req, res) => {
-    console.log("triggering @@")
+    // console.log("triggering @@")
     const { email, password, role } = req.body;
-    console.log(req.body);
+    // console.log(req.body);
 
     if (!email || !password || !role) {
         return res.status(400).json({ success: false, message: 'Email, password, and role are required.' });
@@ -527,9 +527,9 @@ app.post('/verify-hospital', async (req, res) => {
 });
 
 app.post('/verify-staff', async (req, res) => {
-    console.log("triggering @@")
+    // console.log("triggering @@")
     const { email, password, role } = req.body;
-    console.log(req.body);
+    // console.log(req.body);
 
     if (!email || !password) {
         return res.status(400).json({ success: false, message: 'Email, password,  are required.' });
@@ -574,7 +574,7 @@ const authenticateToken = async (req, res, next) => {
     const token = authHeader && authHeader.split(" ")[1];
 
     if (!token) {
-        console.log("No token found");
+        // console.log("No token found");
         return res.status(401).json({ message: "Access token required" });
     }
 
@@ -584,15 +584,15 @@ const authenticateToken = async (req, res, next) => {
         // Check if user exists in MongoDB
         const user = await Login.findOne(decoded.email);
         if (!user) {
-            console.log("User not found in database");
+            // console.log("User not found in database");
             return res.status(403).json({ message: "Invalid token or user not found" });
         }
 
-        console.log("Token verified successfully");
+        // console.log("Token verified successfully");
         req.user = user; // Attach user data to request
         next();
     } catch (err) {
-        console.log("Token verification failed:", err);
+        // console.log("Token verification failed:", err);
         return res.status(403).json({ message: "Invalid or expired token" });
     }
 };
@@ -603,14 +603,14 @@ app.post('/login', async (req, res) => {
         if (!user) {
             const hospitals = await Hospitals.findOne({ "contactInformation.email": req.body.email });
             if (!hospitals) {
-                // return res.status(400).json({ message: 'Invalid Email' });
+
                 const staffOne = await staff.findOne({ "email": req.body.email })
-                console.log(staffOne,"staffOne Here")
+
                 const isMatch = await bcrypt.compare(req.body.password, staffOne.password);
                 const accessToken = jwt.sign({ userId: staffOne.email }, secretKey, { expiresIn: '5h' });
                 const refreshToken = jwt.sign({ userId: staffOne.email }, secretRefreshKey, { expiresIn: '7d' },);
 
-                return res.json({ success: "Login SuccessFully", accessToken, refreshToken,mfa:staffOne.is_mfa_enabled,role:staffOne.jobRole,mfaTypes:staffOne.mfa_type });
+                return res.json({ success: "Login SuccessFully", accessToken, refreshToken, mfa: staffOne.is_mfa_enabled, role: staffOne.jobRole, mfaTypes: staffOne.mfa_type });
             }
 
             const isMatch = await bcrypt.compare(req.body.password, hospitals.password);
@@ -635,7 +635,7 @@ app.post('/login', async (req, res) => {
             const accessToken = jwt.sign({ userId: user.email }, secretKey, { expiresIn: '5h' });
             const refreshToken = jwt.sign({ userId: user.email }, secretRefreshKey, { expiresIn: '7d' });
 
-            res.json({ success: "Login SuccessFully", mfa: user.is_mfa_enabled, accessToken, refreshToken, role: "staff",mfaTypes:user.mfa_type });
+            res.json({ success: "Login SuccessFully", mfa: user.is_mfa_enabled, accessToken, refreshToken, role: "staff", mfaTypes: user.mfa_type });
         }
     } catch (err) {
         console.error('Error logging in:', err);
@@ -662,7 +662,7 @@ app.get("/generate", (req, res) => {
     const secret = speakeasy.generateSecret({
         name: "WONDIGI", // Replace with your app's name
     });
-    console.log('generating qr code')
+    // console.log('generating qr code')
     qrUserCodes.push(secret)
     qrcode.toDataURL(secret.otpauth_url, (err, dataUrl) => {
         if (err) {
@@ -679,7 +679,7 @@ app.get("/generate", (req, res) => {
 app.post('/get/report-data', async (req, res) => {
     // console.log("getting")
     const { aggregation, groupBy, selectedTable, stackBy, filterConditions, dateLabel } = req.body;
-    // console.log(aggregation, groupBy, selectedTable, stackBy, filterConditions, dateLabel)
+
     try {
         await client.connect();
         const db = client.db('wonpulse');
@@ -695,8 +695,7 @@ app.post('/get/report-data', async (req, res) => {
         if (filterConditions && filterConditions.length > 0) {
             filterConditions.forEach(({ column, operation, value }) => {
                 if (!column || !operation || value === undefined) {
-                    // console.warn('Invalid filter condition:', { column, operation, value });
-                    return; // Skip invalid conditions
+                    return;
                 }
 
                 // Ensure correct data type for value
@@ -757,11 +756,10 @@ app.post('/get/report-data', async (req, res) => {
 
             // console.log('Generated filters:', filters);
         }
-        // If dateLabel is provided, generate a specific aggregation
-        if (dateLabel && groupBy) {
-            console.log(dateLabel,"dataLabel")
 
-            const dateLabelFormat = dateLabel.label === 'Month' ? '%B' : '%Y-%m-%d';
+        if (dateLabel && groupBy) {
+            const dateLabelFormat = dateLabel === 'M' ? '%B' : '%Y-%m-%d';
+            // console.log('date label executing...', dateLabel, groupBy);
 
             const pipeline = [
                 { $match: filters },
@@ -832,12 +830,6 @@ app.post('/get/report-data', async (req, res) => {
     // }
 });
 
-
-
-
-
-
-
 app.use((req, res, next) => {
     const error = new HttpError('Could not find this route .', 404)
     throw error
@@ -860,7 +852,7 @@ app.use(cors({
 
 // ✅ Middleware
 app.use(express.json()); // To handle JSON requests
-app.use(express.urlencoded({ extended: true })); 
+app.use(express.urlencoded({ extended: true }));
 
 app.get("/")
 mongoose.connect(`mongodb+srv://sandhya:123@cluster0.ddkdz.mongodb.net/wonpulse?retryWrites=true&w=majority&appName=Cluster0`).then(app.listen(5000, () => {
@@ -868,7 +860,7 @@ mongoose.connect(`mongodb+srv://sandhya:123@cluster0.ddkdz.mongodb.net/wonpulse?
     console.log("connected to mongodb")
 })).catch(err => {
     console.log(err)
-    console.log("Connection error")
+    // console.log("Connection error")
 }
 )
 

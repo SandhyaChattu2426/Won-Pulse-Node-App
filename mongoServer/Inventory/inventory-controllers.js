@@ -3,11 +3,9 @@ const Inventory = require('./inventory')
 
 //CREATE INVENTORY
 const createInventory = async (req, res, next) => {
-    console.log("Create Inventory  Triggered")
     const newInventory = new Inventory({
         ...req.body
     })
-    //  console.log(req.body)
     try {
         await newInventory.save()
     }
@@ -63,10 +61,10 @@ const getId = async (req, res, next) => {
 
 //GetALL
 const gettingALLInventories = async (req, res, next) => {
+    const {hospitalId}=req.params
     let InventoryList
     try {
-        InventoryList = await Inventory.find({})
-
+        InventoryList = await Inventory.find({hospitalId:hospitalId})
     }
     catch (e) {
         console.log(e)
@@ -95,9 +93,8 @@ const getInventoryById = async (req, res, next) => {
 const UpdateInventoryDetails = async (req, res, next) => {
     const { Id } = req.params
     console.log(req.body)
-    console.log(req.params)
+    // console.log(req.params)
     let Item;
-    console.log(req.body)
     console.log("Updating request triggering in the backend")
     const { quantity } = req.body
     try {
@@ -109,13 +106,7 @@ const UpdateInventoryDetails = async (req, res, next) => {
         return next("Can not get Inventory Details", 404)
     }
     try {
-        // Item.supplierInformation = supplierInformation
-        // Item.inventoryName = inventoryName
-        // Item.inventoryCategory = inventoryCategory
-        // Item.addInventoryDetails = addInventoryDetails
-        // Item.inventoryId = inventoryId
         Item.quantity = Item.quantity + quantity
-
         await Item.save()
         console.log(Item)
     } catch (e) {

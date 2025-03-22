@@ -25,10 +25,10 @@ const RegisterSupplier = async (req, res, next) => {
 // GETTing Details
 
 const GetSuppliers = async (req, res, next) => {
-    console.log("triggeing GET SUppliers")
+   const {hospitalId}=req.params
     let List;
     try {
-        List = await Suppliers.find({})
+        List = await Suppliers.find({hospitalId})
     }
     catch (e) {
         console.log(e)
@@ -92,13 +92,11 @@ const InventorySuppliers = async (req, res, next) => {
 }
 
 const GetSupplierById = async (req, res, next) => {
-    console.log("Triggering to fetch supplier Details")
-    console.log(req.params)
+  
     const { Id } = req.params
     let List;
     try {
         List = await Suppliers.findOne({ "supplierId": Id })
-        console.log(List)
     }
     catch (e) {
         console.log(e)

@@ -49,7 +49,9 @@ const patientSchema = new Schema({
         url:{type:String}
     }],
     hospitalId:{type:String},
-    fullName:{type:String}
+    fullName:{type:String},
+    registeredOn: { type: Date, default: Date.now },
+    category:{type:String,required:true}
 })
 
 module.exports = mongoose.model('Patient', patientSchema)

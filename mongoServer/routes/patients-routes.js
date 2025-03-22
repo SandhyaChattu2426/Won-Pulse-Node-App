@@ -23,6 +23,8 @@ router.post('/getfileurl',upload.single("file"),patientsControllers.generateNote
 
 router.post('/upload-excel',patientsControllers.addPatientFromExcel)
 router.get('/getId', patientsControllers.getId);
+router.get('/charts', patientsControllers.getPatientChartData);
+
 router.get('/:Id', patientsControllers.getPatientById);
 router.get('/', patientsControllers.getPatients);
 

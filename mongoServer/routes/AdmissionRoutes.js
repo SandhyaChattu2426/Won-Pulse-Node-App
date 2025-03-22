@@ -13,7 +13,7 @@ router.patch('/update/:Id',AdmissionControllers.updateAdmission)
 router.get('/patientNames',AdmissionControllers.getRegisterdPatients)
 router.get('/:Id', AdmissionControllers.AdmissionDetailsById)
 router.post('/', AdmissionControllers.AddPatient)
-router.get('/', AdmissionControllers.GetAdmissions)
+router.get('/hospital/:hospitalId', AdmissionControllers.GetAdmissions)
 // router.patch('/Id', appointmentControllers.updateAppointments)
 router.patch('/status/:Id',AdmissionControllers.updateAddmissionStatus)
 

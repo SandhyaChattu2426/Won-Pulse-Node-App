@@ -38,9 +38,12 @@ const createService = async (req, res, next) => {
 // Get Room Details (All)
 const GetServices = async (req, res, next) => {
     console.log("triggeing GET service")
+    const {hospitalId} = req.params
+    console.log(hospitalId,"hospitalId")    
     let List;
     try {
-        List = await Service.find({})
+        List = await Service.find({hospitalId : hospitalId})
+        console.log(List)
     }
     catch (e) {
         console.log(e)

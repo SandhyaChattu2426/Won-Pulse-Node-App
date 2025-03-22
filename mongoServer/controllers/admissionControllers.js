@@ -32,9 +32,11 @@ const AddPatient = async (req, res, next) => {
 
 const GetAdmissions = async (req, res, next) => {
     // console.log("triggeing GET Admissions")
+    const {hospitalId}=req.params;
+
     let List;
     try {
-        List = await Admissions.find({})
+        List = await Admissions.find({hospitalId:hospitalId})
     }
     catch (e) {
         console.log(e)
@@ -106,13 +108,8 @@ const AdmissionDetailsById = async (req, res, next) => {
 }
 
 const updateAddmissionStatus = async (req, res, next) => {
-
     try {
-        console.log("Updation Admission status")
-        console.log(req.params)
         const AdId = req.params.Id
-        // console.log(StaffId,"here is")
-
         const admission = await Admissions.findOne({ admissionId: AdId })
 
         if (admission) {
@@ -174,12 +171,10 @@ const AdmissionByPatientId = async (req, res, next) => {
 
 const addAdmissionFromExcel = async (req, res, next) => {
     let lastId, newId;
-
     function excelDateToJSDate(serialDate) {
         const jsonDate= new Date((serialDate - 25569) * 86400 * 1000);
         return jsonDate.toISOString().split("T")[0];
     }
-
     try {
         const totalItems = await Admission.countDocuments();
         if (totalItems > 0) {
