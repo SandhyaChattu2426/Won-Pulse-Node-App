@@ -5,7 +5,7 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Copy package files first to leverage Docker cache
-COPY mongoServer/package.json mongoServer/package-lock.json ./
+COPY package.json package-lock.json ./
 
 # Install dependencies
 RUN npm ci --legacy-peer-deps
