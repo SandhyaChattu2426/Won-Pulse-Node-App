@@ -7,10 +7,9 @@ const pharmacy = require('./pharmacy')
 //Register Supplier
 
 const RegisterMedicine = async (req, res, next) => {
-    // const { supplierDetails, adress } = req.body
     
     try {
-        //console.log("pharmacy block is triggering")
+       
         const newPharmacy = new Pharmacy({
             ...req.body,
         })
@@ -29,7 +28,8 @@ const RegisterMedicine = async (req, res, next) => {
 // GETTing Details
 
 const GetPharmacy = async (req, res, next) => {
-    //console.log("triggeing GET Pharmacy")
+    
+    
     const {hospitalId} = req.params
     let List;
     try {
@@ -43,46 +43,44 @@ const GetPharmacy = async (req, res, next) => {
 
 // GetId
 const getId = async (req, res, next) => {
-    let newpharmacyId;
-    let pharmaLength;
+    let newPharmacyId;
     const str = "0";
-    
-    //console.log("Backend triggering to get ID");
+    const { hospitalId } = req.params;
 
     try {
-        // Fetch all hospitals from the database
-        const medicine = await Pharmacy.find({});
+        // Fetch all medicines for the given hospitalId
+        const medicines = await Pharmacy.find({ hospitalId });
 
-        if (medicine.length > 0) {
-            // Get the last hospital document, sorted by _id in descending order
-            const lastRoom = await Pharmacy.find({}).sort({ _id: -1 }).limit(1);
+        if (medicines.length > 0) {
+            // Get the last medicine entry for this hospital, sorted by _id in descending order
+            const lastMedicine = await Pharmacy.find({ hospitalId }).sort({ _id: -1 }).limit(1);
 
-            // Extract the last hospital's hospitalId
-            const lastRoomId = lastRoom[0].medicineId;
-            
-            // Calculate the next hospitalId based on the last one
-            // Extract the numeric part of the last hospitalId (assuming the format is HP000001)
-            const lastNumber = parseInt(lastRoomId.substring(2));  // Extracts the number part after 'HP'
+            if (lastMedicine.length > 0) {
+                const lastMedicineId = lastMedicine[0].medicineId;
 
-            // Generate the next hospitalId (increment the last number)
-            const nextNumber = lastNumber + 1;
+                // Extract numeric part and increment it
+                const lastNumber = parseInt(lastMedicineId.substring(2)); // Assuming format: PH000001
+                const nextNumber = lastNumber + 1;
 
-            // Determine the number of leading zeros required for the new ID
-            const zerosCount = 6 - nextNumber.toString().length;
-            newRoomId = 'PH' + str.repeat(zerosCount) + nextNumber.toString();
+                // Determine the number of leading zeros required for the new ID
+                const zerosCount = 6 - nextNumber.toString().length;
+
+                // Generate new medicine ID (e.g., PH000001, PH000002, ...)
+                newPharmacyId = 'PH' + str.repeat(zerosCount) + nextNumber.toString();
+            }
         } else {
-            // If no hospitals exist, create the first hospitalId
-            newRoomId = 'PH' + '0'.repeat(5) + "1";  // HP000001
+            // If no medicine exists for this hospital, start with PH000001
+            newPharmacyId = 'PH' + '0'.repeat(5) + "1";
         }
 
-        //console.log("Generated Hospital ID:", newRoomId);
-        res.json({ id: newRoomId });
-
+        console.log("Generated Medicine ID:", newPharmacyId);
+        res.json({ id: newPharmacyId });
     } catch (err) {
-       //console.log(err)
-        
+        console.error("Error generating medicine ID:", err);
+        return next(new HttpError("Couldn't fetch the pharmacy details", 500));
     }
 };
+
 
 // Get MedicineById
 

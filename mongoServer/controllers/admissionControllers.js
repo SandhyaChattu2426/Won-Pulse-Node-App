@@ -1,12 +1,7 @@
-const { response } = require('express')
 const HttpError = require('../models/http-error')
-//const suppliers = require('../models/suppliers')
 const Admissions = require('../models/Admission')
 const Admission = require('../models/Admission')
 const Patients = require('../models/patient')
-
-//Register Supplier
-
 const AddPatient = async (req, res, next) => {
     // const { supplierDetails, adress } = req.body
     console.log("Admission Block")
@@ -28,8 +23,6 @@ const AddPatient = async (req, res, next) => {
 
 }
 
-// GETTing Details
-
 const GetAdmissions = async (req, res, next) => {
     // console.log("triggeing GET Admissions")
     const {hospitalId}=req.params;
@@ -46,39 +39,22 @@ const GetAdmissions = async (req, res, next) => {
 
 // GET ID
 const getId = async (req, res, next) => {
-    let newAdId;
-    let RoomsLength;
     const str = "0";
-
-    console.log("Backend triggering to get ID");
-
     try {
-        // Fetch all hospitals from the database
-        const room = await Admissions.find({});
+       const {hospitalId}=req.params
+        const room = await Admissions.find({hospitalId:hospitalId});
 
         if (room.length > 0) {
-            // Get the last hospital document, sorted by _id in descending order
-            const lastRoom = await Admissions.find({}).sort({ _id: -1 }).limit(1);
-
-            // Extract the last hospital's hospitalId
+            const lastRoom = await Admissions.find({hospitalId}).sort({ _id: -1 }).limit(1);
             const lastRoomId = lastRoom[0].admissionId;
-
-            // Calculate the next hospitalId based on the last one
-            // Extract the numeric part of the last hospitalId (assuming the format is HP000001)
             const lastNumber = parseInt(lastRoomId.substring(2));  // Extracts the number part after 'HP'
-
-            // Generate the next hospitalId (increment the last number)
             const nextNumber = lastNumber + 1;
-
-            // Determine the number of leading zeros required for the new ID
             const zerosCount = 6 - nextNumber.toString().length;
             newRoomId = 'AD' + str.repeat(zerosCount) + nextNumber.toString();
         } else {
-            // If no hospitals exist, create the first hospitalId
             newRoomId = 'AD' + '0'.repeat(5) + "1";  // HP000001
         }
-
-        console.log("Generated Hospital ID:", newRoomId);
+      
         res.json({ id: newRoomId });
 
     } catch (err) {
@@ -153,7 +129,6 @@ const getRegisterdPatients = async (req, res, next) => {
 
 const AdmissionByPatientId = async (req, res, next) => {
     const { Id } = req.params;
-    console.log(Id, "patientId");
 
     try {
         const AdmittedPerson = await Admissions.find({ "patientName": Id });
@@ -211,18 +186,8 @@ const addAdmissionFromExcel = async (req, res, next) => {
         status,
     } = req.body;
 
-    console.log("Received Patient Name:", patientname);
-
-    // if (!patientname || !admissiontype || !admissiondate) {
-    //     return res.status(400).json({ message: "Missing required patient details." });
-    // }
-
-    // 🔹 Split `patientname` into `firstName` and `lastName`
-    
-
     let [firstName, ...lastNameParts] = patientname.trim().split(" ");
     let lastName = lastNameParts.join(" "); // Handle multi-word last names
-
     try {
         // 🔹 Search for patient in `Patient` collection using firstName & lastName
         const existingPatient = await Patients.findOne({
@@ -274,7 +239,6 @@ const addAdmissionFromExcel = async (req, res, next) => {
 };
 
 const updateAdmission = async (req, res, next) => {
-    console.log("triggering to update Admission")
     try {
         const { Id } = req.params; // Get admissionId from URL
         console.log(req.body); // Log request body to check the changes

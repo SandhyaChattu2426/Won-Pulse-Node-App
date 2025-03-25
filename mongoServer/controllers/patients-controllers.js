@@ -7,11 +7,8 @@ const {uploadFileToS3Bucket}=require('../models/s3Bucket')
 
 // GET PATIENT BY ID
 const getPatientById = async (req, res, next) => {
-    console.log('GET Request fro particular  patient ID')
     const patientId = req.params.Id
-    console.log(req.params,
-        "params here"
-    )
+ 
     let patient;
 
     try {
@@ -28,18 +25,17 @@ const getPatientById = async (req, res, next) => {
         return next(error)
 
     }
-    console.log(patient,"patient")
+    // console.log(patient,"patient")
 
     res.json({ patients: patient })
 }
 
 //GET Patients
 const getPatients = async (req, res, next) => {
-
+    const {hospitalId}=req.params
     let patients
-    console.log("Getting Patients")
     try {
-        patients = await Patient.find({})
+        patients = await Patient.find({hospitalId})
         // console.log(patients)
     } catch (err) {
         console.log(err)
@@ -58,33 +54,27 @@ const getId = async (req, res, next) => {
     let ZerosCount;
     let PatientLength;
     const str = "0";  // String used for padding zeros
-    console.log("Backend Triggering to Get Patient Id");
 
     try {
         // Fetch all patients from the database
-        const Patients = await Patient.find({});
+        const Patients = await Patient.find({hospitalId});
         // console.log("Current number of patients:", Patients.length);
-        console.log(Patients)
+        // console.log(Patients)
         // If there are existing patients, generate the new patient ID based on the count
         if (Patients.length > 0) {
-            const lastPatient = await Patient.find({}).sort({ _id: -1 }).limit(1);
+            const lastPatient = await Patient.find({hospitalId}).sort({ _id: -1 }).limit(1);
             const lastNumber = parseInt(lastPatient[0].patientId.substring(2))
-            console.log(lastNumber, "lastNumber")
             const nextNumber = lastNumber + 1;
             PatientLength = Patients.length;
             ZerosCount = 6 - nextNumber.toString().length;
 
-            // Generate new patient ID (e.g., PA000001, PA000002, ...)
             newPatientId = 'PA' + str.repeat(ZerosCount) + nextNumber.toString();
         }
         else {
-            // If no patients exist, start with PA000001
             newPatientId = 'PA' + '0'.repeat(5) + "1";
         }
+        // console.log("Generated New Patient ID:", newPatientId);
 
-        console.log("Generated New Patient ID:", newPatientId);
-
-        // Send the new patient ID in the response
         res.json({ id: newPatientId });
     } catch (err) {
         // Handle any errors
@@ -92,72 +82,29 @@ const getId = async (req, res, next) => {
         return next(error);
     }
 
-    // Create the new patient object (you should replace the mock data with real data from the request body)
-    // newPatient = new Patient({
-    //     patientId:newPatientId,
-    //     patientDetails: {
-    //         firstName: "John", // Example data, replace with request data
-    //         lastName: "Doe",  // Example data
-    //         DateOfBirth: "1990-01-01", // Example data
-    //         gender: "Male",  // Example data
-    //     },
-    //     emergencyContactDetails: {
-    //         firstName: "Jane",  // Example data
-    //         lastName: "Doe",  // Example data
-    //         contactNumber: "1234567890"  // Example data
-    //     },
-    //     adress: {
-    //         street: "123 Main St",  // Example data
-    //         city: "Cityville",  // Example data
-    //         state: "State",  // Example data
-    //         pincode: "123456",  // Example data
-    //     },
-    //     insurance: {
-    //         insuranceProvider: "HealthIns",  // Example data
-    //         policyHolder: "John Doe",  // Example data
-    //         policyHoldersName: "John Doe",  // Example data
-    //         relation: "Self",  // Example data
-    //     },
-    //     medicalHistory: {
-    //         currentMedicine: "Aspirin",  // Example data
-    //         previousSurgeries: "Appendectomy",  // Example data
-    //         chronicConditions: "None",  // Example data
-    //     },
-    //     ReasonsForVisit: "Routine checkup",  // Example data
-    //     preferredCommunications: ['sms', 'email'],  // Example data
-    // });
-
-    // try {
-    //     // Save the new patient to the database
-    //     await newPatient.save();
-    //     console.log("New patient saved successfully.");
-    // } catch (e) {
-    //     // Log error if saving the patient fails
-    //     console.log("Error saving patient:", e);
-    // }
 };
 
 
 //CREATING PLACE
 const createPatient = async (req, res, next) => {
-    console.log("triggering @")
+    // console.log("triggering @")
     try {
         const { email, ...updateData } = req.body; // Extract email from request body
 
         // Check if a patient with this email already exists
-        console.log(req.body,"body")
+        // console.log(req.body,"body")
         let existingPatient = await Patient.findOne({ email });
 
         if (existingPatient) {
             // If patient exists, update their details
             await Patient.findByIdAndUpdate(existingPatient._id, updateData, { new: true });
-            console.log("Existing patient updated:", existingPatient._id);
+            // console.log("Existing patient updated:", existingPatient._id);
             return res.status(200).json({ message: "Patient updated successfully", patientId: existingPatient._id });
         } else {
             // If no patient exists, create a new one
             const newPatient = new Patient(req.body);
             await newPatient.save();
-            console.log("New patient created:", newPatient._id);
+            // console.log("New patient created:", newPatient._id);
             return res.status(201).json({ message: "Patient created successfully", patientId: newPatient._id });
         }
     } catch (err) {
@@ -186,12 +133,12 @@ const updatePatient = async (req, res, next) => {
     let patient;
     try {
         patient = await Patient.findOne({ staffId: id })
-        console.log(patient)
+        // console.log(patient)
     }
     catch (err) {
         const error = new HttpError("Can not find a place by provided place id", 500)
         console.log({ err })
-        console.log(error)
+        // console.log(error)
         return next(error)
     }
     try {
@@ -207,7 +154,6 @@ const updatePatient = async (req, res, next) => {
     }
     catch (err) {
         const error = new HttpError("couldnt Updated", 500)
-        console.log("catch-block")
         return next(error)
 
     }
@@ -219,7 +165,6 @@ const updatePatient = async (req, res, next) => {
 const deletePatient = async (req, res, next) => {
     const patientId = req.params.id
 
-    //console.log(DUMMY_PLACES)
     let patient;
     try {
         patient = await Place.findById(placeId)
@@ -243,9 +188,7 @@ const updatePatientStatus = async (req, res, next) => {
     try {
         // console.log("Updation status")
         const PatientId = req.params.Id
-        console.log(PatientId, "here is")
         const patient = await Patient.findOne({ patientId: PatientId })
-        console.log(patient)
         if (patient) {
             try {
                 patient.status = req.body.status
@@ -254,10 +197,8 @@ const updatePatientStatus = async (req, res, next) => {
 
             } catch (e) {
                 console.log(e)
-                console.log("Could not find the patient")
             }
         }
-
     }
     catch (e) {
         console.log(e)
@@ -266,7 +207,6 @@ const updatePatientStatus = async (req, res, next) => {
 
 
 const AddAppointment = async (req, res, next) => {
-    console.log("Triggering By Lords Grace to include appointment")
     try {
         const { Id } = req.params; // Patient ID from URL
         const { appointmentDate, doctor, department, reason } = req.body;
@@ -302,11 +242,9 @@ const AddAppointment = async (req, res, next) => {
 
 
 const AddReport = async (req, res, next) => {
-    console.log("Triggering By Lords Grace to include report")
     try {
         const { Id } = req.params; // Patient ID from URL
         const { appointmentDate, doctor, department, reason } = req.body;
-        console.log(req.body, "req.body")// Appointment details
 
         // Find patient by ID
         let patient = await Patient.findOne({ "patientId": Id })
@@ -314,7 +252,6 @@ const AddReport = async (req, res, next) => {
             return res.status(404).json({ message: "Patient not found" });
         }
 
-        // Create new appointment object
         const newAppointment = {
             ...req.body
 
@@ -490,7 +427,6 @@ const addPatientFromExcel = async (req, res, next) => {
         const date = new Date((serialDate - 25569) * 86400 * 1000);
         return date.toISOString().split("T")[0];
     }
-
     let {
         firstname = "",
         lastname = "",
@@ -515,11 +451,8 @@ const addPatientFromExcel = async (req, res, next) => {
         status = "Active",
     } = req.body;
 
-    console.log(req.body,"body Here");
 
-    // if (!firstname || !lastname || !dateofbirth || !gender || !contactnumber ) {
-    //     return res.status(400).send({ message: "Incomplete patient details." });
-    // }
+ 
 
     try {
         // Check if a patient with the provided email exists
@@ -545,8 +478,6 @@ const addPatientFromExcel = async (req, res, next) => {
             const paddedNumber = newNumber.toString().padStart(6, "0");
             patientId = prefix + paddedNumber;
         }
-        console.log(req.body.contactnumber,"num")
-        // Create or update the patient record
         const updatedPatient = await Patient.findOneAndUpdate(
             { email: email },
             {
@@ -585,14 +516,9 @@ const addPatientFromExcel = async (req, res, next) => {
 
 // generating url
 const generateNoteUrl = async (req, res, next) => {
-    console.log("Uploading File to S3 Bucket..."); 
-    console.log(req.file,'this si the file')
-        console.log(req.body,"body") 
     try {
-        // Check for file
-        // console.log(req.file)
-        console.log(req.file,'this si the file')
-        console.log(req.body,"body")
+        // console.log(req.file,'this si the file')
+        // console.log(req.body,"body")
         if (!req.file) {
             return res.status(400).json({
                 success: false,
@@ -600,9 +526,8 @@ const generateNoteUrl = async (req, res, next) => {
             });
         }
 
-        // Upload image to S3
-        console.log(req.file,"file @backend")
-        console.log(req.body,"body")
+        // console.log(req.file,"file @backend")
+        // console.log(req.body,"body")
         const fileUrl = await uploadFileToS3Bucket(req.file);
         if (!fileUrl) {
             return res.status(500).json({
@@ -627,9 +552,6 @@ const generateNoteUrl = async (req, res, next) => {
 };
 
 const getPatientChartData = async (req, res, next) => {
-    console.log("Fetching Patient Registration Data");
-
-    // Define color mapping for categories
     const categoryColors = {
         "EmergencyAdmission": "rgba(244, 67, 54, 1)", // Red
         "Normal": "rgba(76, 175, 80, 1)", // Green
@@ -660,12 +582,10 @@ const getPatientChartData = async (req, res, next) => {
             }
         ]);
 
-        // Labels for months (Jan to Dec)
         const allLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
         let maxMonth = 0; // Track the latest month with data
 
-        // Format data for Chart.js
         const datasets = patientData.map(categoryData => {
             const monthData = new Array(12).fill(0);
 
@@ -684,7 +604,6 @@ const getPatientChartData = async (req, res, next) => {
             };
         });
 
-        // Trim labels up to the latest month with data
         const labels = allLabels.slice(0, maxMonth);
 
         res.json({ labels, datasets });

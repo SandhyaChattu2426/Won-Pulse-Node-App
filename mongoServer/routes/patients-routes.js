@@ -22,7 +22,7 @@ const upload = multer({
 router.post('/getfileurl',upload.single("file"),patientsControllers.generateNoteUrl)
 
 router.post('/upload-excel',patientsControllers.addPatientFromExcel)
-router.get('/getId', patientsControllers.getId);
+router.get('/getId/:hospitalId', patientsControllers.getId);
 router.get('/charts', patientsControllers.getPatientChartData);
 
 router.get('/:Id', patientsControllers.getPatientById);

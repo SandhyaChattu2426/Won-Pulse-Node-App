@@ -3,8 +3,6 @@ const { check } = require('express-validator')
 
 const reportsControllers = require('../controllers/dashboardReportControllers')
 
-const HttpError = require('../models/http-error')
-
 const router = express.Router();
 
 router.get("/", reportsControllers.getReports)

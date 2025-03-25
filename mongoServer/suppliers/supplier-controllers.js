@@ -37,6 +37,7 @@ const GetSuppliers = async (req, res, next) => {
 }
 // GetId
 const getId = async (req, res, next) => {
+    const { hospitalId } = req.params
     let newSupplierId;
     let SuppliersLength;
     const str = "0";
@@ -45,11 +46,11 @@ const getId = async (req, res, next) => {
 
     try {
         // Fetch all hospitals from the database
-        const suppliers = await Suppliers.find({});
+        const suppliers = await Suppliers.find({hospitalId});
 
         if (suppliers.length > 0) {
             // Get the last hospital document, sorted by _id in descending order
-            const lastSupplier = await Suppliers.find({}).sort({ _id: -1 }).limit(1);
+            const lastSupplier = await Suppliers.find({hospitalId}).sort({ _id: -1 }).limit(1);
 
             // Extract the last hospital's hospitalId
             const lastSupplierId = lastSupplier[0].supplierId;
@@ -92,7 +93,6 @@ const InventorySuppliers = async (req, res, next) => {
 }
 
 const GetSupplierById = async (req, res, next) => {
-  
     const { Id } = req.params
     let List;
     try {

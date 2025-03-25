@@ -7,7 +7,7 @@ const appointmentControllers = require('../controllers/appointment-controllers')
 
 router.get('/hospital/:hospitalId', appointmentControllers.getAppointments)
 router.post('/upload-excel', appointmentControllers.addAppointmentFromExcel)
-router.get('/getId', appointmentControllers.getId)
+router.get('/getId/:hospitalId', appointmentControllers.getId)
 router.get('/patient/:Id',appointmentControllers.getAppointmentByPatientId)
 router.get('/:Id', appointmentControllers.getAppointmentById)
 router.post('/', appointmentControllers.createAppointment)

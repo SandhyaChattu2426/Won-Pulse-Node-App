@@ -27,6 +27,7 @@ const staff = require("./models/staff");
 const dashboardRoutes = require('./routes/dashboardRoutes')
 const { MongoClient } = require("mongodb");
 const dashboardReportRoutes = require('./routes/DashboardReports')
+const RoleRoutes=require('./routes/RolesRoutes')
 
 require('dotenv').config();
 const secretKey = process.env.JWT_SECRET;
@@ -53,6 +54,7 @@ app.use(cors());
 
 app.use('/api/patient', patientsRoutes);
 app.use('/api/staff', StaffRoutes)
+app.use('/api/role',RoleRoutes)
 app.use('/api/appointments', AppointmentRoutes)
 app.use('/api/inventory', InventoryRoutes)
 app.use('/api/supplier', supplierRoutes)
@@ -68,10 +70,6 @@ app.use('/api/genralbill', BillRoutes)
 app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/dashboardReports', dashboardReportRoutes)
 
-
-
-
-
 // app.use('/api/users', usersRoutes)
 const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -83,7 +81,6 @@ const transporter = nodemailer.createTransport({
 
 const otpStorage = {}; // Store OTPs temporarily
 
-// Generate a random 6-digit OTP for user verification while sign up
 const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 };
@@ -111,58 +108,6 @@ const sendOTP = async (email, otp) => {
     return transporter.sendMail(mailOptions);
 };
 
-//sat purpose
-// app.post('/send-email-otp-forPassword', async (req, res) => {
-//     const { email } = req.body;
-//     console.log('Received email:', email);
-
-//     // Check if the email already exists in the database
-//     try {
-//         const user = await Login.findOne({ email: email });
-//         console.log(user,"user") 
-//         const StaffOne=await staff.findOne({email:email})
-//         // MongoDB query using Mongoose
-//         console.log(user)
-//         console.log(StaffOne)
-//         // If a user with this email exists, return an error response
-//         if (user) {
-//             const otp = generateOTP();
-//             console.log(otp) // Assume generateOTP() generates a random OTP
-//             otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
-
-//             // Send OTP to the email (assume sendOTP handles email delivery)
-//             await sendOTP(email, otp);
-
-//             console.log('Email OTP sent successfully.');
-//             // Return success response if OTP is sent successfully
-//             console.log(otpStorage)
-//             res.status(200).json({ message: 'OTP sent successfully!' });
-
-//         }
-//         // if(StaffOne){
-//         //     const otp = generateOTP();
-//         //     console.log(otp) // Assume generateOTP() generates a random OTP
-//         //     otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
-
-//         //     // Send OTP to the email (assume sendOTP handles email delivery)
-//         //     await sendOTP(email, otp);
-
-//         //     console.log('Email OTP sent successfully.');
-//         //     // Return success response if OTP is sent successfully
-//         //     console.log(otpStorage)
-//         //     res.status(200).json({ message: 'OTP sent successfully!' });
-//         // }
-
-//         else {
-//             return res.status(400).json({ message: 'User does not Exist' });
-
-//         }
-
-//     } catch (error) {
-//         console.log('Error checking email or sending OTP:', error);
-//         res.status(500).json({ error, message: 'Internal Server Error.' });
-//     }
-// });
 
 app.post('/send-email-otp-forPassword', async (req, res) => {
     const { email } = req.body;
@@ -263,7 +208,7 @@ app.post('/send-staff-email-otp', async (req, res) => {
             const otp = generateOTP(); // Assume generateOTP() generates a random OTP
             otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
 
-            // console.log(otp);
+            console.log(otp);
 
             // Send OTP to the email (assume sendOTP handles email delivery)
             await sendOTP(email, otp);
@@ -759,8 +704,6 @@ app.post('/get/report-data', async (req, res) => {
 
         if (dateLabel && groupBy) {
             const dateLabelFormat = dateLabel === 'M' ? '%B' : '%Y-%m-%d';
-            // console.log('date label executing...', dateLabel, groupBy);
-
             const pipeline = [
                 { $match: filters },
                 {

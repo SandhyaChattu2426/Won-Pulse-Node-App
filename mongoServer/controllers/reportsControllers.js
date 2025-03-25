@@ -15,17 +15,14 @@ const {uploadFileToS3Bucket}=require('../models/s3Bucket')
 const AddReport = async (req, res, next) => {
     // const { supplierDetails, adress } = req.body
     try {
-        console.log("Reports block is triggering")
         const newPharmacy = new Reports({
             ...req.body,
         })
         await newPharmacy.save()
-        console.log("Report is registered SuccessFully,triggering try-block")
         // console.log(req.body)
     }
     catch (e) {
         console.log(e)
-        console.log("Catch-block")
     }
     res.json("Report Registered Sucessfully")
 }
@@ -33,11 +30,12 @@ const AddReport = async (req, res, next) => {
 // GETTing Details
 
 const GetReports = async (req, res, next) => {
-    console.log("triggeing GET Reports")
+    const {hospitalId}=req.params
+    // console.log(hospitalId,"hospitalId")
     let List;
     try {
-        List = await Reports.find({})
-        console.log(List,"reportsList here")
+        List = await Reports.find({hospitalId:hospitalId})
+        // console.log(List,"List")
     }
     catch (e) {
         console.log(e)
@@ -47,35 +45,24 @@ const GetReports = async (req, res, next) => {
 
 // GetId
 const getId = async (req, res, next) => {
-    let newpharmacyId;
-    let pharmaLength;
+    const {hospitalId}=req.params
     const str = "0";
     try {
-        // Fetch all hospitals from the database
-        const medicine = await Reports.find({});
+        const medicine = await Reports.find({hospitalId});
 
         if (medicine.length > 0) {
-            // Get the last hospital document, sorted by _id in descending order
-            const lastRoom = await Reports.find({}).sort({ _id: -1 }).limit(1);
-            console.log(lastRoom, "lastRoom")
-            // Extract the last hospital's hospitalId
+            const lastRoom = await Reports.find({hospitalId}).sort({ _id: -1 }).limit(1);
             const lastRoomId = lastRoom[0].reportDetails.reportId;
-            // Calculate the next hospitalId based on the last one
-            // Extract the numeric part of the last hospitalId (assuming the format is HP000001)
-            const lastNumber = parseInt(lastRoomId.substring(2));  // Extracts the number part after 'HP'
-            // Generate the next hospitalId (increment the last number)
+            const lastNumber = parseInt(lastRoomId.substring(2));  
             const nextNumber = lastNumber + 1;
-            // Determine the number of leading zeros required for the new ID
             const zerosCount = 6 - nextNumber.toString().length;
             newRoomId = 'MR' + str.repeat(zerosCount) + nextNumber.toString();
         } else {
-            // If no hospitals exist, create the first hospitalId
-            newRoomId = 'MR' + '0'.repeat(5) + "1";  // HP000001
+            newRoomId = 'MR' + '0'.repeat(5) + "1";  
         }
 
-        console.log("Generated Hospital ID:", newRoomId);
+        // console.log("Generated Hospital ID:", newRoomId);
         res.json({ id: newRoomId });
-
     } catch (err) {
         console.log(err)
 
@@ -88,12 +75,12 @@ const getReportById = async (req, res, next) => {
     let medicine;
     try {
         medicine = await Reports.find({ "reportDetails.reportId": medicineId })
-        console.log(medicine)
+        // console.log(medicine)
         // console.log("triggering tryblock")
     }
     catch (err) {
 
-        console.log("catch block")
+        // console.log("catch block")
         console.log(err)
     }
     if (!medicine) {
@@ -105,9 +92,9 @@ const getReportById = async (req, res, next) => {
 
 // Update Status Of Inventory
 const updateReportStatus = async (req, res, next) => {
-    console.log("Triggering update Medicine Status")
+    // console.log("Triggering update Medicine Status")
     try {
-        console.log("Updation Inventorystatus")
+        // console.log("Updation Inventorystatus")
         const InId = req.params.Id
         const medicine = await Pharmacy.findOne({ "reportDetails.reportId": InId })
         if (medicine) {
@@ -118,7 +105,7 @@ const updateReportStatus = async (req, res, next) => {
 
             } catch (e) {
                 console.log(e)
-                console.log("Could not find the patient")
+                // console.log("Could not find the patient")
             }
         }
     }
@@ -127,27 +114,22 @@ const updateReportStatus = async (req, res, next) => {
     }
 }
 const getReportByPatientId = async (req, res, next) => {
-    console.log("Triggering Report In the Backend")
+    // console.log("Triggering Report In the Backend")
     const { patientName } = req.params
-    console.log(patientName)
 
     let report
     try {
         report = await Reports.findOne({ "reportDetails.patientName": patientName })
-        console.log("triggering try block")
-        console.log(report)
 
     }
     catch (e) {
         console.log(e)
-        // console.log("triggering catch-block")
     }
     res.json({ report })
 }
 
 
 const addReportFromExcel = async (req, res, next) => {
-    // console.log("Triggering here");
     let last, lastId, newId;
     let createdItem;
 
@@ -155,9 +137,7 @@ const addReportFromExcel = async (req, res, next) => {
         const totalItems = await Reports.countDocuments();
         if (totalItems > 0) {
             last = await Reports.findOne().sort({ _id: -1 });
-            console.log(last);
             lastId = parseInt(last.reportDetails.reportId.slice(2));
-            console.log(lastId, "lastid");
         } else {
             lastId = 0;
         }
@@ -165,12 +145,10 @@ const addReportFromExcel = async (req, res, next) => {
         const newNumber = lastId + 1;
         const paddedNumber = newNumber.toString().padStart(6, "0");
         newId = prefix + paddedNumber;
-        console.log(newId);
     } catch (err) {
         return next(new HttpError(`Creating Report ID failed, Please try again. ${err}`, 500));
     }
 
-    console.log(req.body, "request");
     const excelSerialToJSDate = (serial) => {
         const excelEpoch = new Date(1900, 0, 1);
         return new Date(excelEpoch.getTime() + (serial - 1) * 86400000).toISOString().split("T")[0];
@@ -197,7 +175,6 @@ const addReportFromExcel = async (req, res, next) => {
             firstName: new RegExp(`^${firstName}$`, "i"), // Case-insensitive match
             LastName: new RegExp(`^${lastName}$`, "i"),
         });
-        console.log(existingPatient, "patient")
 
         if (!existingPatient) {
             return res.status(404).json({ message: "Patient is not Registered" });
@@ -249,14 +226,7 @@ const addReportFromExcel = async (req, res, next) => {
 };
 
 const generateNoteUrl = async (req, res, next) => {
-    console.log("Uploading File to S3 Bucket..."); 
-    console.log(req.file,'this si the file')
-        console.log(req.body,"body") 
     try {
-        // Check for file
-        // console.log(req.file)
-        console.log(req.file,'this si the file')
-        console.log(req.body,"body")
         if (!req.file) {
             return res.status(400).json({
                 success: false,

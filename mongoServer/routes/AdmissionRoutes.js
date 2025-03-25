@@ -7,7 +7,7 @@ const AdmissionControllers = require('../controllers/admissionControllers')
 
 router.post('/upload-excel', AdmissionControllers.addAdmissionFromExcel)
 
-router.get('/getId', AdmissionControllers.getId)
+router.get('/getId/:hospitalId', AdmissionControllers.getId)
 router.get('/IdPatient/:Id',AdmissionControllers.AdmissionByPatientId)
 router.patch('/update/:Id',AdmissionControllers.updateAdmission)
 router.get('/patientNames',AdmissionControllers.getRegisterdPatients)

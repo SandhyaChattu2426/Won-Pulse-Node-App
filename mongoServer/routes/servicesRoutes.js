@@ -4,7 +4,7 @@ const ServiceControllers = require('../controllers/servicesControllers')
 const router = express.Router()
 
 router.get('/hospital/:hospitalId', ServiceControllers.GetServices)
-router.get('/getId', ServiceControllers.getId)
+router.get('/getId/:hospitalId', ServiceControllers.getId)
 router.post('/upload-excel', ServiceControllers.addServiceFromExcel)
 router.post('/', ServiceControllers.createService)
 router.get('/:Id', ServiceControllers.getServicesById)

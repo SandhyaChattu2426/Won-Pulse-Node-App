@@ -30,13 +30,12 @@ const upload = multer({
 
 // Other routes
 router.post('/getfileurl',upload.single("file"),ReportControllers.generateNoteUrl)
-
 router.post('/upload-excel', ReportControllers.addReportFromExcel);
-router.get('/getId', ReportControllers.getId);
+router.get('/getId/:hospitalId', ReportControllers.getId);
 router.get('/:Id', ReportControllers.getReportById);
 router.get('/patient/:patientName', ReportControllers.getReportByPatientId);
 router.post('/', ReportControllers.AddReport);
-router.get('/', ReportControllers.GetReports);
+router.get('/hospital/:hospitalId', ReportControllers.GetReports);
 router.patch('/status/:Id', ReportControllers.updateReportStatus);
 
 

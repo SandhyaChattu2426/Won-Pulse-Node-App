@@ -21,23 +21,20 @@ const createBill = async (req, res, next) => {
 
 //GETTING ID 
 const getId = async (req, res, next) => {
-    console.log("triggering to getId")
-    let newAppointmentId;
     const str = "0";
+    const {hospitalId}=req.params
 
     try {
-        const Bill = await GeneralBill.find({});
+        const Bill = await GeneralBill.find({hospitalId:hospitalId});
    
 
         if (Bill.length > 0) {
             // Get the last hospital document, sorted by _id in descending order
-            const lastBill = await GeneralBill.find({}).sort({ _id: -1 }).limit(1);
-            console.log(lastBill,"last Bill")
+            const lastBill = await GeneralBill.find({hospitalId}).sort({ _id: -1 }).limit(1);
             // Extract the last hospital's hospitalId
             const lastBillId= lastBill[0].billId;
            
              const lastNumber = parseInt(lastBillId.substring(2));  // Extracts the number part after 'HP'
-            console.log(lastNumber)
             // // Generate the next hospitalId (increment the last number)
             const nextNumber = lastNumber + 1;
 
@@ -65,6 +62,8 @@ const getId = async (req, res, next) => {
 
 const getBills = async (req, res, next) => {
     const {hospitalId}=req.params
+ 
+  
     let appointments
     try {
         appointments = await GeneralBill.find({hospitalId:hospitalId})

@@ -39,36 +39,26 @@ const getId = async (req, res, next) => {
     const str = "0";
     
     console.log("Backend triggering to get ID");
-
+    const {hospitalId}=req.params
     try {
         // Fetch all hospitals from the database
-        const room = await Room.find({});
+        const room = await Room.find({hospitalId});
         console.log(room,"rooms Here")
 
         if (room.length > 0) {
-            // Get the last hospital document, sorted by _id in descending order
-            const lastRoom = await Room.find({}).sort({ _id: -1 }).limit(1);
-
-            // Extract the last hospital's hospitalId
+            const lastRoom = await Room.find({hospitalId}).sort({ _id: -1 }).limit(1);
             const lastRoomId = lastRoom[0].roomId;
-         
             const lastNumber = parseInt(lastRoomId.substring(2));  // Extracts the number part after 'HP'
-
             const nextNumber = lastNumber + 1;
-
             const zerosCount = 6 - nextNumber.toString().length;
             newRoomId = 'R' + str.repeat(zerosCount) + nextNumber.toString();
         } else {
-            // If no hospitals exist, create the first hospitalId
             newRoomId = 'R' + '0'.repeat(5) + "1";  // HP000001
         }
-
         console.log("Generated Hospital ID:", newRoomId);
         res.json({ id: newRoomId });
-
     } catch (err) {
        console.log(err)
-        
     }
 };
 

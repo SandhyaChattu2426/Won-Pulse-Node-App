@@ -1,7 +1,6 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-
 const ReportsSchema=new Schema({
     reportDetails:{
         reportId: {type:String,},
@@ -13,7 +12,6 @@ const ReportsSchema=new Schema({
         testResults:{type:String},
         comments:{type:String},
         generationDate:{type:String},
-        // serviceId:{type:mongoose.Types.ObjectId, required:true,ref:'services'}
     },
     hospitalId:{type:String,},
     status:{type:String},

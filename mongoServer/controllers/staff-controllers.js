@@ -21,10 +21,9 @@ const createStaff = async (req, res, next) => {
 //Get All Staff In Database
 const getStaff = async (req, res, next) => {
     let staff;
-
+    const {hospitalId}=req.params
     try {
-        staff = await Staff.find({})
-        // console.log(staff)
+        staff = await Staff.find({hospitalId:hospitalId})
     }
     catch (e) {
         console.log(e)
@@ -36,41 +35,30 @@ const getStaff = async (req, res, next) => {
 }
 // Creating StaffId
 const getId = async (req, res, next) => {
-    let newPatient;
     let newPatientId;
     let ZerosCount;
-    let PatientLength;
-    const str = "0";  // String used for padding zeros
-    console.log("Backend Triggering to Get Patient Id");
+    const str = "0"; 
+const {hospitalId}=req.params
 
     try {
-        // Fetch all patients from the database
-        const Patients = await Staff.find({});
-        // console.log("Current number of patients:", Patients.length);
+        const Patients = await Staff.find({hospitalId});
         console.log(Patients)
-        // If there are existing patients, generate the new patient ID based on the count
         if (Patients.length > 0) {
-            const lastPatient = await Staff.find({}).sort({ _id: -1 }).limit(1);
+            const lastPatient = await Staff.find({hospitalId}).sort({ _id: -1 }).limit(1);
             const lastNumber = parseInt(lastPatient[0].staffId.substring(2))
             console.log(lastNumber, "lastNumber")
             const nextNumber = lastNumber + 1;
             PatientLength = Patients.length;
             ZerosCount = 6 - nextNumber.toString().length;
-
-            // Generate new patient ID (e.g., PA000001, PA000002, ...)
             newPatientId = 'ST' + str.repeat(ZerosCount) + nextNumber.toString();
         }
         else {
-            // If no patients exist, start with PA000001
             newPatientId = 'ST' + '0'.repeat(5) + "1";
         }
 
         console.log("Generated New Patient ID:", newPatientId);
-
-        // Send the new patient ID in the response
         res.json({ id: newPatientId });
     } catch (err) {
-        // Handle any errors
         const error = new HttpError("Couldn't Fetch the Patient Details", 500);
         return next(error);
     }
@@ -78,12 +66,11 @@ const getId = async (req, res, next) => {
 
 //Get Staff By Id
 const getStaffById = async (req, res, next) => {
+    const hospitalId=req.params
     const staffId = req.params.id
     //console.log(req.params.id)
     try {
         const staffMember = await Staff.find({ staffId: staffId })
-        // console.log(staffMember)
-        // console.log("try-block")
         res.json({ staffMember })
     }
     catch (e) {
@@ -269,7 +256,7 @@ const checkEmail=async(req,res,next)=>{
 }
 
 const getStaffChartData = async (req, res, next) => {
-    console.log("Fetching Staff Registration Data");
+    // console.log("Fetching Staff Registration Data");
 
     // Define color mapping for departments
     const departmentColors = {

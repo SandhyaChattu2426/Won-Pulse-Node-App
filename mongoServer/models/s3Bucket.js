@@ -16,6 +16,7 @@ const s3Client = new S3Client({
 //  Uploads an image to the S3 bucket.
 
 const uploadFileToS3Bucket = async (file) => {
+    console.log(file,"upload S3 Bucket")
     try {
         // Validate file input
         if (!file || !file.buffer) {

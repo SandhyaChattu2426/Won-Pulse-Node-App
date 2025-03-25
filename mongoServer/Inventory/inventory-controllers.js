@@ -19,47 +19,35 @@ const createInventory = async (req, res, next) => {
 
 //GETTING ID
 const getId = async (req, res, next) => {
-    let newInId;
-    let InLength;
     const str = "0";
-
-    console.log("Backend triggering to get ID");
+    const { hospitalId } = req.params;
 
     try {
+        const inventoryItems = await Inventory.find({ hospitalId });
 
-        const inv = await Inventory.find({});
-        if (inv.length > 0) {
-            // Get the last hospital document, sorted by _id in descending order
-            const lastRoom = await Inventory.find({}).sort({ _id: -1 }).limit(1);
+        if (inventoryItems.length > 0) {
+            const lastInventoryItem = await Inventory.find({ hospitalId }).sort({ _id: -1 }).limit(1);
 
-            // Extract the last hospital's hospitalId
-            const lastRoomId = lastRoom[0].inventoryId;
-
-            // Calculate the next hospitalId based on the last one
-            // Extract the numeric part of the last hospitalId (assuming the format is HP000001)
-            const lastNumber = parseInt(lastRoomId.substring(2));  // Extracts the number part after 'HP'
-
-            // Generate the next hospitalId (increment the last number)
-            const nextNumber = lastNumber + 1;
-
-            // Determine the number of leading zeros required for the new ID
-            const zerosCount = 6 - nextNumber.toString().length;
-            newRoomId = 'IN' + str.repeat(zerosCount) + nextNumber.toString();
+            if (lastInventoryItem.length > 0) {
+                const lastInventoryId = lastInventoryItem[0].inventoryId;
+                const lastNumber = parseInt(lastInventoryId.substring(2)); // Assuming format: IN000001
+                const nextNumber = lastNumber + 1;
+                const zerosCount = 6 - nextNumber.toString().length;
+                newInventoryId = 'IN' + str.repeat(zerosCount) + nextNumber.toString();
+            }
         } else {
-            // If no hospitals exist, create the first hospitalId
-            newRoomId = 'IN' + '0'.repeat(5) + "1";  // HP000001
+            // If no inventory exists for this hospital, start with IN000001
+            newInventoryId = 'IN' + '0'.repeat(5) + "1";
         }
 
-        console.log("Generated Hospital ID:", newRoomId);
-        res.json({ id: newRoomId });
-
+        // console.log("Generated Inventory ID:", newInventoryId);
+        res.json({ id: newInventoryId });
     } catch (err) {
-        console.log(err)
-
+        console.error("Error generating inventory ID:", err);
+        return next(new HttpError("Couldn't fetch the inventory details", 500));
     }
 };
 
-//GetALL
 const gettingALLInventories = async (req, res, next) => {
     const {hospitalId}=req.params
     let InventoryList

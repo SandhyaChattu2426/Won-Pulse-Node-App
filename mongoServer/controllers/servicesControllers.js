@@ -37,7 +37,6 @@ const createService = async (req, res, next) => {
 
 // Get Room Details (All)
 const GetServices = async (req, res, next) => {
-    console.log("triggeing GET service")
     const {hospitalId} = req.params
     console.log(hospitalId,"hospitalId")    
     let List;
@@ -53,37 +52,22 @@ const GetServices = async (req, res, next) => {
 
 // Getting Id
 const getId = async (req, res, next) => {
+    const {hospitalId}=req.params
     let newRoomId;
-    let RoomsLength;
     const str = "0";
-
-    console.log("Backend triggering to get ID");
-
     try {
         // Fetch all hospitals from the database
-        const room = await Service.find({});
-
+        const room = await Service.find({hospitalId:hospitalId});
         if (room.length > 0) {
-            // Get the last hospital document, sorted by _id in descending order
-            const lastRoom = await Service.find({}).sort({ _id: -1 }).limit(1);
+            const lastRoom = await Service.find({hospitalId}).sort({ _id: -1 }).limit(1);
             console.log(lastRoom,"lastRoom")
-                        
-            // Extract the last hospital's hospitalId
             const lastRoomId = lastRoom[0].services.serviceId;
             console.log(lastRoomId,"last@@")
-
-            // Calculate the next hospitalId based on the last one
-            // Extract the numeric part of the last hospitalId (assuming the format is HP000001)
             const lastNumber = parseInt(lastRoomId.substring(2));  // Extracts the number part after 'HP'
-
-            // Generate the next hospitalId (increment the last number)
             const nextNumber = lastNumber + 1;
-
-            // Determine the number of leading zeros required for the new ID
             const zerosCount = 6 - nextNumber.toString().length;
             newRoomId = 'SR' + str.repeat(zerosCount) + nextNumber.toString();
         } else {
-            // If no hospitals exist, create the first hospitalId
             newRoomId = 'SR' + '0'.repeat(5) + "1";  // HP000001
         }
 
@@ -92,7 +76,6 @@ const getId = async (req, res, next) => {
 
     } catch (err) {
         console.log(err)
-
     }
 };
 
