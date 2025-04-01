@@ -27,7 +27,7 @@ const staff = require("./models/staff");
 const dashboardRoutes = require('./routes/dashboardRoutes')
 const { MongoClient } = require("mongodb");
 const dashboardReportRoutes = require('./routes/DashboardReports')
-const RoleRoutes=require('./routes/RolesRoutes')
+const RoleRoutes = require('./routes/RolesRoutes')
 
 require('dotenv').config();
 const secretKey = process.env.JWT_SECRET;
@@ -54,7 +54,7 @@ app.use(cors());
 
 app.use('/api/patient', patientsRoutes);
 app.use('/api/staff', StaffRoutes)
-app.use('/api/role',RoleRoutes)
+app.use('/api/role', RoleRoutes)
 app.use('/api/appointments', AppointmentRoutes)
 app.use('/api/inventory', InventoryRoutes)
 app.use('/api/supplier', supplierRoutes)
@@ -172,7 +172,6 @@ app.post('/send-email-otp', async (req, res) => {
 
 app.post('/send-hospital-email-otp', async (req, res) => {
     const { email } = req.body;
-
     try {
         const user = await Hospitals.findOne({ "contactInformation.email": email }); // MongoDB query using Mongoose
 
@@ -181,7 +180,7 @@ app.post('/send-hospital-email-otp', async (req, res) => {
             const otp = generateOTP(); // Assume generateOTP() generates a random OTP
             otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
 
-            // console.log(otp);
+            console.log(otp);
 
             // Send OTP to the email (assume sendOTP handles email delivery)
             await sendOTP(email, otp);
@@ -225,16 +224,13 @@ app.post('/send-staff-email-otp', async (req, res) => {
     }
 });
 
-const sendOTPStaff = async (email, Id) => {
-    // console.log("triggering SendOtPHospital")
-    // console.log(email, "email")
-    // console.log(Id, "Id")
+const sendOTPForRegistration = async (email, Id,hospitalId,path) => {
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: email,
         subject: 'WONPULSE: Complete Your Registration Process',
         html: `
-            <a href=http://localhost:5173/hospital/${Id}
+            <a href=http://localhost:5173/${path}/${Id}/hospital/${hospitalId}>
                style="color: #007bff; text-decoration: none; font-weight: bold;">
                 Click the link  to complete your registration Process
             </a>
@@ -244,66 +240,27 @@ const sendOTPStaff = async (email, Id) => {
 };
 
 app.post('/EmailStaff', async (req, res) => {
-    // console.log("Triggering @staff ")
-    // console01.log(req.body)
-    const { email, Id } = req.body;
-    // console.log('Received email:', email);
-
-    // Check if the email already exists in the database
+    const { email, Id,hospitalId } = req.body;
     try {
-        // const user = await Hospitals.findOne({ "contactInformation.email": email }); 
-        // console.log(user)// MongoDB query using Mongoose
-
-        // if (user) {
-
-        await sendOTPStaff(email, Id);
-
+        await sendOTPForRegistration(email, Id,hospitalId,path="staff");
         res.status(200).json({ message: 'OTP sent successfully!' });
 
-
-        // else {
-        //     return res.status(400).json({ message: 'Hospital does not exist' });
-
-        // }
-
     } catch (error) {
-        // console.log('Error checking email or sending OTP:', error);
         res.status(500).json({ error, message: 'Internal Server Error.' });
     }
 });
-// FUnction to send email after registering the hospital by sandhya
+
 app.post('/EmailHospital', async (req, res) => {
-    // console.log("Triggering")
-    // console.log(req.body)
+
     const { email, Id } = req.body;
-    // console.log('Received email:', email);
-
-    // Check if the email already exists in the database
     try {
-        // const user = await Hospitals.findOne({ "contactInformation.email": email }); 
-        // console.log(user)// MongoDB query using Mongoose
-
-        // if (user) {
-
         await sendOTPHospital(email, Id);
-
         res.status(200).json({ message: 'OTP sent successfully!' });
-
-
-        // else {
-        //     return res.status(400).json({ message: 'Hospital does not exist' });
-
-        // }
-
     } catch (error) {
-        // console.log('Error checking email or sending OTP:', error);
         res.status(500).json({ error, message: 'Internal Server Error.' });
     }
 });
 const sendOTPHospital = async (email, Id) => {
-    // console.log("triggering SendOtPHospital")
-    // console.log(email, "email")
-    // console.log(Id, "Id")
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: email,
@@ -317,6 +274,17 @@ const sendOTPHospital = async (email, Id) => {
     };
     return transporter.sendMail(mailOptions);
 };
+
+app.post('/EmailPatient', async (req, res) => {
+    const { email, Id,hospitalId } = req.body;
+    try {
+        await sendOTPForRegistration(email, Id,hospitalId,path="patient");
+        res.status(200).json({ message: 'OTP sent successfully!' });
+
+    } catch (error) {
+        res.status(500).json({ error, message: 'Internal Server Error.' });
+    }
+});
 
 // FUNCTION TO VERIFY THE OTP
 const verifyOtp = (email, otp) => {
@@ -368,7 +336,6 @@ app.post('/verify-login-otp', (req, res) => {
 // Register Login
 app.post('/register-login', async (req, res) => {
     const { email, password, fullName, contact } = req.body;
-    // console.log(req.body.dashlay, "body")
     if (!email || !password || !fullName) {
         return res.status(400).json({ success: false, message: 'Email, password, and user name are required.' });
     }
@@ -542,51 +509,81 @@ const authenticateToken = async (req, res, next) => {
     }
 };
 
-app.post('/login', async (req, res) => {
+app.post('/login', async (req, res, next) => {
     try {
         const user = await Login.findOne({ email: req.body.email });
-        if (!user) {
-            const hospitals = await Hospitals.findOne({ "contactInformation.email": req.body.email });
-            if (!hospitals) {
-
-                const staffOne = await staff.findOne({ "email": req.body.email })
-
-                const isMatch = await bcrypt.compare(req.body.password, staffOne.password);
-                const accessToken = jwt.sign({ userId: staffOne.email }, secretKey, { expiresIn: '5h' });
-                const refreshToken = jwt.sign({ userId: staffOne.email }, secretRefreshKey, { expiresIn: '7d' },);
-
-                return res.json({ success: "Login SuccessFully", accessToken, refreshToken, mfa: staffOne.is_mfa_enabled, role: staffOne.jobRole, mfaTypes: staffOne.mfa_type });
-            }
-
-            const isMatch = await bcrypt.compare(req.body.password, hospitals.password);
-            if (!isMatch) {
-                return res.status(400).json({ message: 'Invalid Password' });
-            }
-
-            // Create a JWT token
-            const accessToken = jwt.sign({ userId: hospitals.email }, secretKey, { expiresIn: '5h' });
-            const refreshToken = jwt.sign({ userId: hospitals.email }, secretRefreshKey, { expiresIn: '7d' });
-
-            res.json({ success: "Login SuccessFully", accessToken, refreshToken, role: hospitals.role });
-        }
-        if (user) {
-
+        if (user.user_type === "Hospital") {
             const isMatch = await bcrypt.compare(req.body.password, user.password);
             if (!isMatch) {
                 return res.status(400).json({ message: 'Invalid Password' });
             }
-
-            // Create a JWT token
             const accessToken = jwt.sign({ userId: user.email }, secretKey, { expiresIn: '5h' });
             const refreshToken = jwt.sign({ userId: user.email }, secretRefreshKey, { expiresIn: '7d' });
-
-            res.json({ success: "Login SuccessFully", mfa: user.is_mfa_enabled, accessToken, refreshToken, role: "staff", mfaTypes: user.mfa_type });
+            res.json({ success: "Login SuccessFully", accessToken, refreshToken, role: "admin" });
         }
-    } catch (err) {
-        console.error('Error logging in:', err);
-        res.status(500).send('Server error');
+        if (user.user_type === "Staff") {
+            const isMatch = await bcrypt.compare(req.body.password, user.password);
+            if (!isMatch) {
+                return res.status(400).json({ message: 'Invalid Password' });
+            }
+            const accessToken = jwt.sign({ userId: user.email }, secretKey, { expiresIn: '5 h' });
+            const refreshToken = jwt.sign({ userId: user.email }, secretRefreshKey, { expiresIn: '7d' })// from the staff signup send the role at here and provide at there
+            return res.json({ success: "Login SuccessFully", accessToken, refreshToken, mfa: user.is_mfa_enabled, role: "staff", mfaTypes: user.mfa_type });
+        }
+        const isMatch = await bcrypt.compare(req.body.password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Invalid Password' });
+        }
+        const accessToken = jwt.sign({ userId: user.email }, secretKey, { expiresIn: '5h' });
+        const refreshToken = jwt.sign({ userId: user.email }, secretRefreshKey, { expiresIn: '7d' });
+        res.json({ success: "Login SuccessFully", mfa: user.is_mfa_enabled, accessToken, refreshToken, role: "user", mfaTypes: user.mfa_type });
+    } catch (e) {
+        console.log(e)
     }
-});
+})
+
+// app.post('/login', async (req, res) => {
+//     try {
+//         const user = await Login.findOne({ email: req.body.email });
+//         if (!user) {
+//             const hospitals = await Hospitals.findOne({ "contactInformation.email": req.body.email });
+//             if (!hospitals) {
+//                 const staffOne = await staff.findOne({ "email": req.body.email })
+//                 const isMatch = await bcrypt.compare(req.body.password, staffOne.password);
+//                 const accessToken = jwt.sign({ userId: staffOne.email }, secretKey, { expiresIn: '5h' });
+//                 const refreshToken = jwt.sign({ userId: staffOne.email }, secretRefreshKey, { expiresIn: '7d' });
+//                 return res.json({ success: "Login SuccessFully", accessToken, refreshToken, mfa: staffOne.is_mfa_enabled, role: staffOne.jobRole, mfaTypes: staffOne.mfa_type });
+//             }
+
+//             const isMatch = await bcrypt.compare(req.body.password, hospitals.password);
+//             if (!isMatch) {
+//                 return res.status(400).json({ message: 'Invalid Password' });
+//             }
+
+//             // Create a JWT token
+//             const accessToken = jwt.sign({ userId: hospitals.email }, secretKey, { expiresIn: '5h' });
+//             const refreshToken = jwt.sign({ userId: hospitals.email }, secretRefreshKey, { expiresIn: '7d' });
+
+//             res.json({ success: "Login SuccessFully", accessToken, refreshToken, role: hospitals.role });
+//         }
+//         if (user) {
+//             const isMatch = await bcrypt.compare(req.body.password, user.password);
+//             if (!isMatch) {
+//                 return res.status(400).json({ message: 'Invalid Password' });
+//             }
+
+//             // Create a JWT token
+//             const accessToken = jwt.sign({ userId: user.email }, secretKey, { expiresIn: '5h' });
+//             const refreshToken = jwt.sign({ userId: user.email }, secretRefreshKey, { expiresIn: '7d' });
+
+//             res.json({ success: "Login SuccessFully", mfa: user.is_mfa_enabled, accessToken, refreshToken, role: "admin", mfaTypes: user.mfa_type });// changed by you
+//         }
+//     } catch (err) {
+//         console.error('Error logging in:', err);
+//         res.status(500).send('Server error');
+//     }
+// });
+
 
 app.get("/validate-refresh/:id", (req, res) => {
     const { id } = req.params

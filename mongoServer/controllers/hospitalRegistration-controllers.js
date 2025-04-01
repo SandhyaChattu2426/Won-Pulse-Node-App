@@ -21,7 +21,6 @@ const AddHospital = async (req, res, next) => {
 }
 
 const GetHospitals = async (req, res, next) => {
-    console.log("triggeing GET Hospitals")
     let List;
     try {
         List = await Hospitals.find({})
@@ -76,18 +75,15 @@ const getId = async (req, res, next) => {
 //Get Hospital By Id
 const getHospitalById = async (req, res, next) => {
     const { Id } = req.params
-    // console.log(Id)
-    // console.log("Triggering")
+    console.log(Id,"Id here")
     let hospital
     try {
-        // const url=`http://locolhost:5000/api/appointments/${Id}`
         hospital = await Hospitals.findOne({ hospitalId: Id })
+        
         console.log(hospital)
-        // console.log("triggering try-block")
     }
     catch (e) {
         console.log(e)
-        // console.log("triggering catch-block")
     }
     res.json({ hospital })
 }

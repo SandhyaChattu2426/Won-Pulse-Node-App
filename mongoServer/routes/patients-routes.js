@@ -20,12 +20,12 @@ const upload = multer({
 });
 
 router.post('/getfileurl',upload.single("file"),patientsControllers.generateNoteUrl)
-
+router.post('/', patientsControllers.createPatient)
 router.post('/upload-excel',patientsControllers.addPatientFromExcel)
 router.get('/getId/:hospitalId', patientsControllers.getId);
 router.get('/charts', patientsControllers.getPatientChartData);
 
-router.get('/:Id', patientsControllers.getPatientById);
+router.get('/:id/hospital/:hospitalId', patientsControllers.getPatientById);
 router.get('/', patientsControllers.getPatients);
 
 // router.use(CheckAuth)
@@ -36,7 +36,7 @@ router.post('/addReport/:Id',patientsControllers.AddAppointment)
 router.post('/bookAppointment/:Id',patientsControllers.AddAppointment)
 
 
-router.post('/', patientsControllers.createPatient)
+
 
 router.delete('/:id', patientsControllers.deletePatient)
 

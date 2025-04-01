@@ -3,16 +3,14 @@ const { v4: uuid } = require("uuid")
 const { validationResult } = require('express-validator')
 const Patient = require('../models/patient')
 const { get } = require('mongoose')
-const {uploadFileToS3Bucket}=require('../models/s3Bucket')
+const { uploadFileToS3Bucket } = require('../models/s3Bucket')
 
 // GET PATIENT BY ID
-const getPatientById = async (req, res, next) => {
-    const patientId = req.params.Id
- 
+const getPatientById = async (req, res, next) => {  
+    console.log(req.params, "params Here")
     let patient;
-
     try {
-        patient = await Patient.find({ patientId: patientId })
+        patient = await Patient.findOne({ patientId: req.params.id, hospitalId: req.params.hospitalId })
         // console.log("triggering tryblock")
     }
     catch (err) {
@@ -25,17 +23,15 @@ const getPatientById = async (req, res, next) => {
         return next(error)
 
     }
-    // console.log(patient,"patient")
-
     res.json({ patients: patient })
 }
 
 //GET Patients
 const getPatients = async (req, res, next) => {
-    const {hospitalId}=req.params
+    const { hospitalId } = req.params
     let patients
     try {
-        patients = await Patient.find({hospitalId})
+        patients = await Patient.find({ hospitalId })
         // console.log(patients)
     } catch (err) {
         console.log(err)
@@ -49,20 +45,20 @@ const getPatients = async (req, res, next) => {
 // GetId
 
 const getId = async (req, res, next) => {
-    let newPatient;
     let newPatientId;
     let ZerosCount;
     let PatientLength;
-    const str = "0";  // String used for padding zeros
+    const str = "0";
+    const {hospitalId}=req.params  // String used for padding zeros
 
     try {
         // Fetch all patients from the database
-        const Patients = await Patient.find({hospitalId});
+        const Patients = await Patient.find({ hospitalId });
         // console.log("Current number of patients:", Patients.length);
         // console.log(Patients)
         // If there are existing patients, generate the new patient ID based on the count
         if (Patients.length > 0) {
-            const lastPatient = await Patient.find({hospitalId}).sort({ _id: -1 }).limit(1);
+            const lastPatient = await Patient.find({ hospitalId }).sort({ _id: -1 }).limit(1);
             const lastNumber = parseInt(lastPatient[0].patientId.substring(2))
             const nextNumber = lastNumber + 1;
             PatientLength = Patients.length;
@@ -87,27 +83,20 @@ const getId = async (req, res, next) => {
 
 //CREATING PLACE
 const createPatient = async (req, res, next) => {
-    // console.log("triggering @")
     try {
         const { email, ...updateData } = req.body; // Extract email from request body
-
-        // Check if a patient with this email already exists
-        // console.log(req.body,"body")
         let existingPatient = await Patient.findOne({ email });
-
         if (existingPatient) {
-            // If patient exists, update their details
             await Patient.findByIdAndUpdate(existingPatient._id, updateData, { new: true });
-            // console.log("Existing patient updated:", existingPatient._id);
             return res.status(200).json({ message: "Patient updated successfully", patientId: existingPatient._id });
         } else {
-            // If no patient exists, create a new one
             const newPatient = new Patient(req.body);
             await newPatient.save();
-            // console.log("New patient created:", newPatient._id);
+           console.log("Patient Registered Succesfully")
             return res.status(201).json({ message: "Patient created successfully", patientId: newPatient._id });
         }
     } catch (err) {
+        console.log(err,"error")
         console.error("Error in createPatient:", err);
         return next(new HttpError("Error processing patient request", 500));
     }
@@ -377,7 +366,7 @@ const AddReport = async (req, res, next) => {
 //     if (existingStaff) {
 //         return res.status(400).json({ message: "Patient already with this email already exists." });
 //     }
-    
+
 
 
 //     createdItem = new Patient({
@@ -452,7 +441,7 @@ const addPatientFromExcel = async (req, res, next) => {
     } = req.body;
 
 
- 
+
 
     try {
         // Check if a patient with the provided email exists
@@ -465,7 +454,7 @@ const addPatientFromExcel = async (req, res, next) => {
             // Generate a new patient ID if not found
             const totalItems = await Patient.countDocuments();
             let lastId;
-            
+
             if (totalItems > 0) {
                 const last = await Patient.findOne().sort({ _id: -1 });
                 lastId = parseInt(last.patientId.slice(2));
@@ -540,7 +529,7 @@ const generateNoteUrl = async (req, res, next) => {
             success: true,
             message: "File uploaded successfully.",
             fileUrl,
-            name:req.file.originalname
+            name: req.file.originalname
         });
     } catch (error) {
         console.error("Error uploading File:", error);
@@ -626,5 +615,5 @@ exports.updatePatientStatus = updatePatientStatus
 exports.AddAppointment = AddAppointment
 exports.AddReport = AddReport
 exports.addPatientFromExcel = addPatientFromExcel
-exports.generateNoteUrl=generateNoteUrl
+exports.generateNoteUrl = generateNoteUrl
 exports.getPatientChartData = getPatientChartData

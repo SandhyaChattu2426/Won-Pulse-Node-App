@@ -7,15 +7,11 @@ const users=require('../models/Users')
 
 
 const updateMfa = async (req, res, next) => {
-    // console.log("triggering @mfa");
     const { email } = req.params;
     let { is_mfa_enabled, mfa_type, passkey } = req.body;
-    // console.log("Received mfa_type:", mfa_type);
-
     try {
         let entityType = "user";
         let entity = await User.findOne({ email });
-
         if (!entity) {
             entity = await staff.findOne({ email });
             entityType = "staff";
@@ -123,23 +119,24 @@ const putId = async (req, res, next) => {
 }
 
 const createLogin = async (req, res, next) => {
+
+
+    
 }
 
 const updateLayout = async (req, res, next) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
-        // res.status(422)
         return next(new HttpError('Invalid inputs passed, please check your data'))
     }
 
     const { dashboard_layouts
     } = req.body
-    // console.log(dashboard_layouts,"layouts")
     const email = req.params.sid
-
+    console.log(email,"email")
     let login
     try {
-        await User.findOneAndUpdate(
+       login= await User.findOneAndUpdate(
             { email: email }, 
             { $set: { dashboard_layouts: dashboard_layouts } },
             { new: true, useFindAndModify: false }
@@ -147,21 +144,15 @@ const updateLayout = async (req, res, next) => {
 
     }
     catch (err) {
-        // const error = new HttpError(`Something went wrong, could not update login.${err}`, 500)
-        // return next(error)
         console.log(err)
     }
 
-
-
-    // try {
-    //     await login.save()
-    // }
-    // catch (err) {
-    //     // const error = new HttpError(`Something went wrong, could not update login.${err}`, 500)
-    //     console.log(err,"error")
-    //     // return next(error)
-    // }
+    try {
+        await login.save()
+    }
+    catch (err) {
+        console.log(err,"error")
+    }
 
     // DUMMY[placeIndex] = updatedPlace
 

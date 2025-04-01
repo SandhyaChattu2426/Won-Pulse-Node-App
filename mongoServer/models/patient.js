@@ -51,7 +51,8 @@ const patientSchema = new Schema({
     hospitalId:{type:String},
     fullName:{type:String},
     registeredOn: { type: Date, default: Date.now },
-    category:{type:String,required:true}
+    category:{type:String},
+    fullName:{type:String}
 })
 
 module.exports = mongoose.model('Patient', patientSchema)

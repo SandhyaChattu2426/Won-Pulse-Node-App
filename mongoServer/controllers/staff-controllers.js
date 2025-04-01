@@ -29,8 +29,6 @@ const getStaff = async (req, res, next) => {
         console.log(e)
         return next(new HttpError("can not Getting Staff", 500))
     }
-    // console.log(staff)
-
     res.json({ staff: staff.map(e => e.toObject({ getters: true })) })
 }
 // Creating StaffId
@@ -38,15 +36,14 @@ const getId = async (req, res, next) => {
     let newPatientId;
     let ZerosCount;
     const str = "0"; 
-const {hospitalId}=req.params
+    const {hospitalId}=req.params
 
     try {
         const Patients = await Staff.find({hospitalId});
-        console.log(Patients)
+        // console.log(Patients)
         if (Patients.length > 0) {
             const lastPatient = await Staff.find({hospitalId}).sort({ _id: -1 }).limit(1);
             const lastNumber = parseInt(lastPatient[0].staffId.substring(2))
-            console.log(lastNumber, "lastNumber")
             const nextNumber = lastNumber + 1;
             PatientLength = Patients.length;
             ZerosCount = 6 - nextNumber.toString().length;
@@ -55,8 +52,6 @@ const {hospitalId}=req.params
         else {
             newPatientId = 'ST' + '0'.repeat(5) + "1";
         }
-
-        console.log("Generated New Patient ID:", newPatientId);
         res.json({ id: newPatientId });
     } catch (err) {
         const error = new HttpError("Couldn't Fetch the Patient Details", 500);
@@ -66,31 +61,22 @@ const {hospitalId}=req.params
 
 //Get Staff By Id
 const getStaffById = async (req, res, next) => {
-    const hospitalId=req.params
-    const staffId = req.params.id
-    //console.log(req.params.id)
+    // console.log(req.params)
     try {
-        const staffMember = await Staff.find({ staffId: staffId })
+        const staffMember = await Staff.find({ staffId: req.params.id,hospitalId:req.params.hospitalId })
         res.json({ staffMember })
     }
     catch (e) {
         console.log(e)
-        console.log("catch-block")
     }
 }
 
 const updateStaff = async (req, res, next) => {
     const { staffId, personalInformation, adress, qualification, typeOfStaff } = req.body
-    //    console.log(req.params)
     const { id } = req.params
-    console.log(id)
-    console.log("triggering IN the Backend")
     let staff;
     try {
-        // staff=await Staff.find({staffId:id})
         staff = await Staff.findOne({ staffId: id })
-        console.log(staff)
-
     } catch (e) {
         console.log(e)
         return new HttpError("can not find staff", 404)
@@ -101,24 +87,17 @@ const updateStaff = async (req, res, next) => {
         staff.qualification = qualification
         staff.typeOfStaff = typeOfStaff
         await staff.save()
-        // console.log("saving")
     } catch (e) {
-        console.log("not")
         console.log(e)
         return new HttpError("can't be updated")
-
     }
-
     res.status(200).json({ staff: staff.toObject({ getters: true }) })
 }
 
 const updateStaffStatus = async (req, res, next) => {
     try {
-        console.log("Updation Staff status")
         const StaffId = req.params.Id
-        console.log(StaffId, "here is")
         const staff = await Staff.findOne({ staffId: StaffId })
-        console.log(staff)
         if (staff) {
             try {
                 staff.status = req.body.status
@@ -127,7 +106,6 @@ const updateStaffStatus = async (req, res, next) => {
 
             } catch (e) {
                 console.log(e)
-                console.log("Could not find the patient")
             }
         }
     }
@@ -157,18 +135,11 @@ const addStaffFromExcel = async (req, res, next) => {
             online,
             status,
         } = req.body;
-
-        // Validate required fields
         if (!fullname || !dateofbirth || !gender || !contactnumber || !email) {
             return res.status(400).send({ message: "Incomplete staff details." });
         }
-
-        // Check if the staff member already exists by email
         let staff = await Staff.findOne({ email });
-        console.log(staff,"oldItem")
-
         if (staff) {
-            // Staff exists, update their details without changing staffId
             staff.fullName = fullname;
             staff.dateOfBirth = dateofbirth;
             staff.gender = gender;
@@ -189,15 +160,10 @@ const addStaffFromExcel = async (req, res, next) => {
             console.log("triggering update")
             return res.status(200).json({ message: "Staff details updated successfully.", staff });
         } else {
-            // Staff does not exist, create a new staff record
-
-            // Generate a new staffId
             const totalItems = await Staff.countDocuments();
             const lastStaff = totalItems > 0 ? await Staff.findOne().sort({ _id: -1 }) : null;
             const lastId = lastStaff ? parseInt(lastStaff.staffId.slice(2)) : 0;
             const newId = `ST${(lastId + 1).toString().padStart(6, "0")}`;
-
-            // Create new staff
             const newStaff = new Staff({
                 staffId: newId,
                 fullName: fullname,
@@ -227,12 +193,9 @@ const addStaffFromExcel = async (req, res, next) => {
 };
 
 const getStaffByHplId=async (req,res,next)=>{  
-    console.log("triggering") 
     const {Id}=req.params
-    console.log(Id,"Id here")
     try{
     const staffMembers= await Staff.find({hospitalId:Id})
-    console.log(staffMembers,"sm")
     res.json({staff:staffMembers})
     }
     catch(e){
@@ -242,23 +205,17 @@ const getStaffByHplId=async (req,res,next)=>{
 
 const checkEmail=async(req,res,next)=>{
     const staffemail = req.params.email
-    //console.log(req.params.id)
     try {
         const staffMember = await Staff.find({ email: staffemail })
-        // console.log(staffMember)
-        // console.log("try-block")
         res.json({ staffMember })
     }
     catch (e) {
         console.log(e)
-        console.log("catch-block")
     }
 }
 
 const getStaffChartData = async (req, res, next) => {
-    // console.log("Fetching Staff Registration Data");
-
-    // Define color mapping for departments
+    
     const departmentColors = {
         "Cardiology": "rgba(244, 67, 54, 1)", // Red
         "Neurology": "rgba(33, 150, 243, 1)", // Blue
@@ -289,39 +246,50 @@ const getStaffChartData = async (req, res, next) => {
                     }
                 }
             }
-        ]);
-
-        // Labels for months (Jan to Dec)
+        ])
         const allLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-        let maxMonth = 0; // Track the latest month with data
-
-        // Format data for Chart.js
+        let maxMonth = 0; 
         const datasets = staffData.map(departmentData => {
             const monthData = new Array(12).fill(0);
 
             departmentData.data.forEach(entry => {
                 monthData[entry.month - 1] = entry.totalCount; // Adjust for zero-based index
                 if (entry.month > maxMonth) {
-                    maxMonth = entry.month; // Track latest month with data
+                    maxMonth = entry.month; 
                 }
             });
 
             return {
-                label: departmentData._id, // Department name
+                label: departmentData._id, 
                 data: monthData.slice(0, maxMonth), // Trim data up to latest month
                 borderColor: departmentColors[departmentData._id] || "rgba(0, 0, 0, 1)", // Default black
                 backgroundColor: departmentColors[departmentData._id]?.replace("1)", "0.3)") || "rgba(0, 0, 0, 0.3)" // Lighter background
             };
         });
-
-        // Trim labels up to the latest month with data
         const labels = allLabels.slice(0, maxMonth);
-
         res.json({ labels, datasets });
     } catch (error) {
         console.error("Error fetching staff registration chart data:", error);
         res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+const getStaffByRoleName = async (req, res, next) => {
+    console.log(req.params, "@@SandhyaChattu");
+    const { hospitalId, roleName } = req.params;
+
+    try {
+        const staffMembers = await Staff.find({ hospitalId, jobRole: roleName });
+
+        if (!staffMembers.length) {
+            return res.status(404).json({ message: "No staff members found" });
+        }
+
+        res.status(200).json(staffMembers); 
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ message: "Server error", error: e.message }); // ✅ Handle errors properly
     }
 };
 
@@ -339,3 +307,4 @@ exports.addStaffFromExcel = addStaffFromExcel
 exports.getStaffByHplId=getStaffByHplId
 exports.checkEmail=checkEmail
 exports.getStaffChartData = getStaffChartData
+exports.getStaffByRoleName=getStaffByRoleName

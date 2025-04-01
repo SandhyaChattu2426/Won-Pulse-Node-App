@@ -10,7 +10,6 @@ const userSchema = new Schema({
     user_id: {type:String},
     user_name:{type:String} ,
     role_id:{type:String},
-    role_id:{type:String},
     first_name:{type:String},
     last_name:{type:String},
     title:{type:String},
