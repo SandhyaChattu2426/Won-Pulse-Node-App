@@ -32,7 +32,6 @@ const getPatients = async (req, res, next) => {
     let patients
     try {
         patients = await Patient.find({ hospitalId })
-        // console.log(patients)
     } catch (err) {
         console.log(err)
         const error = new HttpError("not getting a patient", 402)

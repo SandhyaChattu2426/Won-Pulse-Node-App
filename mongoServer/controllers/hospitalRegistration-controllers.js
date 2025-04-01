@@ -11,7 +11,6 @@ const AddHospital = async (req, res, next) => {
     })
     try {
         await newsupplier.save()
-        console.log("Hospital Registered SuccessFully")
         res.json({ message: "Hospital registered successfully" });
     }
     catch (e) {
@@ -75,12 +74,9 @@ const getId = async (req, res, next) => {
 //Get Hospital By Id
 const getHospitalById = async (req, res, next) => {
     const { Id } = req.params
-    console.log(Id,"Id here")
     let hospital
     try {
         hospital = await Hospitals.findOne({ hospitalId: Id })
-        
-        console.log(hospital)
     }
     catch (e) {
         console.log(e)
@@ -90,7 +86,6 @@ const getHospitalById = async (req, res, next) => {
 
 //UPDATE HOSPITAL
 const updateHospital = async (req, res, next) => {
-    console.log("triggering update block")
     const {
         hospitalId,
         hospitalDetails,

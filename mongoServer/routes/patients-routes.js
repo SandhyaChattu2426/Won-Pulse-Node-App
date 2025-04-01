@@ -26,7 +26,7 @@ router.get('/getId/:hospitalId', patientsControllers.getId);
 router.get('/charts', patientsControllers.getPatientChartData);
 
 router.get('/:id/hospital/:hospitalId', patientsControllers.getPatientById);
-router.get('/', patientsControllers.getPatients);
+router.get('/hospital/:hospitalId', patientsControllers.getPatients);
 
 // router.use(CheckAuth)
 router.patch('/status/:Id',patientsControllers.updatePatientStatus)
