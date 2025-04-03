@@ -32,6 +32,9 @@ const userSchema = new Schema({
     passkey: {type:String},
     biometric_data: {type:String},
     authenticator_secret: {type:String},
+    patient_id:{type:String},
+    hospital_id:{type:String},
+
 });
 
 module.exports=mongoose.model("user",userSchema)

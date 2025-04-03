@@ -14,6 +14,8 @@ const ReportsSchema=new Schema({
         generationDate:{type:String},
     },
     hospitalId:{type:String,},
+    patientId:{type:String,},
+
     status:{type:String},
     files:[{
         name:{type:String},

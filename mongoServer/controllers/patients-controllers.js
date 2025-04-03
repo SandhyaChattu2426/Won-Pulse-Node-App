@@ -6,7 +6,7 @@ const { get } = require('mongoose')
 const { uploadFileToS3Bucket } = require('../models/s3Bucket')
 
 // GET PATIENT BY ID
-const getPatientById = async (req, res, next) => {  
+const getPatientById = async (req, res, next) => {
     console.log(req.params, "params Here")
     let patient;
     try {
@@ -48,7 +48,7 @@ const getId = async (req, res, next) => {
     let ZerosCount;
     let PatientLength;
     const str = "0";
-    const {hospitalId}=req.params  // String used for padding zeros
+    const { hospitalId } = req.params  // String used for padding zeros
 
     try {
         // Fetch all patients from the database
@@ -91,11 +91,11 @@ const createPatient = async (req, res, next) => {
         } else {
             const newPatient = new Patient(req.body);
             await newPatient.save();
-           console.log("Patient Registered Succesfully")
+            console.log("Patient Registered Succesfully")
             return res.status(201).json({ message: "Patient created successfully", patientId: newPatient._id });
         }
     } catch (err) {
-        console.log(err,"error")
+        console.log(err, "error")
         console.error("Error in createPatient:", err);
         return next(new HttpError("Error processing patient request", 500));
     }
@@ -262,154 +262,7 @@ const AddReport = async (req, res, next) => {
 }
 
 
-// const addPatientFromExcel = async (req, res, next) => {
-//     // console.log("Triggering here")
-//     let last, lastId, newId;
-//     let createdItem;
 
-//     try {
-//         const totalItems = await Patient.countDocuments();
-//         if (totalItems > 0) {
-//             last = await Patient.findOne().sort({ _id: -1 });
-//             lastId = parseInt(last.patientId.slice(2));
-//             console.log(lastId, "lastid")
-//         } else {
-//             lastId = 0;
-//         }
-
-//         const prefix = "PA";
-//         const newNumber = lastId + 1;
-//         const paddedNumber = newNumber.toString().padStart(6, "0");
-//         newId = prefix + paddedNumber;
-//         console.log(newId)
-//     } catch (err) {
-//         return next(new HttpError(`Creating report ID failed, Please try again. ${err}`, 500));
-//     }
-
-//     // Validate inputs
-//     // const errors = validationResult(req);
-//     // if (!errors.isEmpty()) {
-//     //     return next(new HttpError("Invalid inputs passed, please check your data", 422));
-//     // }
-
-//     console.log(req.body, "request")
-//     // let {
-//     //     staffId:req.body.,
-//     //     fullName:req.body.,
-//     //     dateOfBirth:req.body.,
-//     //     gender:req.body.,
-//     //     email:req.body.,
-//     //     contactNumber:req.body.,
-//     //     street:req.body.,
-//     //     city:req.body.,
-//     //     state:req.body.,
-//     //     zipcode:req.body.,
-//     //     jobRole:req.body.,
-//     //     department:req.body.,
-//     //     employmentType:req.body.,
-//     //     qualification:req.body.,
-//     //     nightShift:req.body.,
-//     //     online:req.body.,
-//     //     status:req.body.,
-
-//     // } = req.body;
-
-
-//     //  try {
-//     //     let existingItem;
-
-//     //     // ✅ 1️⃣ Check for existing item using `item_id`
-//     //     if (req.body.reportId) {
-//     //         existingItem = await Reports.findOne({ item_id });
-//     //     }
-
-//     //     if (existingItem) {
-//     //         // ✅ Update existing item by `item_id`
-//     //         const updatedItem = await Reports.findOneAndUpdate(
-//     //             { item_id },
-//     //             { $set: req.body },
-//     //             { new: true }
-//     //         );
-
-//     //         return res.status(200).json({
-//     //             message: "Item updated successfully.",
-//     //             updatedItem,
-//     //         });
-//     //     } else {
-//     //         // ✅ 2️⃣ If no `item_id`, check for existing item by `item_category` and `item_brand`
-//     //         existingItem = await Reports.findOne({
-//     //             item_name,
-//     //             item_brand,
-//     //         });
-
-//     //         if (existingItem) {
-//     //             // ✅ If found, update the existing record
-//     //             const updatedItem = await Reports.findOneAndUpdate(
-//     //                 { item_name, item_brand },
-//     //                 { $set: req.body },
-//     //                 { new: true }
-//     //             );
-
-//     //             return res.status(200).json({
-//     //                 message: "Item updated successfully.",
-//     //                 updatedItem,
-//     //             });
-//     //         }
-//     //     }
-//     // } catch (err) {
-//     //     return next(new HttpError(`Error checking for existing item: ${err}`, 500));
-//     // }
-
-//     // Create a new inventory item
-//     const existingStaff = await Patient.findOne({ email: req.body.email });  // You can use email or staffId for uniqueness
-//     if (existingStaff) {
-//         return res.status(400).json({ message: "Patient already with this email already exists." });
-//     }
-
-
-
-//     createdItem = new Patient({
-//         patientId: newId,
-//         firstName: req.body.firstname,
-//         LastName: req.body.lastname,
-//         dateOfBirth: req.body.dateofbirth,
-//         gender: req.body.gender,
-//         email: req.body.email,
-//         contactNumber: req.body.contactnumber,
-//         emergencyContactName: req.body.emergencycontactname,
-//         emergencyContactNumber: req.body.emergencycontactnumber,
-//         street: req.body.street,
-//         city: req.body.city,
-//         state: req.body.state,
-//         zipcode: req.body.zipcode,
-//         insuranceProvider: req.body.insuranceprovider,
-//         policyNumber: req.body.policynumber,
-//         policyHoldersName: req.body.policyholdersname,
-//         relation: req.body.relation,
-//         currentMedicine: req.body.currentmedicine,
-//         previousSurgeries: req.body.previoussurgeries,
-//         chronicConditions: req.body.chronicconditions,
-//         reasonsForVisit: req.body.reasonsforvisit,
-//         status: req.body.status || "Active",
-//     });
-//     if (!req.body.firstname || !req.body.dateofbirth || !req.body.gender || !req.body.lastname || !req.body.contactnumber || !req.body.city ) {
-//         return res.status(400).send({ message: "Incomplete Patient details." });
-//     }
-//     else {
-//         try {
-//             // const sess = await mongoose.startSession();
-//             // sess.startTransaction();
-//             // await createdItem.save({ session: sess });
-//             // await sess.commitTransaction();
-//             // sess.endSession();
-
-//             await createdItem.save()
-//             res.status(201).json({ item: createdItem });
-//         } catch (err) {
-//             return next(new HttpError(`Creating item failed, Please try again. ${err}`, 500));
-//         }
-//     }
-// }
 const addPatientFromExcel = async (req, res, next) => {
     function excelDateToJSDate(serialDate) {
         const date = new Date((serialDate - 25569) * 86400 * 1000);
@@ -438,9 +291,6 @@ const addPatientFromExcel = async (req, res, next) => {
         reasonsforvisit = "",
         status = "Active",
     } = req.body;
-
-
-
 
     try {
         // Check if a patient with the provided email exists
@@ -601,6 +451,18 @@ const getPatientChartData = async (req, res, next) => {
     }
 };
 
+const checkEmailAndSendName=async(req,res,next)=>{
+    const {email,hospital} = req.params
+    console.log(req.params)
+        try {
+            const patient = await Patient.findOne({ email: email,hospitalId:hospital})
+            res.json({ patient })
+        }
+        catch (e) {
+            console.log(e)
+        }
+}
+
 
 
 
@@ -616,3 +478,4 @@ exports.AddReport = AddReport
 exports.addPatientFromExcel = addPatientFromExcel
 exports.generateNoteUrl = generateNoteUrl
 exports.getPatientChartData = getPatientChartData
+exports.checkEmailAndSendName = checkEmailAndSendName

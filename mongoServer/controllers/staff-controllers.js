@@ -10,6 +10,7 @@ const { request } = require('express')
 const createStaff = async (req, res, next) => {
     const newStaff = new Staff({ ...req.body });
     try {
+        console.log(req.body)
         await newStaff.save();
         return res.status(201).json({ message: "Staff created successfully" }); // Send JSON response
     } catch (e) {
@@ -276,7 +277,7 @@ const getStaffChartData = async (req, res, next) => {
 };
 
 const getStaffByRoleName = async (req, res, next) => {
-    console.log(req.params, "@@SandhyaChattu");
+    // console.log(req.params, "@@SandhyaChattu");
     const { hospitalId, roleName } = req.params;
 
     try {

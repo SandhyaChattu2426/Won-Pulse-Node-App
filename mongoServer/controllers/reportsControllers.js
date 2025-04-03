@@ -238,6 +238,7 @@ const generateNoteUrl = async (req, res, next) => {
         console.log(req.file,"file @backend")
         console.log(req.body,"body")
         const fileUrl = await uploadFileToS3Bucket(req.file);
+        console.log(fileUrl,"fileUrl")
         if (!fileUrl) {
             return res.status(500).json({
                 success: false,

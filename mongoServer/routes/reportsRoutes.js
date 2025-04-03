@@ -8,9 +8,6 @@ const ReportControllers = require("../controllers/reportsControllers");
 
 const router = express.Router();
 
-
-
-
 const fileFilter = (req, file, cb) => {
     cb(null, true); // Accept all files
 };

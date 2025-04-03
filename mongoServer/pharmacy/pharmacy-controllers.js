@@ -332,7 +332,8 @@ const getChartData = async (req, res, next) => {
 
         // Trim labels up to the last month with data
         const labels = allLabels.slice(0, maxMonth);
-        // //console.log(datasets,"Datas")
+        console.log(datasets,"Datas")
+        
 
         res.json({ labels, datasets });
     } catch (error) {

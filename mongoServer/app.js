@@ -199,7 +199,7 @@ app.post('/send-staff-email-otp', async (req, res) => {
     const { email } = req.body;
     try {
         const user = await staff.findOne({ "email": email }); // MongoDB query using Mongoose
-
+        console.log(user)
         // If a user with this email exists, return an error response
         if (user) {
             const otp = generateOTP(); // Assume generateOTP() generates a random OTP
@@ -410,6 +410,8 @@ app.post('/register-login', async (req, res) => {
             passkey: req.body.passkey || null,
             biometric_data: req.body.biometric_data || null,
             authenticator_secret: req.body.authenticator_secret || null,
+            patient_id:req.body.patient_id||null,
+            hospital_id:req.body.hospital_id||null
         });
 
         const savedLogin = await newLogin.save();
@@ -596,7 +598,7 @@ app.post('/login', async (req, res, next) => {
             }
             const accessToken = jwt.sign({ userId: user.email }, secretKey, { expiresIn: '5 h' });
             const refreshToken = jwt.sign({ userId: user.email }, secretRefreshKey, { expiresIn: '7d' })// from the staff signup send the role at here and provide at there
-            return res.json({ success: "Login SuccessFully", accessToken, refreshToken, mfa: user.is_mfa_enabled, role: "Patient", mfaTypes: user.mfa_type });
+            return res.json({ success: "Login SuccessFully", accessToken, refreshToken, mfa: user.is_mfa_enabled, role: "Patient", mfaTypes: user.mfa_type,patientId:user.patient_id,hospitalId:user.hospital_id });
         }
         const isMatch = await bcrypt.compare(req.body.password, user.password);
         if (!isMatch) {
@@ -609,7 +611,6 @@ app.post('/login', async (req, res, next) => {
         console.log(e)
     }
 })
-
 
 app.get("/validate-refresh/:id", (req, res) => {
     const { id } = req.params
