@@ -7,11 +7,12 @@ const { uploadFileToS3Bucket } = require('../models/s3Bucket')
 
 // GET PATIENT BY ID
 const getPatientById = async (req, res, next) => {
-    console.log(req.params, "params Here")
+   
     let patient;
     try {
         patient = await Patient.findOne({ patientId: req.params.id, hospitalId: req.params.hospitalId })
         // console.log("triggering tryblock")
+        console.log(patient, "patient")
     }
     catch (err) {
         const error = new HttpError("Couldnot find the patient Having the Provided Id", 500)
@@ -23,7 +24,7 @@ const getPatientById = async (req, res, next) => {
         return next(error)
 
     }
-    res.json({ patients: patient })
+    res.json({ patient: patient })
 }
 
 //GET Patients
@@ -171,7 +172,6 @@ const deletePatient = async (req, res, next) => {
     res.status(200).json(({ patient: "Deleted Place" }))
 }
 
-//Update Patient Status
 const updatePatientStatus = async (req, res, next) => {
     try {
         // console.log("Updation status")

@@ -5,11 +5,9 @@ const Patinets=require('../models/patient')
 
 //CREATE AN APPOINTMENT
 const createAppointment = async (req, res, next) => {
-    //console.log("CreateAppointments Triggered")
     const newAppointment = new Appointments({
         ...req.body
     })
-    // console.log(req.body)
     try {
         await newAppointment.save()
     }
@@ -25,9 +23,6 @@ const getId = async (req, res, next) => {
     let newAppointmentId;
     let AppointmentsLength;
     const str = "0";
-
-    console.log("Backend triggering to get ID");
-
     try {
         // Fetch all hospitals from the database
         const appointments = await Appointments.find({});
@@ -86,8 +81,6 @@ const {hospitalId}=req.params;
 const updateAppointments = async (req, res, next) => {
     const { Id } = req.params()
     console.log(Id)
-    //Getting appointment
-
     try {
         const Appointment = await Appointments.findOne({
             appointmentId: Id
@@ -102,19 +95,15 @@ const updateAppointments = async (req, res, next) => {
 }
 // Get Appointment By Id
 const getAppointmentById = async (req, res, next) => {
-    const { Id } = req.params
-    console.log(Id)
+    const { Id,hospitalId } = req.params
+    console.log(req.params, "params")
     console.log("Triggering to fetch by id")
     let Appointment
     try {
-        // const url=`http://locolhost:5000/api/appointments/${Id}`
-        Appointment = await Appointments.findOne({ appointmentId: Id })
-        // console.log(Appointment)
-        // console.log("triggering try-block")
+        Appointment = await Appointments.findOne({ appointmentId: Id,hospitalId })
     }
     catch (e) {
         console.log(e)
-        // console.log("triggering catch-block")
     }
     res.json({ Appointment })
 }
@@ -219,6 +208,37 @@ const addAppointmentFromExcel = async (req, res, next) => {
     }
 }
 
+const updateStatus = async (req, res, next) => {
+    console.log(req.params, "params");
+    console.log(req.body, "body");
+
+    try {
+        const appointment = await Appointments.findOne({
+            appointmentId: req.params.id,
+            hospitalId: req.params.hospitalId
+        });
+
+        if (!appointment) {
+            return res.status(404).json({ message: "Appointment not found" });
+        }
+
+        // Dynamically update fields based on request body
+        Object.keys(req.body).forEach(key => {
+            appointment[key] = req.body[key];
+        });
+
+        await appointment.save();
+
+        res.status(200).json({ message: "Status Updated Successfully" });
+
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+
+
 exports.createAppointment = createAppointment
 exports.getAppointments = getAppointments
 exports.getId = getId
@@ -227,3 +247,4 @@ exports.getAppointmentById = getAppointmentById
 exports.updateAppointmentStatus = updateAppointmentStatus
 exports.getAppointmentByPatientId = getAppointmentByPatientId
 exports.addAppointmentFromExcel = addAppointmentFromExcel
+exports.updateStatus=updateStatus

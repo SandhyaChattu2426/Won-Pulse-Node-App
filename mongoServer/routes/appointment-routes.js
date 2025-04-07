@@ -9,9 +9,10 @@ router.get('/hospital/:hospitalId', appointmentControllers.getAppointments)
 router.post('/upload-excel', appointmentControllers.addAppointmentFromExcel)
 router.get('/getId/:hospitalId', appointmentControllers.getId)
 router.get('/patient/:Id',appointmentControllers.getAppointmentByPatientId)
-router.get('/:Id', appointmentControllers.getAppointmentById)
+router.get('/:Id/hospital/:hospitalId', appointmentControllers.getAppointmentById)
 router.post('/', appointmentControllers.createAppointment)
 router.patch('/Id', appointmentControllers.updateAppointments)
-router.patch('/status/:Id',appointmentControllers.updateAppointmentStatus)
+// router.patch('/status/:Id',appointmentControllers.updateAppointmentStatus)
+router.patch('/status/hospital/:hospitalId/:id',appointmentControllers.updateStatus)
 
 module.exports = router

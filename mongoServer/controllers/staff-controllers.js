@@ -277,16 +277,12 @@ const getStaffChartData = async (req, res, next) => {
 };
 
 const getStaffByRoleName = async (req, res, next) => {
-    // console.log(req.params, "@@SandhyaChattu");
-    const { hospitalId, roleName } = req.params;
-
+       const { hospitalId, roleName } = req.params;
     try {
         const staffMembers = await Staff.find({ hospitalId, jobRole: roleName });
-
         if (!staffMembers.length) {
             return res.status(404).json({ message: "No staff members found" });
         }
-
         res.status(200).json(staffMembers); 
     } catch (e) {
         console.error(e);
