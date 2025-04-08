@@ -1,7 +1,6 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-
 const ServicesSchema=new Schema({
   services:{
     serviceId:{type:String,required:true},
@@ -12,7 +11,6 @@ const ServicesSchema=new Schema({
     unitPrice:{type:String,required:true},
     discount:{type:String,required:true},
     totalPrice:{type:String,required:true}
-
    },
    status:{type:String,required:true},
    pharmacyDetails: {
@@ -36,6 +34,8 @@ const ServicesSchema=new Schema({
   // write this function to update on Checking detailed View
   UpdatedBy:{type:String},
   UpdatedOn:{type:Date},
+  referenceContactNumber:{type:String},
+  referenceEmail:{type:String}
     
 })
 ServicesSchema.pre('save', function (next) {

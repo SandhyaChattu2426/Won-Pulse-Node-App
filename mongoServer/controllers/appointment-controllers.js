@@ -237,6 +237,22 @@ const updateStatus = async (req, res, next) => {
     }
 };
 
+const  getAppointmentsByDoctorIdAndDate=async (req, res, next) => {
+    const { doctorId, date,hospitalId } = req.params;
+    console.log(req.params, "params")
+    let appointments
+    let list
+    try {
+        appointments = await Appointments.find({ doctorId: doctorId, appointmentDate: date,hospitalId:hospitalId })
+        
+    }
+    catch (e) {
+        console.log(e)
+    }
+    console.log(list,"list")
+    res.json({ appointments:appointments })
+}
+
 
 
 exports.createAppointment = createAppointment
@@ -248,3 +264,4 @@ exports.updateAppointmentStatus = updateAppointmentStatus
 exports.getAppointmentByPatientId = getAppointmentByPatientId
 exports.addAppointmentFromExcel = addAppointmentFromExcel
 exports.updateStatus=updateStatus
+exports.getAppointmentsByDoctorIdAndDate=getAppointmentsByDoctorIdAndDate

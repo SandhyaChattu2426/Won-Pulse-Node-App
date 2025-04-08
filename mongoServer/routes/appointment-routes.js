@@ -14,5 +14,6 @@ router.post('/', appointmentControllers.createAppointment)
 router.patch('/Id', appointmentControllers.updateAppointments)
 // router.patch('/status/:Id',appointmentControllers.updateAppointmentStatus)
 router.patch('/status/hospital/:hospitalId/:id',appointmentControllers.updateStatus)
+router.get('/doctor/:doctorId/date/:date/hospital/:hospitalId', appointmentControllers.getAppointmentsByDoctorIdAndDate)
 
 module.exports = router
