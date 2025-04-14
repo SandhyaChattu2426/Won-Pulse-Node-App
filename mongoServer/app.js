@@ -22,6 +22,7 @@ const ServiceRoutes = require('./routes/servicesRoutes')
 const UserRoutes = require('./routes/userRoutes')
 const PharmaBillRoutes = require('./routes/pharmaBillRoutes')
 const BillRoutes = require('./routes/billRoutes')
+const PharmaBillRequests=require('./routes/PBillRequests')
 const Login = require('./models/Users');
 const staff = require("./models/staff");
 const Patient=require("./models/patient")
@@ -68,6 +69,7 @@ app.use('/api/medicinebill', PharmaBillRoutes)
 app.use('/api/genralbill', BillRoutes)
 app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/dashboardReports', dashboardReportRoutes)
+app.use('/api/doctor/requestbill',PharmaBillRequests)
 
 // app.use('/api/users', usersRoutes)
 const transporter = nodemailer.createTransport({
@@ -310,7 +312,6 @@ app.post('/EmailPatient', async (req, res) => {
     }
 });
 
-// FUNCTION TO VERIFY THE OTP
 const verifyOtp = (email, otp) => {
     const storedOtpData = otpStorage[email];
     // console.log(storedOtpData.otp, "*****")
@@ -465,6 +466,7 @@ app.post('/verify-hospital', async (req, res) => {
 });
 
 app.post('/verify-staff', async (req, res) => {
+    console.log("triggering")
     const { email, password, role } = req.body;
     if (!email || !password) {
         return res.status(400).json({ success: false, message: 'Email, password,  are required.' });
@@ -482,12 +484,13 @@ app.post('/verify-staff', async (req, res) => {
 
     try {
         const existingUser = await staff.findOne({ "email": email });
+        console.log(existingUser)
 
         if (existingUser) {
             // If the email exists, update the password and role
             const hashedPassword = await hashPassword(password);
             existingUser.password = hashedPassword;
-            existingUser.role = role;
+            // existingUser.role = role;
 
             // Save the updated user info
             await existingUser.save();

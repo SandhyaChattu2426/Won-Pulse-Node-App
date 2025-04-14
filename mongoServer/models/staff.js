@@ -4,7 +4,7 @@ const Schema = mongoose.Schema
 const staffSchema = new Schema({
         staffId: { type: String, required: true },
         fullName: { type: String, required: true },
-        dateOfBirth: { type: String, required: true },
+        dateOfBirth: { type: String },
         gender: { type: String, },
         email: { type: String, required: true },
         contactNumber: { type: String, required: true },

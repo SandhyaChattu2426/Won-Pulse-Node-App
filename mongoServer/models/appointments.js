@@ -18,6 +18,14 @@ const AppointmentsSchema = new Schema({
     isDoctorAccepted:{type:Boolean,default:false},
     rescheduledTime:{type:String},
     originalAppointmentTime:{type:String},
+    newMedicineList:[{
+        medicineId:{type:String},
+        name:{type:String},
+        dosage:{type:String},
+        quantity:{type:String},
+        schedule:[{typr:String}]
+    }],
+    paymentStatus:{type:String},
 })
 
 module.exports = mongoose.model('appointments', AppointmentsSchema)

@@ -4,11 +4,11 @@ const Service = require('../models/Services')
 
 //Creating a room
 const getServiceByName = async (req, res, next) => {
-    const { serviceName } = req.params
-    console.log(serviceName, "serviceName")
+    const { name } = req.params
+    console.log(name,"name @@")
     try {
         Item = await Service.findOne({
-            "services.serviceName": serviceName
+            "services.serviceName": name
         })
         console.log(Item)
         res.json({ service: Item })
@@ -21,8 +21,6 @@ const getServiceByName = async (req, res, next) => {
 const createService = async (req, res, next) => {
     console.log("Creating Service", req.body)
     try {
-        // here i want to check whether serviceName is already existed in the database or not ,
-        // so I want to call the function getServiceByName,if the response is getted , i dont want to save
         const service = new Service({
             ...req.body,
 
