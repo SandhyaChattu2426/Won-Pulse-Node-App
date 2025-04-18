@@ -22,10 +22,10 @@ const ServiceRoutes = require('./routes/servicesRoutes')
 const UserRoutes = require('./routes/userRoutes')
 const PharmaBillRoutes = require('./routes/pharmaBillRoutes')
 const BillRoutes = require('./routes/billRoutes')
-const PharmaBillRequests=require('./routes/PBillRequests')
+const PharmaBillRequests = require('./routes/PBillRequests')
 const Login = require('./models/Users');
 const staff = require("./models/staff");
-const Patient=require("./models/patient")
+const Patient = require("./models/patient")
 const dashboardRoutes = require('./routes/dashboardRoutes')
 const { MongoClient } = require("mongodb");
 const dashboardReportRoutes = require('./routes/DashboardReports')
@@ -69,7 +69,7 @@ app.use('/api/medicinebill', PharmaBillRoutes)
 app.use('/api/genralbill', BillRoutes)
 app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/dashboardReports', dashboardReportRoutes)
-app.use('/api/doctor/requestbill',PharmaBillRequests)
+app.use('/api/doctor/requestbill', PharmaBillRequests)
 
 // app.use('/api/users', usersRoutes)
 const transporter = nodemailer.createTransport({
@@ -250,7 +250,7 @@ app.post('/send-patient-email-otp', async (req, res) => {
     }
 });
 
-const sendOTPForRegistration = async (email, Id,hospitalId,path) => {
+const sendOTPForRegistration = async (email, Id, hospitalId, path) => {
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: email,
@@ -266,9 +266,9 @@ const sendOTPForRegistration = async (email, Id,hospitalId,path) => {
 };
 
 app.post('/EmailStaff', async (req, res) => {
-    const { email, Id,hospitalId } = req.body;
+    const { email, Id, hospitalId } = req.body;
     try {
-        await sendOTPForRegistration(email, Id,hospitalId,path="staff");
+        await sendOTPForRegistration(email, Id, hospitalId, path = "staff");
         res.status(200).json({ message: 'OTP sent successfully!' });
 
     } catch (error) {
@@ -302,9 +302,9 @@ const sendOTPHospital = async (email, Id) => {
 };
 
 app.post('/EmailPatient', async (req, res) => {
-    const { email, Id,hospitalId } = req.body;
+    const { email, Id, hospitalId } = req.body;
     try {
-        await sendOTPForRegistration(email, Id,hospitalId,path="patient");
+        await sendOTPForRegistration(email, Id, hospitalId, path = "patient");
         res.status(200).json({ message: 'OTP sent successfully!' });
 
     } catch (error) {
@@ -411,8 +411,8 @@ app.post('/register-login', async (req, res) => {
             passkey: req.body.passkey || null,
             biometric_data: req.body.biometric_data || null,
             authenticator_secret: req.body.authenticator_secret || null,
-            patient_id:req.body.patient_id||null,
-            hospital_id:req.body.hospital_id||null
+            patient_id: req.body.patient_id || null,
+            hospital_id: req.body.hospital_id || null
         });
 
         const savedLogin = await newLogin.save();
@@ -529,7 +529,7 @@ app.post('/verify-patient', async (req, res) => {
             // If the email exists, update the password and role
             const hashedPassword = await hashPassword(password);
             existingUser.password = hashedPassword;
-            
+
 
             await existingUser.save();
 
@@ -576,15 +576,20 @@ const authenticateToken = async (req, res, next) => {
 app.post('/login', async (req, res, next) => {
     try {
         const user = await Login.findOne({ email: req.body.email });
+        console.log('secret key', secretKey);
+
         if (user.user_type === "Hospital") {
             const isMatch = await bcrypt.compare(req.body.password, user.password);
             if (!isMatch) {
                 return res.status(400).json({ message: 'Invalid Password' });
             }
+        // console.log('login request recieved', user);
+
             const accessToken = jwt.sign({ userId: user.email }, secretKey, { expiresIn: '5h' });
             const refreshToken = jwt.sign({ userId: user.email }, secretRefreshKey, { expiresIn: '7d' });
             res.json({ success: "Login SuccessFully", accessToken, refreshToken, role: "admin" });
         }
+        
         if (user.user_type === "Staff") {
             const isMatch = await bcrypt.compare(req.body.password, user.password);
             if (!isMatch) {
@@ -601,9 +606,11 @@ app.post('/login', async (req, res, next) => {
             }
             const accessToken = jwt.sign({ userId: user.email }, secretKey, { expiresIn: '5 h' });
             const refreshToken = jwt.sign({ userId: user.email }, secretRefreshKey, { expiresIn: '7d' })// from the staff signup send the role at here and provide at there
-            return res.json({ success: "Login SuccessFully", accessToken, refreshToken, mfa: user.is_mfa_enabled, role: "Patient", mfaTypes: user.mfa_type,patientId:user.patient_id,hospitalId:user.hospital_id });
+            return res.json({ success: "Login SuccessFully", accessToken, refreshToken, mfa: user.is_mfa_enabled, role: "Patient", mfaTypes: user.mfa_type, patientId: user.patient_id, hospitalId: user.hospital_id });
         }
+        
         const isMatch = await bcrypt.compare(req.body.password, user.password);
+
         if (!isMatch) {
             return res.status(400).json({ message: 'Invalid Password' });
         }
