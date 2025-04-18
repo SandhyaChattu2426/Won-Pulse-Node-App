@@ -814,11 +814,11 @@ app.use((error, req, res, next) => {
     res.json({ message: error.message || 'An Unknown error occured' })
 })
 // by me
-app.use(cors({
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"]
-}));
+// app.use(cors({
+//     origin: "http://localhost:5173",
+//     methods: ["GET", "POST", "PUT", "DELETE"],
+//     allowedHeaders: ["Content-Type", "Authorization"]
+// }));
 
 // ✅ Middleware
 app.use(express.json()); // To handle JSON requests
