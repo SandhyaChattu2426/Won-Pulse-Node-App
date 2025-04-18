@@ -13,11 +13,12 @@ const staffSchema = new Schema({
         state: { type: String, required: true },
         zipcode: { type: String, required: true },
         jobRole: { type: String, required: true },
-        department: { type: String, required: true },
+        department: { type: String, required: false },
         employmentType: { type: String, required: true },
         qualification: { type: String, required: true },
         nightShift: { type: String, required: false },
         online: { type: String, required: false },
+        homeCare: { type: String, required: false },
         status: { type: String, required: true },
         hospitalId: { type: String, },
         password: { type: String, },
@@ -27,7 +28,7 @@ const staffSchema = new Schema({
         mfa_type: { type: [String], default: [] },
         passkey: { type: String },
         registeredOn: { type: Date, default: Date.now },
-        DoctorAppointments: [{ type: String, required: false }]
+        doctor_appointments: [{ type: String, required: false }]
 }, { minimize: true })
 
 module.exports = mongoose.model('Staff', staffSchema)

@@ -5,14 +5,14 @@ const PharmaBillingRequests = require('../models/PharmaBillingRequests')
 
 
 const CreateRequest = async (req, res, next) => {
-  console.log("Triggering");
   try {
     const count = await PharmaBillingRequests.countDocuments();
-    const newID = count === 0 ? "1" : (count + 1).toString();
+    const numericId = count === 0 ? 1 : count + 1;
+    const paddedId = `PHR${numericId.toString().padStart(6, '0')}`;
 
     const newRequest = new PharmaBillingRequests({
       ...req.body,
-      requestId: newID
+      requestId: paddedId
     });
 
     await newRequest.save();
@@ -23,8 +23,8 @@ const CreateRequest = async (req, res, next) => {
   }
 };
 
+
 const GetNotifiedBills = async (req, res, next) => {
-  // const {hospitalId}=req.params
   try {
     const docs = await PharmaBillingRequests.find({ status: "Pending" });
     res.json({ Bills: docs });
@@ -38,17 +38,25 @@ const GetNotifiedBills = async (req, res, next) => {
 const GetBillRequestById = async (req, res) => {
   const { hospitalId, id } = req.params
 
-  console.log("triggering",id)
   try {
     const request = await PharmaBillingRequests.findOne({ requestId: id })
-    console.log(request)
     res.json({ request: request })
   } catch (e) {
     console.log(e)
   }
 }
 
+const UpdateStatus=async(req,res,next)=>{
+  try{
+  const request=await PharmaBillingRequests.findOne({requestId:req.params.id})
+  request.status="resolved"
+  await request.save()
+  }catch(e){
+    console.log(e,"error")
+  }
+}
 
 exports.CreateRequest = CreateRequest
 exports.GetNotifiedBills = GetNotifiedBills
 exports.GetBillRequestById = GetBillRequestById
+exports.UpdateStatus=UpdateStatus

@@ -199,7 +199,6 @@ const UpdatePharmacyQuantity = async (req, res, next) => {
 }
 
 const addPharmacyFromExcel = async (req, res, next) => {
-    //console.log("Triggering here")
     let last, lastId, newId;
     let createdItem;
 
@@ -220,16 +219,6 @@ const addPharmacyFromExcel = async (req, res, next) => {
     } catch (err) {
         return next(new HttpError(`Creating report ID failed, Please try again. ${err}`, 500));
     }
-
-    // Validate inputs
-    // const errors = validationResult(req);
-    // if (!errors.isEmpty()) {
-    //     return next(new HttpError("Invalid inputs passed, please check your data", 422));
-    // }
-
-    //console.log(req.body, "request")
-
-
     createdItem = new Pharmacy({
         medicineId:newId,
         category:req.body.category,
@@ -258,12 +247,6 @@ const addPharmacyFromExcel = async (req, res, next) => {
     }
     else {
         try {
-            // const sess = await mongoose.startSession();
-            // sess.startTransaction();session: sess });
-            // await sess.commitTransaction();
-            // sess.endSession();
-            // await createdItem.save({ 
-
             await createdItem.save()
             res.status(201).json({ item: createdItem });
         } catch (err) {
@@ -305,10 +288,7 @@ const getChartData = async (req, res, next) => {
             }
         ]);
 
-        // Default labels (Jan to Dec)
         const allLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-        // Determine the latest month with data
         let maxMonth = 0; // Initialize with zero (no data)
 
         const datasets = inventoryData.map(categoryData => {
@@ -342,6 +322,11 @@ const getChartData = async (req, res, next) => {
     }
 };
 
+const getVaccinations=async (req,res,next)=>{
+    const Items=await Pharmacy.find({formulation:"vaccine",hospitalId:req.hospitalid})
+    res.json(Items)
+}
+
 exports.RegisterMedicine = RegisterMedicine
 exports.getId=getId
 exports.GetPharmacy=GetPharmacy
@@ -352,3 +337,4 @@ exports.getPharmacyByName=getPharmacyByName
 exports.UpdatePharmacyQuantity=UpdatePharmacyQuantity
 exports.addPharmacyFromExcel=addPharmacyFromExcel
 exports.getChartData=getChartData
+exports.getVaccinations=getVaccinations

@@ -107,17 +107,19 @@ const getAppointmentById = async (req, res, next) => {
     }
     res.json({ Appointment })
 }
-//update AppointmentStatus
+
 const updateAppointmentStatus = async (req, res, next) => {
     try {
-        console.log("Updation Staff status")
         const ApId = req.params.Id
-        // console.log(StaffId,"here is")
+      
         const appointment = await Appointments.findOne({ appointmentId: ApId })
 
         if (appointment) {
             try {
                 appointment.status = req.body.status
+                if(req.body.status==="accepted"){
+                    appointment.paymentStatus="pending"
+                }
                 await appointment.save()
                 return res.status(200).json({ message: "Appointment status updated successfully!" });
 
@@ -134,18 +136,12 @@ const updateAppointmentStatus = async (req, res, next) => {
 
 const getAppointmentByPatientId = async (req, res, next) => {
     const { Id } = req.params
-    console.log(Id)
-    console.log("Triggering Appointment In the Backend")
     let Appointment;
     try {
-        Appointment = await Appointments.findOne({ "patientId": Id })
-        console.log("triggering try block")
-        console.log(Appointment)
-
+        Appointment = await Appointments.findOne({ "patientId": Id,"status":"pending" })
     }
     catch (e) {
         console.log(e)
-        // console.log("triggering catch-block")
     }
     res.json({ Appointment })
 }
@@ -209,8 +205,6 @@ const addAppointmentFromExcel = async (req, res, next) => {
 }
 
 const updateStatus = async (req, res, next) => {
-    console.log(req.params, "params");
-    console.log(req.body, "body");
 
     try {
         const appointment = await Appointments.findOne({
@@ -239,7 +233,6 @@ const updateStatus = async (req, res, next) => {
 
 const  getAppointmentsByDoctorIdAndDate=async (req, res, next) => {
     const { doctorId, date,hospitalId } = req.params;
-    console.log(req.params, "params")
     let appointments
     let list
     try {

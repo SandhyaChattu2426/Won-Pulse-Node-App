@@ -3,28 +3,21 @@ const Admissions = require('../models/Admission')
 const Admission = require('../models/Admission')
 const Patients = require('../models/patient')
 const AddPatient = async (req, res, next) => {
-    // const { supplierDetails, adress } = req.body
-    console.log("Admission Block")
     const newsupplier = new Admissions({
         ...req.body,
     })
-
     try {
-
-        console.log(req.body,"body here")
         await newsupplier.save()
         console.log("Patinet is admitteds SuccessFully,triggering try-block")
     }
     catch (e) {
         console.log(e)
-        console.log("Catch-block")
     }
     res.json("Patient admitted Successfully")
 
 }
 
 const GetAdmissions = async (req, res, next) => {
-    // console.log("triggeing GET Admissions")
     const {hospitalId}=req.params;
 
     let List;
@@ -62,23 +55,17 @@ const getId = async (req, res, next) => {
 
     }
 };
-// GET Details ById
+
 const AdmissionDetailsById = async (req, res, next) => {
     const { Id } = req.params
-    // console.log(Id)
-    // console.log("Triggering")
     console.log(Id)
     let Admission
     try {
-        // const url=`http://locolhost:5000/api/appointments/${Id}`
         Admission = await Admissions.findOne({ admissionId: Id })
-        // console.log(Appointment)
-        // console.log("triggering try-block")
         console.log(Admission)
     }
     catch (e) {
         console.log(e)
-        // console.log("triggering catch-block")
     }
     res.json({ Admission })
 }
@@ -129,9 +116,8 @@ const getRegisterdPatients = async (req, res, next) => {
 
 const AdmissionByPatientId = async (req, res, next) => {
     const { Id } = req.params;
-
     try {
-        const AdmittedPerson = await Admissions.find({ "patientName": Id });
+        const AdmittedPerson = await Admissions.find({ "patientId": Id });
 
         if (!AdmittedPerson || AdmittedPerson.length === 0) {
             return res.status(404).json({ ok: false, message: "No admission found for this patient" });
@@ -240,27 +226,39 @@ const addAdmissionFromExcel = async (req, res, next) => {
 
 const updateAdmission = async (req, res, next) => {
     try {
-        const { Id } = req.params; // Get admissionId from URL
-        console.log(req.body); // Log request body to check the changes
+        const { Id } = req.params;
 
-        // Find and update the admission record
-        const updatedAdmission = await Admissions.findOneAndUpdate(
-            { admissionId: Id }, // Find by admissionId
-            { $set: req.body },   // Update with new values from request
-            { new: true, runValidators: true } // Return updated document, validate schema
-        );
+        // Log the incoming listItem array for debugging
+        console.log(req.body.listItem, "@admission");
 
-        // If no admission found, return error
-        if (!updatedAdmission) {
+        // Validate that listItem is an array before attempting to update
+        if (!Array.isArray(req.body.listItem)) {
+            return res.status(400).json({ message: "listItem must be an array" });
+        }
+        // const updatedAdmission = await Admissions.findOneAndUpdate(
+        //     { admissionId: Id },
+        //     { $push: { listItem: { $each: req.body.listItem } } },
+        //     { new: true, runValidators: true }
+        // );
+
+        const updateAdmission=await Admissions.findOne({admissionId:Id})
+        updateAdmission.listItem=req.body.listItem
+        await updateAdmission.save()
+
+        if (!updateAdmission) {
             return res.status(404).json({ message: "Admission not found" });
         }
 
-        res.status(200).json({ message: "Admission updated successfully", data: updatedAdmission });
+        res.status(200).json({
+            message: "Admission updated successfully",
+            data: updateAdmission
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Internal Server Error", error });
     }
 };
+
 
 
 exports.AddPatient = AddPatient

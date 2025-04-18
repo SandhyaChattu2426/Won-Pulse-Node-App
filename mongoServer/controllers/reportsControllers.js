@@ -75,12 +75,9 @@ const getReportById = async (req, res, next) => {
     let medicine;
     try {
         medicine = await Reports.find({ "reportDetails.reportId": medicineId })
-        // console.log(medicine)
-        // console.log("triggering tryblock")
     }
     catch (err) {
 
-        // console.log("catch block")
         console.log(err)
     }
     if (!medicine) {
@@ -92,7 +89,6 @@ const getReportById = async (req, res, next) => {
 
 // Update Status Of Inventory
 const updateReportStatus = async (req, res, next) => {
-    // console.log("Triggering update Medicine Status")
     try {
         // console.log("Updation Inventorystatus")
         const InId = req.params.Id
@@ -114,13 +110,12 @@ const updateReportStatus = async (req, res, next) => {
     }
 }
 const getReportByPatientId = async (req, res, next) => {
-    // console.log("Triggering Report In the Backend")
     const { patientName } = req.params
-
+    console.log(req.params,"@@")
+    console.log(req.params.patientName,"@@")
     let report
     try {
         report = await Reports.findOne({ "reportDetails.patientName": patientName })
-
     }
     catch (e) {
         console.log(e)

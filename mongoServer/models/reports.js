@@ -15,7 +15,7 @@ const ReportsSchema=new Schema({
     },
     hospitalId:{type:String,},
     patientId:{type:String,},
-
+    paymentStatus:{type:String},
     status:{type:String},
     files:[{
         name:{type:String},

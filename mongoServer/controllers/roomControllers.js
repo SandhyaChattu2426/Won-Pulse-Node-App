@@ -140,17 +140,12 @@ const updateRoomVacancy = async (req, res, next) => {
 
 }
 const getRoomNumByCatAndType=async(req,res,next)=>{
-    console.log("Triggering by Lords Grace @ room Backend")
         try {
-            const { category, type } = req.params; // Get values from URL params
-            
-            // Find rooms based on category & type
+            const { category, type } = req.params;
             const rooms = await Room.find({ category, roomType: type });
-    
             if (!rooms.length) {
                 return res.status(404).json({ message: "No rooms found" });
             }
-    
             res.status(200).json(rooms);
         } catch (error) {
             console.error("Error fetching rooms:", error);

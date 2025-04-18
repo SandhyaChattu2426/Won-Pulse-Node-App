@@ -26,10 +26,10 @@ const pharmacySchema = new Schema({
     AddedBy: { type: String },
     createdAt: {
         type: Date,
-        default: Date.now // Automatically sets the date when the document is created
+        default: Date.now
     },
-    // write this function to update on Checking detailed View
     UpdatedBy: { type: String },
     UpdatedOn: { type: Date },
+    formulation:{type:String}
 })
 module.exports = mongoose.model('pharmacy', pharmacySchema)

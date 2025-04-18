@@ -21,23 +21,23 @@ const AdmissionSchema = new Schema({
         name: { type: String },
         quantity: { type: String },
         addedBy: { type: String },
-        dateAdded: { type: Date, default: Date.now } // Changed to Date
+        dateAdded: { type: String} 
     }],
-    admissionDate: { type: Date, required: true }, // Changed to Date
+    admissionDate: { type: Date, required: true }, 
     status: { type: String },
-
     medicineList: [{
         medicineName: { type: String },
         quantity: { type: Number },
         addedBy: { type: String },
-        dateAdded: { type: Date, default: Date.now } // Changed to Date
+        dateAdded: { type: Date, default: Date.now } 
     }],
     hospitalId: { type: String },
     staffId: { type: String },
     createdAt: {
         type: Date,
-        default: Date.now // Automatically sets the date when the document is created
+        default: Date.now 
     },
+    paymentStatus:{type:String,default:"pending"}
 })
 
 module.exports = mongoose.model('Admissions', AdmissionSchema)
