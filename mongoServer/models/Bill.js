@@ -1,34 +1,28 @@
-const mongoose = require('mongoose')
-// const patient = require('./patient')
-const Schema = mongoose.Schema
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+
+const billItemSchema = new Schema({
+  id: { type: String, required: true },
+  productOrService: { type: String, required: true },
+  unitPrice: { type: Number, required: true },
+  discount: { type: Number, default: 0 },
+  tax: { type: Number, default: 0 },
+  quantity: { type: Number, default: 1 },
+  total: { type: Number, required: true }
+});
 
 const BillSchema = new Schema({
-    billId: { type: String },
+  billId: { type: String },
+  patientId: { type: String, required: true },
+  patientName: { type: String, required: true },
 
-    patientId: { type: String, required: true },
-    patientName: { type: String, required: true },
+  billItem: [billItemSchema],
 
-    medicineList: [{
-        Id: { type: String }, // Reference to a medicine collection if needed
-        type: { type: String, },
-        price: { type: String, },
-        discount: { type: String, },
-        total: { type: String }
+  paymentType: { type: String, required: true }, // e.g., "Cash", "Card"
+  status: { type: String, required: true }, // e.g., "Paid", "Pending"
+  hospitalId: { type: String, required: true },
+  totalPrice: { type: Number, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
 
-    }],
-    AdmissionList: [{
-        id: { type: String }, // Reference to a medicine collection if needed
-        name: { type: String, },
-        quantity: { type: String, },
-        tax: { type: String, },
-        unitPrice: { type: String },
-        totalPrice: { type: String },
-    }],
-    // you are not updated in the Post request complete it, and you had to update the status also
-
-    paymentType: { type: String, required: true },
-    status: { type: String, required: true },
-    hospitalId:{ type: String, required: true },
-})
-
-module.exports = mongoose.model('generalBill', BillSchema)
+module.exports = mongoose.model('GeneralBill', BillSchema);

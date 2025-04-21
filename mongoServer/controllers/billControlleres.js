@@ -62,17 +62,14 @@ const getId = async (req, res, next) => {
 
 const getBills = async (req, res, next) => {
     const {hospitalId}=req.params
- 
-  
-    let appointments
+    let Bills
     try {
-        appointments = await GeneralBill.find({hospitalId:hospitalId})
-        // console.log(appointments)
+        Bills = await GeneralBill.find({hospitalId:hospitalId})
     }
     catch (e) {
         console.log(e)
     }
-    res.json({ appointments })
+    res.json({ Bills })
 }
 const getBillByBillId=async(req,res)=>{
     const {Id}=req.params
@@ -92,8 +89,6 @@ const getBillByBillId=async(req,res)=>{
 const updateAppointments = async (req, res, next) => {
     const { Id } = req.params()
     console.log(Id)
-    //Getting appointment
-
     try {
         const Appointment = await Appointments.findOne({
             appointmentId: Id
@@ -106,8 +101,6 @@ const updateAppointments = async (req, res, next) => {
     }
 
 }
-
-
 const updateAppointmentStatus=async (req,res,next)=>{
 
     try{
@@ -132,7 +125,6 @@ const updateAppointmentStatus=async (req,res,next)=>{
         console.log(e)
     }
 }
-
 const getBillByPatientId=async(req,res,next)=>{
     const {Id}=req.params
      console.log(Id)
@@ -151,7 +143,6 @@ const getBillByPatientId=async(req,res,next)=>{
     }
     res.json({ medicineBill:Appointment })
 }
-
 
 exports.createBill = createBill
 exports.getBills = getBills

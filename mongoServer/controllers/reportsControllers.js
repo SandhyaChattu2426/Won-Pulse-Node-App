@@ -111,11 +111,11 @@ const updateReportStatus = async (req, res, next) => {
 }
 const getReportByPatientId = async (req, res, next) => {
     const { patientName } = req.params
-    console.log(req.params,"@@")
-    console.log(req.params.patientName,"@@")
+    // console.log(req.params,"@@")
+    // console.log(req.params.patientName,"@@")
     let report
     try {
-        report = await Reports.findOne({ "reportDetails.patientName": patientName })
+        report = await Reports.findOne({ "reportDetails.patientName": patientName,"paymentStatus":"pending" })
     }
     catch (e) {
         console.log(e)

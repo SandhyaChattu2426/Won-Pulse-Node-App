@@ -38,19 +38,6 @@ const uri = process.env.MONGO_URI || "mongodb+srv://sandhya:123@cluster0.ddkdz.m
 const client = new MongoClient(uri);
 app.use(bodyParser.json())
 
-// app.use((req, res, next) => {
-//     res.setHeader('Access-Control-Allow-Origin', '*')
-//     res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization')
-//     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE')
-
-//     // Handle OPTIONS preflight request
-//     if (req.method === 'OPTIONS') {
-//         return res.status(200).end(); // Respond with 200 OK for OPTIONS request (preflight)
-//     }
-
-//     next(); // Continue to the next middleware/route handler
-// })
-
 app.use(cors());
 app.use('/api/patient', patientsRoutes);
 app.use('/api/staff', StaffRoutes)
@@ -149,14 +136,12 @@ app.post('/send-email-otp', async (req, res) => {
 
     // Check if the email already exists in the database
     try {
-        const user = await Login.findOne({ email: email }); // MongoDB query using Mongoose
+        const user = await Login.findOne({ email: email }); 
 
-        // If a user with this email exists, return an error response
         if (!user) {
-            const otp = generateOTP(); // Assume generateOTP() generates a random OTP
+            const otp = generateOTP();
             otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
-            // console.log(otp)
-            // Send OTP to the email (assume sendOTP handles email delivery)
+            console.log(otp)
             await sendOTP(email, otp);
             res.status(200).json({ message: 'OTP sent successfully!' });
         }
@@ -339,7 +324,6 @@ const verifyOtp = (email, otp) => {
     }
 };
 
-// API FOR VERIFYING OTP WHEN CREATING A NEW USER
 app.post('/verify-otp', (req, res) => {
     const { email, otp } = req.body;
     const result = verifyOtp(email, otp);
@@ -576,6 +560,7 @@ const authenticateToken = async (req, res, next) => {
 app.post('/login', async (req, res, next) => {
     try {
         const user = await Login.findOne({ email: req.body.email });
+        console.log(user,"user")
         if (user.user_type === "Hospital") {
             const isMatch = await bcrypt.compare(req.body.password, user.password);
             if (!isMatch) {

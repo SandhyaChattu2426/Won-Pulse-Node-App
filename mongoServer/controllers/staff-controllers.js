@@ -73,27 +73,51 @@ const getStaffById = async (req, res, next) => {
 }
 
 const updateStaff = async (req, res, next) => {
-    const { staffId, personalInformation, adress, qualification, typeOfStaff } = req.body
-    const { id } = req.params
-    let staff;
+    const { id, hospitalid } = req.params;
+    const updateFields = {
+      fullName: req.body.fullName,
+      dateOfBirth: req.body.dateOfBirth,
+      gender: req.body.gender,
+      email: req.body.email,
+      contactNumber: req.body.contactNumber,
+      street: req.body.street,
+      city: req.body.city,
+      state: req.body.state,
+      zipcode: req.body.zipcode,
+      jobRole: req.body.jobRole,
+      department: req.body.department,
+      employmentType: req.body.employmentType,
+      qualification: req.body.qualification,
+      nightShift: req.body.nightShift,
+      doctorType: req.body.doctorType,
+      online: req.body.online,
+      homeCare: req.body.homeCare,
+      doctor_appointments: req.body.doctor_appointments,
+      status: req.body.status
+    };
+  
     try {
-        staff = await Staff.findOne({ staffId: id })
-    } catch (e) {
-        console.log(e)
-        return new HttpError("can not find staff", 404)
-    } try {
-        staff.id = staffId
-        staff.personalInformation = personalInformation
-        staff.adress = adress
-        staff.qualification = qualification
-        staff.typeOfStaff = typeOfStaff
-        await staff.save()
-    } catch (e) {
-        console.log(e)
-        return new HttpError("can't be updated")
+      const updatedStaff = await Staff.findOneAndUpdate(
+        { staffId:id, hospitalId:hospitalid },
+        { $set: updateFields },
+        { new: true, runValidators: true }
+      );
+  
+      if (!updatedStaff) {
+        return res.status(404).json({ message: "Staff not found." });
+      }
+  
+      return res.status(200).json({
+        message: "Staff updated successfully",
+        staff: updatedStaff.toObject({ getters: true }),
+      });
+  
+    } catch (error) {
+      console.error("Error updating staff:", error);
+      return res.status(500).json({ message: "Something went wrong while updating staff." });
     }
-    res.status(200).json({ staff: staff.toObject({ getters: true }) })
-}
+  };
+  
 
 const updateStaffStatus = async (req, res, next) => {
     try {

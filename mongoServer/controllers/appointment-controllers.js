@@ -97,7 +97,7 @@ const updateAppointments = async (req, res, next) => {
 const getAppointmentById = async (req, res, next) => {
     const { Id,hospitalId } = req.params
     console.log(req.params, "params")
-    console.log("Triggering to fetch by id")
+    // console.log("Triggering to fetch by id")
     let Appointment
     try {
         Appointment = await Appointments.findOne({ appointmentId: Id,hospitalId })
@@ -135,10 +135,11 @@ const updateAppointmentStatus = async (req, res, next) => {
 }
 
 const getAppointmentByPatientId = async (req, res, next) => {
-    const { Id } = req.params
+    const { Id } = req.params;
+    console.log(Id,"Id HERE")
     let Appointment;
     try {
-        Appointment = await Appointments.findOne({ "patientId": Id,"status":"pending" })
+        Appointment = await Appointments.findOne({ "patientId": Id, })
     }
     catch (e) {
         console.log(e)

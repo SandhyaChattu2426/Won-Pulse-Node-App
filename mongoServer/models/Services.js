@@ -29,14 +29,13 @@ const ServicesSchema=new Schema({
   AddedBy:{type:String},
   createdAt: {
     type: Date,
-    default: Date.now // Automatically sets the date when the document is created
+    default: Date.now 
+    
   },
-  // write this function to update on Checking detailed View
   UpdatedBy:{type:String},
   UpdatedOn:{type:Date},
   referenceContactNumber:{type:String},
   referenceEmail:{type:String}
-    
 })
 ServicesSchema.pre('save', function (next) {
   if (this.isModified()) {

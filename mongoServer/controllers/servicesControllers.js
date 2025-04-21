@@ -66,7 +66,7 @@ const getId = async (req, res, next) => {
             const zerosCount = 6 - nextNumber.toString().length;
             newRoomId = 'SR' + str.repeat(zerosCount) + nextNumber.toString();
         } else {
-            newRoomId = 'SR' + '0'.repeat(5) + "1";  // HP000001
+            newRoomId = 'SR' + '0'.repeat(5) + "1";
         }
 
         console.log("Generated Hospital ID:", newRoomId);
@@ -80,13 +80,12 @@ const getId = async (req, res, next) => {
 //Getting details By Id
 
 const getServicesById = async (req, res, next) => {
-    const { Id } = req.params
-
-    console.log("getServiceById is triggering")
+    const { Id,hospitalId } = req.params
+    console.log(req.params)
     let Item;
     try {
-        Item = await Service.findOne({ "services.serviceId": Id })
-        console.log(Item)
+        Item = await Service.findOne({ "services.serviceId": Id ,hospitalId:hospitalId })
+        // console.log(Item)
         res.json({ service: Item })
 
     } catch (e) {

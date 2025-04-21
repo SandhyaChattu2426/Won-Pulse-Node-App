@@ -115,14 +115,14 @@ const getRegisterdPatients = async (req, res, next) => {
 }
 
 const AdmissionByPatientId = async (req, res, next) => {
-    const { Id } = req.params;
+    // console.log("Triggering Here")
+    console.log(req.params,"Thank u lord")
     try {
-        const AdmittedPerson = await Admissions.find({ "patientId": Id });
+        const AdmittedPerson = await Admissions.find({ "patientName": req.params.name.toLowerCase() });
 
         if (!AdmittedPerson || AdmittedPerson.length === 0) {
             return res.status(404).json({ ok: false, message: "No admission found for this patient" });
         }
-
         res.json({ ok: true, Admission: AdmittedPerson });
     } catch (error) {
         console.error(error);
@@ -227,35 +227,62 @@ const addAdmissionFromExcel = async (req, res, next) => {
 const updateAdmission = async (req, res, next) => {
     try {
         const { Id } = req.params;
+        const updateData = req.body;
 
-        // Log the incoming listItem array for debugging
-        console.log(req.body.listItem, "@admission");
+        console.log("Update data received:", {
+            admissionId: Id,
+            listItem: updateData.listItem,
+            otherFields: Object.keys(updateData).filter(key => key !== 'listItem')
+        });
 
-        // Validate that listItem is an array before attempting to update
-        if (!Array.isArray(req.body.listItem)) {
-            return res.status(400).json({ message: "listItem must be an array" });
-        }
-        // const updatedAdmission = await Admissions.findOneAndUpdate(
-        //     { admissionId: Id },
-        //     { $push: { listItem: { $each: req.body.listItem } } },
-        //     { new: true, runValidators: true }
-        // );
-
-        const updateAdmission=await Admissions.findOne({admissionId:Id})
-        updateAdmission.listItem=req.body.listItem
-        await updateAdmission.save()
-
-        if (!updateAdmission) {
+        // Validate admission exists first
+        const existingAdmission = await Admissions.findOne({ admissionId: Id });
+        if (!existingAdmission) {
             return res.status(404).json({ message: "Admission not found" });
         }
 
+        // Validate listItem is an array if present
+        if (updateData.listItem && !Array.isArray(updateData.listItem)) {
+            return res.status(400).json({ message: "listItem must be an array" });
+        }
+
+        // Prepare the update object
+        const updateFields = {
+            ...updateData,
+            updatedAt: new Date() // Add update timestamp
+        };
+
+        // Perform the update
+        const updatedAdmission = await Admissions.findOneAndUpdate(
+            { admissionId: Id },
+            { $set: updateFields },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedAdmission) {
+            return res.status(500).json({ message: "Failed to update admission" });
+        }
+
+        console.log("Successfully updated admission:", {
+            admissionId: updatedAdmission.admissionId,
+            listItemCount: updatedAdmission.listItem ? updatedAdmission.listItem.length : 0
+        });
+
         res.status(200).json({
             message: "Admission updated successfully",
-            data: updateAdmission
+            data: updatedAdmission
         });
+
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Internal Server Error", error });
+        console.error("Error updating admission:", {
+            error: error.message,
+            stack: error.stack,
+            body: req.body
+        });
+        res.status(500).json({ 
+            message: "Internal Server Error",
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 };
 

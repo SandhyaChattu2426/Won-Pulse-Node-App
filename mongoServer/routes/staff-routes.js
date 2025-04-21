@@ -11,7 +11,7 @@ router.get('/hospital/:hospitalId/staff/:id', staffControllers.getStaffById)
 router.get('/email/:email', staffControllers.checkEmail)
 router.get('/hospital/:hospitalId', staffControllers.getStaff);
 router.post('/', staffControllers.createStaff);
-router.patch('/:id', staffControllers.updateStaff);
+router.patch('/:id/:hospitalid', staffControllers.updateStaff);
 router.patch('/status/:Id',staffControllers.updateStaffStatus)
 router.get('/hospital/:Id', staffControllers.getStaffByHplId)
 router.get('/role/:roleName/hospital/:hospitalId', staffControllers.getStaffByRoleName)
