@@ -21,6 +21,7 @@ const AddHospital = async (req, res, next) => {
 
 const GetHospitals = async (req, res, next) => {
     let List;
+    console.log("Triggering to Get Hospitals")
     try {
         List = await Hospitals.find({})
         // console.log(List)
@@ -155,16 +156,16 @@ const updatePassword = async (req, res, next) => {
 
 const getHospitalByEmail = async (req, res, next) => {
     const { email } = req.params
-    console.log(email,"email")
+    console.log(email, "email")
     let hospital
     try {
         hospital = await Hospitals.findOne({ "contactInformation.email": email })
         console.log(hospital)
     }
-    catch(e){
+    catch (e) {
         console.log(e)
     }
-    res.json({hospital})
+    res.json({ hospital })
 }
 
 exports.AddHospital = AddHospital
@@ -173,4 +174,4 @@ exports.getId = getId
 exports.getHospitalById = getHospitalById
 exports.updateHospital = updateHospital
 exports.updatePassword = updatePassword
-exports.getHospitalByEmail=getHospitalByEmail
+exports.getHospitalByEmail = getHospitalByEmail

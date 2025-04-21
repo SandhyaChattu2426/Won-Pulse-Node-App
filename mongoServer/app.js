@@ -36,6 +36,8 @@ const secretKey = process.env.JWT_SECRET;
 const secretRefreshKey = process.env.JWT_REFRESH_SECRET;
 const uri = process.env.MONGO_URI || "mongodb+srv://sandhya:123@cluster0.ddkdz.mongodb.net/wonpulse?retryWrites=true&w=majority";
 const client = new MongoClient(uri);
+const path = require("path");
+const fs = require("fs");
 app.use(bodyParser.json())
 
 app.use(cors());
@@ -73,29 +75,56 @@ const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-const sendOTP = async (email, otp) => {
-    // console.log(otp, "triffering")
+// const sendOTP = async (email, otp) => {
+//     // console.log(otp, "triffering")
+//     const mailOptions = {
+//         from: process.env.EMAIL_USER,
+//         to: email,
+//         subject: 'WONPULSE: Your One-Time Password (OTP)',
+//         html: `
+//             <div style="background-color: #f4f4f4; padding: 20px; text-align: center; font-family: Arial, sans-serif;">
+//                 <div style="max-width: 400px; margin: auto; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+//                     <h2 style="color: #333;">WONDigi: OTP Verification</h2>
+//                     <p style="color: #555; font-size: 16px;">Use the following OTP to complete your verification:</p>
+//                     <div style="font-size: 24px; font-weight: bold; color: #007bff; padding: 10px 20px; background: #e0f2ff; display: inline-block; border-radius: 5px;">
+//                         ${otp}
+//                     </div>
+//                     <p style="color: #888; font-size: 14px; margin-top: 20px;">This OTP is valid for only 10 minutes. Do not share it with anyone.</p>
+//                 </div>
+//             </div>
+//         `,
+//     };
+
+//     return transporter.sendMail(mailOptions);
+// };
+const sendOTP = async (email, otp, hospitalName, hospitalLogo, hospitalMail, hospitalContact, hospitalAddress) => {
+    // console.log(email, otp,hospitalName,hospitalLogo)
+    // console.log("sending email")
+    const emailTemplatePath = path.join(
+        __dirname,
+        "EmailTemplates",
+        "OTPTemplate.html"
+    );
+    let emailTemplate = fs.readFileSync(emailTemplatePath, "utf-8");
+
+    emailTemplate = emailTemplate
+        .replace(/{{otp}}/g, otp)
+        .replace(/{{hospital_name}}/g, hospitalName || "WON DIGI")
+        .replace(/{{hospital_logo}}/g, hospitalLogo || "https://res.cloudinary.com/dca9sij3n/image/upload/f_auto,q_auto/hunqedjlmgyb4bdswike")
+        .replace(/{{hospital_email}}/g, hospitalMail || "wondigi@gmail.com")
+        .replace(/{{hospital_contact}}/g, hospitalContact || "1234567890")
+        .replace(/{{hospital_adress}}/g, hospitalAddress || "Umashankar Nagar, Vijayawada, Andhra Pradesh, India - 527001")
+
+
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: email,
-        subject: 'WONPULSE: Your One-Time Password (OTP)',
-        html: `
-            <div style="background-color: #f4f4f4; padding: 20px; text-align: center; font-family: Arial, sans-serif;">
-                <div style="max-width: 400px; margin: auto; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
-                    <h2 style="color: #333;">WONDigi: OTP Verification</h2>
-                    <p style="color: #555; font-size: 16px;">Use the following OTP to complete your verification:</p>
-                    <div style="font-size: 24px; font-weight: bold; color: #007bff; padding: 10px 20px; background: #e0f2ff; display: inline-block; border-radius: 5px;">
-                        ${otp}
-                    </div>
-                    <p style="color: #888; font-size: 14px; margin-top: 20px;">This OTP is valid for only 10 minutes. Do not share it with anyone.</p>
-                </div>
-            </div>
-        `,
+        subject: "WONPULSE:  Your One-Time Password (OTP)",
+        html: emailTemplate,
     };
 
     return transporter.sendMail(mailOptions);
 };
-
 
 app.post('/send-email-otp-forPassword', async (req, res) => {
     const { email } = req.body;
@@ -132,17 +161,17 @@ app.post('/send-email-otp-forPassword', async (req, res) => {
 
 app.post('/send-email-otp', async (req, res) => {
     const { email } = req.body;
-    // console.log(email)
+    console.log(email)
 
     // Check if the email already exists in the database
     try {
-        const user = await Login.findOne({ email: email }); 
+        const user = await Login.findOne({ email: email });
 
         if (!user) {
             const otp = generateOTP();
             otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
-            console.log(otp)
-            await sendOTP(email, otp);
+            // console.log(otp)
+            await sendOTP(email, otp,hospitalName = "WONPULSE", hospitalLogo = "https://res.cloudinary.com/dca9sij3n/image/upload/f_auto,q_auto/hunqedjlmgyb4bdswike", hospitalMail = "mummy@gmail.com", hospitalContact = "1234567890", hospitalAddress = "Umashankar Nagar, Vijayawada, Andhra Pradesh, India - 527001"); // Send OTP to the email
             res.status(200).json({ message: 'OTP sent successfully!' });
         }
         else {
@@ -210,6 +239,7 @@ app.post('/send-staff-email-otp', async (req, res) => {
 });
 app.post('/send-patient-email-otp', async (req, res) => {
     const { email } = req.body;
+    console.log(email)
     try {
         const user = await Patient.findOne({ "email": email }); // MongoDB query using Mongoose
 
@@ -220,8 +250,9 @@ app.post('/send-patient-email-otp', async (req, res) => {
 
             console.log(otp);
 
-            // Send OTP to the email (assume sendOTP handles email delivery)
-            await sendOTP(email, otp);
+
+            await sendOTP(email, otp,hospitalName = "WONPULSE", hospitalLogo = "https://res.cloudinary.com/dca9sij3n/image/upload/f_auto,q_auto/hunqedjlmgyb4bdswike", hospitalMail = "mummy@gmail.com", hospitalContact = "1234567890", hospitalAddress = "Umashankar Nagar, Vijayawada, Andhra Pradesh, India - 527001"); // Send OTP to the email
+
             res.status(200).json({ message: 'OTP sent successfully!' });
         }
         else {
@@ -230,7 +261,7 @@ app.post('/send-patient-email-otp', async (req, res) => {
         }
 
     } catch (error) {
-        // console.log('Error checking email or sending OTP:', error);
+        console.log('Error checking email or sending OTP:', error);
         res.status(500).json({ error, message: 'Internal Server Error.' });
     }
 });
@@ -376,7 +407,7 @@ app.post('/register-login', async (req, res) => {
             role_id: req.body.role_id || null,
             first_name: req.body.fullName || null,
             last_name: req.body.lastName || null,
-            title: req.body.schoolName || null,
+            title: req.body.hospitalName || null,
             user_status: req.body.user_status || 'active',
             selected_layout: req.body.selected_layout || 'default',
             dashboard_layouts: req.body.dashlay || null,
@@ -560,18 +591,19 @@ const authenticateToken = async (req, res, next) => {
 app.post('/login', async (req, res, next) => {
     try {
         const user = await Login.findOne({ email: req.body.email });
+        console.log(user, "user")
         if (user.user_type === "Hospital") {
             const isMatch = await bcrypt.compare(req.body.password, user.password);
             if (!isMatch) {
                 return res.status(400).json({ message: 'Invalid Password' });
             }
-        // console.log('login request recieved', user);
+            // console.log('login request recieved', user);
 
             const accessToken = jwt.sign({ userId: user.email }, secretKey, { expiresIn: '5h' });
             const refreshToken = jwt.sign({ userId: user.email }, secretRefreshKey, { expiresIn: '7d' });
             res.json({ success: "Login SuccessFully", accessToken, refreshToken, role: "admin" });
         }
-        
+
         if (user.user_type === "Staff") {
             const isMatch = await bcrypt.compare(req.body.password, user.password);
             if (!isMatch) {
@@ -590,7 +622,7 @@ app.post('/login', async (req, res, next) => {
             const refreshToken = jwt.sign({ userId: user.email }, secretRefreshKey, { expiresIn: '7d' })// from the staff signup send the role at here and provide at there
             return res.json({ success: "Login SuccessFully", accessToken, refreshToken, mfa: user.is_mfa_enabled, role: "Patient", mfaTypes: user.mfa_type, patientId: user.patient_id, hospitalId: user.hospital_id });
         }
-        
+
         const isMatch = await bcrypt.compare(req.body.password, user.password);
 
         if (!isMatch) {
