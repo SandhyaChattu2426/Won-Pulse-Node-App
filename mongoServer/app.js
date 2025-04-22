@@ -75,6 +75,70 @@ const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+const AdminWelcomeTemplate = async (hospital) => {
+    const { hospitalDetails, AdministrativeDetails, contactInformation } = hospital
+    const emailTemplatePath = path.join(
+        __dirname,
+        ".",
+        "EmailTemplates",
+        "AdminWelcome.html"
+    );
+    let emailTemplate = fs.readFileSync(emailTemplatePath, "utf-8");
+    const url = `${process.env.ALLOWEDURLS}/admin/`
+    const today = new Date();
+    const activationDate = today.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    });
+    emailTemplate = emailTemplate
+        .replace(/{{hospital_name}}/g, hospitalDetails.hospitalName || "WON PULSE")
+        .replace(/{{hospital_id}}/g, hospitalDetails.hospitalId || "WON PULSE")
+        .replace(/{{activation_date}}/g, activationDate)
+        .replace(/{{navigation_url}}/g, url);
+
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: contactInformation.email,
+        subject: "WONPULSE:  You're Almost In! Complete Your Won Pulse Registration",
+        html: emailTemplate,
+    };
+
+    return transporter.sendMail(mailOptions);
+}
+const PatientWelcomeTemplate = async (patient) => {
+    const { patientName,patientId,hospitalName} = patient
+    const emailTemplatePath = path.join(
+        __dirname,
+        ".",
+        "EmailTemplates",
+        "PatientWelcome.html"
+    );
+    let emailTemplate = fs.readFileSync(emailTemplatePath, "utf-8");
+    const url = `${process.env.ALLOWEDURLS}/admin/patient/tableview`
+    const today = new Date();
+    const activationDate = today.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    });
+    emailTemplate = emailTemplate
+        .replace(/{{patient_name}}/g, patientName || "WON PULSE")
+        .replace(/{{hospital_name}}/g, hospitalName || "WON PULSE")
+        .replace(/{{patient_id}}/g, patientId || "WON PULSE")
+        .replace(/{{registration_date}}/g, activationDate)
+        .replace(/{{navigation_url}}/g, url);
+
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: contactInformation.email,
+        subject: "WONPULSE:  You're Almost In! Complete Your Won Pulse Registration",
+        html: emailTemplate,
+    };
+    return transporter.sendMail(mailOptions);
+}
+
+
 // const sendOTP = async (email, otp) => {
 //     // console.log(otp, "triffering")
 //     const mailOptions = {
@@ -98,15 +162,12 @@ const generateOTP = () => {
 //     return transporter.sendMail(mailOptions);
 // };
 const sendOTP = async (email, otp, hospitalName, hospitalLogo, hospitalMail, hospitalContact, hospitalAddress) => {
-    // console.log(email, otp,hospitalName,hospitalLogo)
-    // console.log("sending email")
     const emailTemplatePath = path.join(
         __dirname,
         "EmailTemplates",
         "OTPTemplate.html"
     );
     let emailTemplate = fs.readFileSync(emailTemplatePath, "utf-8");
-
     emailTemplate = emailTemplate
         .replace(/{{otp}}/g, otp)
         .replace(/{{hospital_name}}/g, hospitalName || "WON DIGI")
@@ -135,12 +196,8 @@ app.post('/send-email-otp-forPassword', async (req, res) => {
         const user = await Login.findOne({ email: email });
         const staffOne = await staff.findOne({ email: email });
 
-        // console.log(user, "user");
-        // console.log(staffOne, "staff");
-
         if (user || staffOne) {
-            const otp = generateOTP(); // Assume generateOTP() generates a random OTP
-            // console.log(otp);
+            const otp = generateOTP()
 
             otpStorage[email] = { otp, expiry: Date.now() + 120000 }; // Store OTP with a 2-minute expiry
 
@@ -171,7 +228,7 @@ app.post('/send-email-otp', async (req, res) => {
             const otp = generateOTP();
             otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
             // console.log(otp)
-            await sendOTP(email, otp,hospitalName = "WONPULSE", hospitalLogo = "https://res.cloudinary.com/dca9sij3n/image/upload/f_auto,q_auto/hunqedjlmgyb4bdswike", hospitalMail = "mummy@gmail.com", hospitalContact = "1234567890", hospitalAddress = "Umashankar Nagar, Vijayawada, Andhra Pradesh, India - 527001"); // Send OTP to the email
+            await sendOTP(email, otp, hospitalName = "WONPULSE", hospitalLogo = "https://res.cloudinary.com/dca9sij3n/image/upload/f_auto,q_auto/hunqedjlmgyb4bdswike", hospitalMail = "mummy@gmail.com", hospitalContact = "1234567890", hospitalAddress = "Umashankar Nagar, Vijayawada, Andhra Pradesh, India - 527001"); 
             res.status(200).json({ message: 'OTP sent successfully!' });
         }
         else {
@@ -242,8 +299,6 @@ app.post('/send-patient-email-otp', async (req, res) => {
     console.log(email)
     try {
         const user = await Patient.findOne({ "email": email }); // MongoDB query using Mongoose
-
-        // If a user with this email exists, return an error response
         if (user) {
             const otp = generateOTP(); // Assume generateOTP() generates a random OTP
             otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
@@ -251,7 +306,7 @@ app.post('/send-patient-email-otp', async (req, res) => {
             console.log(otp);
 
 
-            await sendOTP(email, otp,hospitalName = "WONPULSE", hospitalLogo = "https://res.cloudinary.com/dca9sij3n/image/upload/f_auto,q_auto/hunqedjlmgyb4bdswike", hospitalMail = "mummy@gmail.com", hospitalContact = "1234567890", hospitalAddress = "Umashankar Nagar, Vijayawada, Andhra Pradesh, India - 527001"); // Send OTP to the email
+            await sendOTP(email, otp, hospitalName = "WONPULSE", hospitalLogo = "https://res.cloudinary.com/dca9sij3n/image/upload/f_auto,q_auto/hunqedjlmgyb4bdswike", hospitalMail = "mummy@gmail.com", hospitalContact = "1234567890", hospitalAddress = "Umashankar Nagar, Vijayawada, Andhra Pradesh, India - 527001"); // Send OTP to the email
 
             res.status(200).json({ message: 'OTP sent successfully!' });
         }
@@ -374,7 +429,7 @@ app.post('/verify-login-otp', (req, res) => {
 
 
 // Register Login
-app.post('/register-login', async (req, res) => {
+app.post('/api/register-login', async (req, res) => {
     const { email, password, fullName, contact } = req.body;
     if (!email || !password || !fullName) {
         return res.status(400).json({ success: false, message: 'Email, password, and user name are required.' });
@@ -396,11 +451,8 @@ app.post('/register-login', async (req, res) => {
         if (existingUser) {
             return res.status(409).json({ success: false, message: 'Email is already registered.' });
         }
-
         const hashedPassword = await hashPassword(password);
-
         const companyDetails = req.body.company_details || null;
-
         const newLogin = new Login({
             user_id: req.body.user_id || null,
             user_name: req.body.user_name || null,
@@ -433,16 +485,14 @@ app.post('/register-login', async (req, res) => {
         const savedLogin = await newLogin.save();
         res.status(201).json({ success: true, message: 'User registered successfully' });
     } catch (err) {
+        console.log(err,"prabhuva")
         console.error('Error registering user:', err);
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });
 
-app.post('/verify-hospital', async (req, res) => {
-    // console.log("triggering @@")
+app.post('/api/verify-hospital', async (req, res) => {
     const { email, password, role } = req.body;
-    // console.log(req.body);
-
     if (!email || !password || !role) {
         return res.status(400).json({ success: false, message: 'Email, password, and role are required.' });
     }
@@ -459,16 +509,12 @@ app.post('/verify-hospital', async (req, res) => {
 
     try {
         const existingUser = await Hospitals.findOne({ "contactInformation.email": email });
-
         if (existingUser) {
-            // If the email exists, update the password and role
             const hashedPassword = await hashPassword(password);
             existingUser.password = hashedPassword;
             existingUser.role = role;
-
-            // Save the updated user info
             await existingUser.save();
-
+            await AdminWelcomeTemplate(existingUser)
             return res.status(200).json({ success: true, message: 'User updated successfully' });
         } else {
             // If the email doesn't exist, send a message indicating not found
@@ -521,12 +567,11 @@ app.post('/verify-staff', async (req, res) => {
     }
 });
 
-app.post('/verify-patient', async (req, res) => {
+app.post('/api/verify-patient', async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {
         return res.status(400).json({ success: false, message: 'Email, password,  are required.' });
     }
-
     const hashPassword = async (plainTextPassword) => {
         const saltRounds = 10;
         try {
@@ -541,12 +586,11 @@ app.post('/verify-patient', async (req, res) => {
         const existingUser = await Patient.findOne({ "email": email });
 
         if (existingUser) {
-            // If the email exists, update the password and role
             const hashedPassword = await hashPassword(password);
             existingUser.password = hashedPassword;
 
-
             await existingUser.save();
+            await PatientWelcomeTemplate(existingUser)
 
             return res.status(200).json({ success: true, message: 'patient updated successfully' });
         } else {

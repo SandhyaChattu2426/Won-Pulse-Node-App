@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
-
 const patientSchema = new Schema({
         patientId:{ type: String, required: true },
         firstName: { type: String, required: true },
@@ -54,6 +53,7 @@ const patientSchema = new Schema({
     category:{type:String},
     fullName:{type:String},
     password:{type:String},
+    hospitalName:{type:String},
 })
 
 module.exports = mongoose.model('Patient', patientSchema)
