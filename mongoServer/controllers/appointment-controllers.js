@@ -1,7 +1,216 @@
 const HttpError = require('../models/http-error')
 
 const Appointments = require('../models/appointments')
-const Patinets=require('../models/patient')
+const path = require("path");
+const PatientFunction = require('./patients-controllers')
+const fs = require("fs");
+const nodemailer = require('nodemailer');
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+});
+
+const AppointmentToAdmin = async (appointment) => {
+    const { appointmentId, fullName, hospitalId, appointmentDate, doctorName,
+
+        patientId, reason, staffId, appointmentTime } = appointment
+
+    const emailTemplatePath = path.join(
+        __dirname,
+        "..",
+        "EmailTemplates",
+        "AppointmentRequestedAdmin.html",
+
+    );
+    let emailTemplate = fs.readFileSync(emailTemplatePath, "utf-8");
+    const hospital = await PatientFunction.GetHospitalDetails(hospitalId)
+    const patient = await PatientFunction.returnEmail(patientId, hospitalId)
+    const url = `${process.env.ALLOWEDURLS}/staff/${staffId}/hospital/${hospitalId}`
+    emailTemplate = emailTemplate
+        .replace(/{{hospital_name}}/g, hospital.hospitalName || "WON PULSE")
+        .replace(/{{patient_name}}/g, patient?.name || "WON PULSE")
+        .replace(/{{patient_contact_number}}/g, patient?.contactNumber || "WON PULSE")
+        .replace(/{{patient_email}}/g, patient?.email || "WON PULSE")
+        .replace(/{{doctor_name}}/g, doctorName || "WON PULSE")
+        .replace(/{{navigation_url}}/g, url)
+        .replace(/{{mobile}}/g, hospital.mobile)
+        .replace(/{{email}}/g, hospital.email)
+        .replace(/{{adress}}/g, hospital.adress)
+        .replace(/{{appointment_date}}/g, appointmentDate || "WON PULSE")
+        .replace(/{{appointment_time}}/g, appointmentTime || "WON PULSE")
+        .replace(/{{reason}}/g, reason || "Headche");
+    ;
+
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: hospital.email,
+        subject: "WONPULSE:You Have a New Appointment Request from a Patient",
+        html: emailTemplate,
+    };
+    return transporter.sendMail(mailOptions);
+};
+
+const ConfirmUpdateToPatient = async (appointment) => {
+    const { appointmentId, fullName, hospitalId, appointmentDate, doctorName,
+        patientId, reason, staffId, appointmentTime,department } = appointment
+
+    const emailTemplatePath = path.join(
+        __dirname,
+        "..",
+        "EmailTemplates",
+        "AppointmentConfirmation.html",
+    );
+    let emailTemplate = fs.readFileSync(emailTemplatePath, "utf-8");
+    const hospital = await PatientFunction.GetHospitalDetails(hospitalId)
+    const patient = await PatientFunction.returnEmail(patientId, hospitalId)
+    const url = `${process.env.ALLOWEDURLS}/staff/${staffId}/hospital/${hospitalId}`
+    emailTemplate = emailTemplate
+        .replace(/{{hospital_name}}/g, hospital.hospitalName || "WON PULSE")
+        .replace(/{{patient_name}}/g, patient?.name || "WON PULSE")
+        .replace(/{{patient_contact_number}}/g, patient?.contactNumber || "WON PULSE")
+        .replace(/{{patient_email}}/g, patient?.email || "WON PULSE")
+        .replace(/{{doctor_name}}/g, doctorName || "WON PULSE")
+        .replace(/{{navigation_url}}/g, url)
+        .replace(/{{mobile}}/g, hospital.mobile)
+        .replace(/{{email}}/g, hospital.email)
+        .replace(/{{adress}}/g, hospital.adress)
+        .replace(/{{appointment_date}}/g, appointmentDate || "WON PULSE")
+        .replace(/{{appointment_time}}/g, appointmentTime || "WON PULSE")
+        .replace(/{{appointment_id}}/g, appointmentId || "WON PULSE")
+        .replace(/{{department}}/g, department || "Neurology");
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: patient.email,
+        subject: "WONPULSE:Your Appointment has been Confirmed",
+        html: emailTemplate,
+    };
+    return transporter.sendMail(mailOptions);
+}
+
+const RejectToPatient = async (appointment) => {
+    const { appointmentId, fullName, hospitalId, appointmentDate, doctorName,
+        patientId, reason, staffId, appointmentTime,department } = appointment
+
+    const emailTemplatePath = path.join(
+        __dirname,
+        "..",
+        "EmailTemplates",
+        "AppointmentRejected.html",
+    );
+    let emailTemplate = fs.readFileSync(emailTemplatePath, "utf-8");
+    const hospital = await PatientFunction.GetHospitalDetails(hospitalId)
+    const patient = await PatientFunction.returnEmail(patientId, hospitalId)
+    const url = `${process.env.ALLOWEDURLS}/staff/${staffId}/hospital/${hospitalId}`
+    emailTemplate = emailTemplate
+        .replace(/{{hospital_name}}/g, hospital.hospitalName || "WON PULSE")
+        .replace(/{{patient_name}}/g, patient?.name || "WON PULSE")
+        .replace(/{{patient_email}}/g, patient?.email || "WON PULSE")
+        .replace(/{{doctor_name}}/g, doctorName || "WON PULSE")
+        .replace(/{{navigation_url}}/g, url)
+        .replace(/{{mobile}}/g, hospital.mobile)
+        .replace(/{{email}}/g, hospital.email)
+        .replace(/{{adress}}/g, hospital.adress)
+        .replace(/{{appointment_date}}/g, appointmentDate || "WON PULSE")
+        .replace(/{{appointment_time}}/g, appointmentTime || "WON PULSE")
+        .replace(/{{appointment_id}}/g, appointmentId || "WON PULSE")
+        .replace(/{{department}}/g, department || "Neurology")
+        .replace(/{{patient_id}}/g, patientId || "Headche")
+        .replace(/{{reason}}/g, reason|| "Un Known");
+;
+
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: patient.email,
+        subject: "WONPULSE:Your Appointment has been Rejected",
+        html: emailTemplate,
+    };
+    return transporter.sendMail(mailOptions);
+}
+
+const RescheduleAppointmentToPatient = async (appointment) => {
+    const { appointmentId, fullName, hospitalId, appointmentDate, doctorName,
+        patientId, reason, staffId, appointmentTime,department } = appointment
+
+    const emailTemplatePath = path.join(
+        __dirname,
+        "..",
+        "EmailTemplates",
+        "AppointmentRescheduledPatient.html",
+    );
+    let emailTemplate = fs.readFileSync(emailTemplatePath, "utf-8");
+    const hospital = await PatientFunction.GetHospitalDetails(hospitalId)
+    const patient = await PatientFunction.returnEmail(patientId, hospitalId)
+    const url = `${process.env.ALLOWEDURLS}/staff/${staffId}/hospital/${hospitalId}`
+    emailTemplate = emailTemplate
+        .replace(/{{hospital_name}}/g, hospital.hospitalName || "WON PULSE")
+        .replace(/{{patient_name}}/g, patient?.name || "WON PULSE")
+        .replace(/{{patient_email}}/g, patient?.email || "WON PULSE")
+        .replace(/{{doctor_name}}/g, doctorName || "WON PULSE")
+        .replace(/{{navigation_url}}/g, url)
+        .replace(/{{mobile}}/g, hospital.mobile)
+        .replace(/{{email}}/g, hospital.email)
+        .replace(/{{adress}}/g, hospital.adress)
+        .replace(/{{appointment_date}}/g, appointmentDate || "WON PULSE")
+        .replace(/{{appointment_time}}/g, appointmentTime || "WON PULSE")
+        .replace(/{{appointment_id}}/g, appointmentId || "WON PULSE")
+        .replace(/{{department}}/g, department || "Neurology")
+        .replace(/{{patient_id}}/g, patientId || "Headche")
+        .replace(/{{reason}}/g, reason|| "Un Known");
+;
+
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: patient.email,
+        subject: "WONPULSE:Your Appointment has been Rejected",
+        html: emailTemplate,
+    };
+    return transporter.sendMail(mailOptions);
+
+}
+const RescheduleAppointmentToAdmin = async (appointment) => {
+    const { appointmentId, fullName, hospitalId, appointmentDate, doctorName,
+        patientId, reason, staffId, appointmentTime,department } = appointment
+
+    const emailTemplatePath = path.join(
+        __dirname,
+        "..",
+        "EmailTemplates",
+        "AppointmentRescheduledAdmin.html",
+    );
+    let emailTemplate = fs.readFileSync(emailTemplatePath, "utf-8");
+    const hospital = await PatientFunction.GetHospitalDetails(hospitalId)
+    const patient = await PatientFunction.returnEmail(patientId, hospitalId)
+    const url = `${process.env.ALLOWEDURLS}/staff/${staffId}/hospital/${hospitalId}`
+    emailTemplate = emailTemplate
+        .replace(/{{hospital_name}}/g, hospital.hospitalName || "WON PULSE")
+        .replace(/{{patient_name}}/g, patient?.name || "WON PULSE")
+        .replace(/{{patient_email}}/g, patient?.email || "WON PULSE")
+        .replace(/{{doctor_name}}/g, doctorName || "WON PULSE")
+        .replace(/{{navigation_url}}/g, url)
+        .replace(/{{mobile}}/g, hospital.mobile)
+        .replace(/{{email}}/g, hospital.email)
+        .replace(/{{adress}}/g, hospital.adress)
+        .replace(/{{appointment_date}}/g, appointmentDate || "WON PULSE")
+        .replace(/{{appointment_time}}/g, appointmentTime || "WON PULSE")
+        .replace(/{{appointment_id}}/g, appointmentId || "WON PULSE")
+        .replace(/{{department}}/g, department || "Neurology")
+        .replace(/{{patient_id}}/g, patientId || "Headche")
+        .replace(/{{reason}}/g, reason|| "Un Known");
+;
+
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: patient.email,
+        subject: "WONPULSE:Your Appointment has been Rejected",
+        html: emailTemplate,
+    };
+    return transporter.sendMail(mailOptions);
+
+}
+
 
 //CREATE AN APPOINTMENT
 const createAppointment = async (req, res, next) => {
@@ -10,6 +219,21 @@ const createAppointment = async (req, res, next) => {
     })
     try {
         await newAppointment.save()
+        if (newAppointment.isPatientAccepted && !newAppointment.isDoctorAccepted) {
+            // const patient = await PatientFunction.returnEmail(newAppointment.patientId, newAppointment.hospitalId)
+            const appointment = {
+                appointmentId: newAppointment.appointmentId,
+                fullName: newAppointment.fullName,
+                hospitalId: newAppointment.hospitalId,
+                appointmentDate: newAppointment.appointmentDate,
+                patientName: newAppointment.patientName,
+                doctorName: newAppointment.doctorName,
+                appointmentTime: newAppointment.appointmentTime,
+                patientId: newAppointment.patientId,
+                reason: newAppointment.reason || "headache",
+            };
+            await AppointmentToAdmin(appointment)
+        }
     }
     catch (e) {
         console.log(e)
@@ -66,10 +290,10 @@ const getId = async (req, res, next) => {
 
 // GETTING ALL THE APPOINTMENTS
 const getAppointments = async (req, res, next) => {
-const {hospitalId}=req.params;
+    const { hospitalId } = req.params;
     let appointments
     try {
-        appointments = await Appointments.find({hospitalId:hospitalId})
+        appointments = await Appointments.find({ hospitalId: hospitalId })
     }
     catch (e) {
         console.log(e)
@@ -95,12 +319,12 @@ const updateAppointments = async (req, res, next) => {
 }
 // Get Appointment By Id
 const getAppointmentById = async (req, res, next) => {
-    const { Id,hospitalId } = req.params
+    const { Id, hospitalId } = req.params
     console.log(req.params, "params")
     // console.log("Triggering to fetch by id")
     let Appointment
     try {
-        Appointment = await Appointments.findOne({ appointmentId: Id,hospitalId })
+        Appointment = await Appointments.findOne({ appointmentId: Id, hospitalId })
     }
     catch (e) {
         console.log(e)
@@ -108,35 +332,36 @@ const getAppointmentById = async (req, res, next) => {
     res.json({ Appointment })
 }
 
-const updateAppointmentStatus = async (req, res, next) => {
-    try {
-        const ApId = req.params.Id
-      
-        const appointment = await Appointments.findOne({ appointmentId: ApId })
+// const updateAppointmentStatus = async (req, res, next) => {
+//     console.log("Triggering to update status")
+//     try {
+//         const ApId = req.params.Id
+//         const appointment = await Appointments.findOne({ appointmentId: ApId })
+//         if (appointment) {
+//             try {
+//                 appointment.status = req.body.status
+//                 console.log(req.body.status, "status")
 
-        if (appointment) {
-            try {
-                appointment.status = req.body.status
-                if(req.body.status==="accepted"){
-                    appointment.paymentStatus="pending"
-                }
-                await appointment.save()
-                return res.status(200).json({ message: "Appointment status updated successfully!" });
+//                 await appointment.save()
+//                 if (status === "acepted") {
+//                     ConfirmUpdateToPatient(appointment)
+//                 }
+//                 return res.status(200).json({ message: "Appointment status updated successfully!" });
 
-            } catch (e) {
-                console.log(e)
-                console.log("Could not find the patient")
-            }
-        }
-    }
-    catch (e) {
-        console.log(e)
-    }
-}
+//             } catch (e) {
+//                 console.log(e)
+//                 console.log("Could not find the patient")
+//             }
+//         }
+//     }
+//     catch (e) {
+//         console.log(e)
+//     }
+// }
 
 const getAppointmentByPatientId = async (req, res, next) => {
     const { Id } = req.params;
-    console.log(Id,"Id HERE")
+    // console.log(Id,"Id HERE")
     let Appointment;
     try {
         Appointment = await Appointments.findOne({ "patientId": Id, })
@@ -151,7 +376,7 @@ const addAppointmentFromExcel = async (req, res, next) => {
     console.log("Triggering here")
     let last, lastId, newId;
     let createdItem;
-    
+
     try {
         const totalItems = await Appointments.countDocuments();
         if (totalItems > 0) {
@@ -174,20 +399,20 @@ const addAppointmentFromExcel = async (req, res, next) => {
     // Create a new inventory item
     let appointmentDate = req.body.appointmentdate;
 
-    if (!isNaN(appointmentDate)) { 
-        let excelDate = new Date((appointmentDate - 25569) * 86400000); 
-        appointmentDate = excelDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }); 
+    if (!isNaN(appointmentDate)) {
+        let excelDate = new Date((appointmentDate - 25569) * 86400000);
+        appointmentDate = excelDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
         // Output will be in "14 FEB 2024" format
     }
     createdItem = new Appointments({
-        appointmentId:newId,
+        appointmentId: newId,
         appointmentDate: appointmentDate,
         appointmentTime: req.body.appointmenttime,
         doctorName: req.body.doctorname,
         patientId: req.body.patientid,
         patientName: req.body.patientname,
         paymentType: req.body.paymenttype,
-        month:req.body.month,
+        month: req.body.month,
         status: req.body.status
     });
 
@@ -206,7 +431,6 @@ const addAppointmentFromExcel = async (req, res, next) => {
 }
 
 const updateStatus = async (req, res, next) => {
-
     try {
         const appointment = await Appointments.findOne({
             appointmentId: req.params.id,
@@ -217,13 +441,31 @@ const updateStatus = async (req, res, next) => {
             return res.status(404).json({ message: "Appointment not found" });
         }
 
-        // Dynamically update fields based on request body
         Object.keys(req.body).forEach(key => {
             appointment[key] = req.body[key];
         });
 
         await appointment.save();
-
+        if (req.body.status === "accepted") {
+        }
+        switch (req.body.status) {
+            case "accepted":
+                ConfirmUpdateToPatient(appointment)
+                break;
+            case "rejected":
+                RejectToPatient(appointment)
+                break;
+            case "rescheduled":
+            if(req.body.isDoctorAccepted){
+                RescheduleAppointmentToPatient(appointment)
+            }
+            if(req.body.isPatientAccepted){
+                RescheduleAppointmentToAdmin(appointment)
+            }
+            break;
+            default:
+                console.log("Unknown status")
+        }
         res.status(200).json({ message: "Status Updated Successfully" });
 
     } catch (e) {
@@ -231,20 +473,19 @@ const updateStatus = async (req, res, next) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
-
-const  getAppointmentsByDoctorIdAndDate=async (req, res, next) => {
-    const { doctorId, date,hospitalId } = req.params;
+const getAppointmentsByDoctorIdAndDate = async (req, res, next) => {
+    const { doctorId, date, hospitalId } = req.params;
     let appointments
     let list
     try {
-        appointments = await Appointments.find({ doctorId: doctorId, appointmentDate: date,hospitalId:hospitalId })
-        
+        appointments = await Appointments.find({ doctorId: doctorId, appointmentDate: date, hospitalId: hospitalId })
+
     }
     catch (e) {
         console.log(e)
     }
-    console.log(list,"list")
-    res.json({ appointments:appointments })
+    console.log(list, "list")
+    res.json({ appointments: appointments })
 }
 
 
@@ -254,8 +495,9 @@ exports.getAppointments = getAppointments
 exports.getId = getId
 exports.updateAppointments = updateAppointments
 exports.getAppointmentById = getAppointmentById
-exports.updateAppointmentStatus = updateAppointmentStatus
+// exports.updateAppointmentStatus = updateAppointmentStatus
 exports.getAppointmentByPatientId = getAppointmentByPatientId
 exports.addAppointmentFromExcel = addAppointmentFromExcel
-exports.updateStatus=updateStatus
-exports.getAppointmentsByDoctorIdAndDate=getAppointmentsByDoctorIdAndDate
+exports.updateStatus = updateStatus
+exports.getAppointmentsByDoctorIdAndDate = getAppointmentsByDoctorIdAndDate
+exports.AppointmentToAdmin = AppointmentToAdmin

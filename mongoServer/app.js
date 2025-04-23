@@ -30,6 +30,7 @@ const dashboardRoutes = require('./routes/dashboardRoutes')
 const { MongoClient } = require("mongodb");
 const dashboardReportRoutes = require('./routes/DashboardReports')
 const RoleRoutes = require('./routes/RolesRoutes')
+const HospitalFunction=require('./controllers/patients-controllers')
 
 require('dotenv').config();
 const secretKey = process.env.JWT_SECRET;
@@ -95,7 +96,11 @@ const AdminWelcomeTemplate = async (hospital) => {
         .replace(/{{hospital_name}}/g, hospitalDetails.hospitalName || "WON PULSE")
         .replace(/{{hospital_id}}/g, hospitalDetails.hospitalId || "WON PULSE")
         .replace(/{{activation_date}}/g, activationDate)
-        .replace(/{{navigation_url}}/g, url);
+        .replace(/{{navigation_url}}/g, url)
+        .replace(/{{mobile}}/g,  "7893536373")
+        .replace(/{{adress}}/g, "umashankarNagar,NowITServicervicesIndia.pvt.Ltd" )
+        .replace(/{{mail}}/g, "wonPulse@gmail.com");
+;
 
     const mailOptions = {
         from: process.env.EMAIL_USER,
@@ -107,7 +112,7 @@ const AdminWelcomeTemplate = async (hospital) => {
     return transporter.sendMail(mailOptions);
 }
 const PatientWelcomeTemplate = async (patient) => {
-    const { patientName,patientId,hospitalName} = patient
+    const { fullName,patientId,hospitalName,hospitalId,email} = patient
     const emailTemplatePath = path.join(
         __dirname,
         ".",
@@ -122,16 +127,21 @@ const PatientWelcomeTemplate = async (patient) => {
         month: 'long',
         day: 'numeric',
     });
+    const hospital=await HospitalFunction.GetHospitalDetails(hospitalId)
+
     emailTemplate = emailTemplate
-        .replace(/{{patient_name}}/g, patientName || "WON PULSE")
+        .replace(/{{patient_name}}/g, fullName || "WON PULSE")
         .replace(/{{hospital_name}}/g, hospitalName || "WON PULSE")
         .replace(/{{patient_id}}/g, patientId || "WON PULSE")
         .replace(/{{registration_date}}/g, activationDate)
-        .replace(/{{navigation_url}}/g, url);
+        .replace(/{{navigation_url}}/g, url)
+        .replace(/{{mobile}}/g, hospital.mobile || "WON PULSE")
+        .replace(/{{adress}}/g, hospital.adress )
+        .replace(/{{mail}}/g, hospital.email);
 
     const mailOptions = {
         from: process.env.EMAIL_USER,
-        to: contactInformation.email,
+        to: email,
         subject: "WONPULSE:  You're Almost In! Complete Your Won Pulse Registration",
         html: emailTemplate,
     };
@@ -139,6 +149,43 @@ const PatientWelcomeTemplate = async (patient) => {
 }
 
 
+const staffWelcomeTemplate=async (staff) => {
+    const { fullName,staffId,hospitalName,department,doctorType,email,hospitalId} = staff
+    const emailTemplatePath = path.join(
+        __dirname,
+        ".",
+        "EmailTemplates",
+        "StaffWelcomeTemplate.html"
+    );
+    let emailTemplate = fs.readFileSync(emailTemplatePath, "utf-8");
+    const url = `${process.env.ALLOWEDURLS}/admin/staff/tableview`
+    const today = new Date();
+    const activationDate = today.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    });
+    const hospital=await HospitalFunction.GetHospitalDetails(hospitalId)
+    emailTemplate = emailTemplate
+        .replace(/{{staff_name}}/g, fullName || "WON PULSE")
+        .replace(/{{hospital_name}}/g, hospitalName || "WON PULSE")
+        .replace(/{{staff_id}}/g, staffId || "WON PULSE")
+        .replace(/{{department}}/g, department||doctorType)
+        .replace(/{{activation_date}}/g, activationDate)
+        .replace(/{{navigation_url}}/g, url)
+        .replace(/{{mobile}}/g, hospital.mobile || "WON PULSE")
+        .replace(/{{adress}}/g, hospital.adress )
+        .replace(/{{mail}}/g, hospital.email);
+
+
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: "WONPULSE:  You're Almost In! Complete Your Won Pulse Registration",
+        html: emailTemplate,
+    };
+    return transporter.sendMail(mailOptions);
+}
 // const sendOTP = async (email, otp) => {
 //     // console.log(otp, "triffering")
 //     const mailOptions = {
@@ -485,7 +532,7 @@ app.post('/api/register-login', async (req, res) => {
         const savedLogin = await newLogin.save();
         res.status(201).json({ success: true, message: 'User registered successfully' });
     } catch (err) {
-        console.log(err,"prabhuva")
+        console.log(err, "error")
         console.error('Error registering user:', err);
         res.status(500).json({ success: false, message: 'Server error' });
     }
@@ -526,8 +573,7 @@ app.post('/api/verify-hospital', async (req, res) => {
     }
 });
 
-app.post('/verify-staff', async (req, res) => {
-    console.log("triggering")
+app.post('/api/verify-staff', async (req, res) => {
     const { email, password, role } = req.body;
     if (!email || !password) {
         return res.status(400).json({ success: false, message: 'Email, password,  are required.' });
@@ -548,14 +594,10 @@ app.post('/verify-staff', async (req, res) => {
         console.log(existingUser)
 
         if (existingUser) {
-            // If the email exists, update the password and role
             const hashedPassword = await hashPassword(password);
             existingUser.password = hashedPassword;
-            // existingUser.role = role;
-
-            // Save the updated user info
             await existingUser.save();
-
+            await staffWelcomeTemplate(existingUser)
             return res.status(200).json({ success: true, message: 'staff updated successfully' });
         } else {
             // If the email doesn't exist, send a message indicating not found
@@ -635,7 +677,7 @@ const authenticateToken = async (req, res, next) => {
 app.post('/login', async (req, res, next) => {
     try {
         const user = await Login.findOne({ email: req.body.email });
-        console.log(user, "user")
+        // console.log(user, "user")
         if (user.user_type === "Hospital") {
             const isMatch = await bcrypt.compare(req.body.password, user.password);
             if (!isMatch) {

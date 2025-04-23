@@ -220,7 +220,7 @@
                                                                 style="padding-bottom:5px;padding-left:5px;padding-right:5px;padding-top:10px;">
                                                                 <div
                                                                     style="color:#ffffff;direction:ltr;font-family:Arial, Helvetica Neue, Helvetica, sans-serif;font-size:16px;font-weight:400;letter-spacing:0px;line-height:1.2;text-align:center;mso-line-height-alt:19px;">
-                                                                    <p style="margin: 0;">[HOSPITAL NAME]</p>
+                                                                    <p style="margin: 0;">{{hospital_name}}</p>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -267,7 +267,7 @@
                                                                 style="padding-left:15px;padding-right:30px;">
                                                                 <div
                                                                     style="color:#000000;font-family:Arial, Helvetica Neue, Helvetica, sans-serif;font-size:16px;font-weight:700;line-height:1.5;text-align:left;mso-line-height-alt:24px;">
-                                                                    <p style="margin: 0;">Hello [Patient Name],</p>
+                                                                    <p style="margin: 0;">Hello {{patient_name}},</p>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -281,8 +281,7 @@
                                                                 <div
                                                                     style="color:#000000;font-family:Arial, Helvetica Neue, Helvetica, sans-serif;font-size:13px;font-weight:400;letter-spacing:1px;line-height:1.2;text-align:left;mso-line-height-alt:16px;">
                                                                     <p style="margin: 0;">Thank you for requesting an
-                                                                        appointment with <strong>Dr. [Doctor's
-                                                                            Name]</strong>.</p>
+                                                                        appointment with <strong>Dr. {{doctor_name}}</strong>.</p>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -296,11 +295,12 @@
                                                                 <div
                                                                     style="color:#000000;font-family:Arial, Helvetica Neue, Helvetica, sans-serif;font-size:13px;font-weight:400;letter-spacing:1px;line-height:1.2;text-align:left;mso-line-height-alt:16px;">
                                                                     <p style="margin: 0;">We regret to inform you that
-                                                                        your appointment request for <strong>[Requested
-                                                                            Date & Time]</strong> has been
-                                                                        <strong>declined</strong> due to [reason – e.g.,
+                                                                        your appointment request for <strong>{{appointment_date}}{{appointment_time}}</strong> has been
+                                                                        <strong>declined</strong> 
+                                                                        
+                                                                        <!-- due to [reason – e.g.,
                                                                         scheduling conflict / unavailability / emergency
-                                                                        cases].
+                                                                        cases]. -->
                                                                     </p>
                                                                 </div>
                                                             </td>
@@ -365,7 +365,7 @@
                                                             <td class="pad">
                                                                 <div
                                                                     style="color:#101112;direction:ltr;font-family:Arial, Helvetica Neue, Helvetica, sans-serif;font-size:13px;font-weight:400;letter-spacing:0px;line-height:1.2;text-align:left;mso-line-height-alt:16px;">
-                                                                    <p style="margin: 0;">Dr. [Doctor's Name]</p>
+                                                                    <p style="margin: 0;">Dr.{{doctor_name}}</p>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -415,7 +415,7 @@
                                                             <td class="pad">
                                                                 <div
                                                                     style="color:#101112;direction:ltr;font-family:Arial, Helvetica Neue, Helvetica, sans-serif;font-size:13px;font-weight:400;letter-spacing:0px;line-height:1.2;text-align:left;mso-line-height-alt:16px;">
-                                                                    <p style="margin: 0;">[Date & Time]</p>
+                                                                    <p style="margin: 0;">{{appointment_date}}{{appointment_time}}</p>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -465,8 +465,7 @@
                                                             <td class="pad">
                                                                 <div
                                                                     style="color:#101112;direction:ltr;font-family:Arial, Helvetica Neue, Helvetica, sans-serif;font-size:13px;font-weight:400;letter-spacing:0px;line-height:1.2;text-align:left;mso-line-height-alt:16px;">
-                                                                    <p style="margin: 0;">[e.g., "Doctor is unavailable
-                                                                        on the selected date"]</p>
+                                                                    <p style="margin: 0;">{{reason}}</p>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -632,7 +631,7 @@
                                                                 <div
                                                                     style="color:#101112;direction:ltr;font-family:Arial, Helvetica Neue, Helvetica, sans-serif;font-size:13px;font-weight:400;letter-spacing:0px;line-height:1.2;text-align:center;mso-line-height-alt:16px;">
                                                                     <p style="margin: 0;">Thank you for choosing
-                                                                        <strong>[Hospital Name]</strong>. We look
+                                                                        <strong>{{hospital_name}}</strong>. We look
                                                                         forward to assisting you with your healthcare
                                                                         needs.
                                                                     </p>
@@ -662,8 +661,8 @@
                                                                     style="color:#101112;direction:ltr;font-family:Arial, Helvetica Neue, Helvetica, sans-serif;font-size:13px;font-weight:400;letter-spacing:0px;line-height:1.2;text-align:center;mso-line-height-alt:16px;">
                                                                     <p style="margin: 0;">Reach us at 📧 [<a
                                                                             rel="noopener"
-                                                                            style="text-decoration: underline; color: #7747FF;">mail@xyz.com]</a>
-                                                                        | 📞 [1234567]</p>
+                                                                            style="text-decoration: underline; color: #7747FF;">{{email}}</a>
+                                                                        | 📞 {{mobile}}</p>
                                                                 </div>
                                                             </td>
                                                         </tr>

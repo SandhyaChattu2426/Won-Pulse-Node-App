@@ -6,6 +6,8 @@ const { validationResult } = require('express-validator')
 const Staff = require('../models/staff')
 const HospitalFunction = require('./patients-controllers')
 const { request } = require('express')
+const path = require("path");
+
 const fs = require("fs");
 const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
@@ -22,7 +24,7 @@ const sendConfirmation = async (patient) => {
         __dirname,
         "..",
         "EmailTemplates",
-        "StaddAfterRegistration.html"
+        "StaffAfterRegistration.html"
     );
     let emailTemplate = fs.readFileSync(emailTemplatePath, "utf-8");
     const hospital = await HospitalFunction.GetHospitalDetails(hospitalId)
@@ -51,7 +53,6 @@ const createStaff = async (req, res, next) => {
     try {
         await newStaff.save();
         await sendConfirmation(newStaff);
-        console.log("PRABHUVA")// Send confirmation email
         return res.status(201).json({ message: "Staff created successfully" }); // Send JSON response
     } catch (e) {
         console.log(e);
