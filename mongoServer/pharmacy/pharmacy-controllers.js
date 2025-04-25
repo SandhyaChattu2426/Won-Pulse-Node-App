@@ -327,6 +327,27 @@ const getVaccinations=async (req,res,next)=>{
     res.json(Items)
 }
 
+const getPharmacyForBackend = async (medicineid, quantity, hospitalId) => {
+    console.log(medicineid, quantity)
+    try {
+        const medicineItem = await Pharmacy.findOne({ medicineId: medicineid});
+
+        if (medicineItem) {
+            medicineItem.quantity -= quantity;
+            await medicineItem.save();
+        }
+
+        if (!medicineItem) {
+            throw new Error("Inventory item not found");
+        }
+        return true;
+    } catch (error) {
+        console.error("Error fetching inventory item:", error);
+        throw error;
+    }
+}
+
+
 exports.RegisterMedicine = RegisterMedicine
 exports.getId=getId
 exports.GetPharmacy=GetPharmacy
@@ -338,3 +359,4 @@ exports.UpdatePharmacyQuantity=UpdatePharmacyQuantity
 exports.addPharmacyFromExcel=addPharmacyFromExcel
 exports.getChartData=getChartData
 exports.getVaccinations=getVaccinations
+exports.getPharmacyForBackend=getPharmacyForBackend

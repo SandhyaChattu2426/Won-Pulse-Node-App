@@ -13,7 +13,7 @@ const HospitalSchema = new Schema({
         hospitalType: { type: String, required: true },
     },
     contactInformation: {
-        phNo: { type: String,  },
+        phNo: { type: String, },
         email: { type: String, required: true },
     },
     accederationDetails: {
@@ -33,16 +33,27 @@ const HospitalSchema = new Schema({
         from: { type: String, required: true },
         to: { type: String, required: true },
     },
-    adress:{
-        street:{type: String, required:true},
-        city:{type: String, required:true},
-        state:{type: String, required:true},
-    
+    adress: {
+        street: { type: String, required: true },
+        city: { type: String, required: true },
+        state: { type: String, required: true },
+
     },
-    password:{type:String},
-    role:{type:String},
-    is_mfa_enabled:{type:String}||"false",
+    password: { type: String },
+    role: { type: String },
+    is_mfa_enabled: { type: String } || "false",
     mfa_type: { type: [String], default: [] },
-    passkey: {type:String},
+    passkey: { type: String },
+    socialMediaLinks: {
+        linkedin: { type: String, default: "" },
+        youtube: { type: String, default: "" },
+        instagram: { type: String, default: "" },
+        facebook: { type: String, default: "" },
+    },
+    alerts:[{
+        text: { type: String, default: "" },
+        status: { type: String, default: "" },
+        date: { type: String, default: "" },
+    }]
 })
 module.exports = mongoose.model('hospitals', HospitalSchema)

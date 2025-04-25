@@ -355,6 +355,20 @@ const getStaffByRoleName = async (req, res, next) => {
     }
 };
 
+const getStaffByRoleNameForBackend = async (hospitalId,roleName) => {
+    try {
+        const staffMembers = await Staff.find({ hospitalId, jobRole: roleName });
+        if (!staffMembers.length) {
+            return res.status(404).json({ message: "No staff members found" });
+        }
+        res.status(200).json(staffMembers);
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ message: "Server error", error: e.message }); // ✅ Handle errors properly
+    }
+};
+
+
 
 
 
@@ -370,3 +384,4 @@ exports.getStaffByHplId = getStaffByHplId
 exports.checkEmail = checkEmail
 exports.getStaffChartData = getStaffChartData
 exports.getStaffByRoleName = getStaffByRoleName
+exports.getStaffByRoleNameForBackend = getStaffByRoleNameForBackend

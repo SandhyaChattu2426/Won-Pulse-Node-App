@@ -1,5 +1,53 @@
 const HttpError = require('../models/http-error')
 const Inventory = require('./inventory')
+const Staff = require('../controllers/staff-controllers')
+const path = require('path')
+const fs = require("fs");
+const nodemailer = require('nodemailer');
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+});
+
+const LowStockAlert = async (appointment) => {
+    const { appointmentId, fullName, hospitalId, appointmentDate, doctorName,
+        patientId, reason, staffId, appointmentTime } = appointment;
+
+    const emailTemplatePath = path.join(
+        __dirname,
+        "..",
+        "EmailTemplates",
+        "lowStockAlert.html"
+    );
+
+    let emailTemplate = fs.readFileSync(emailTemplatePath, "utf-8");
+
+    const inventoryStaffList = await Staff.getStaffByRoleNameForBackend(hospitalId, "Inventory Manager");
+    console.log(inventoryStaffList, "Inventory Staff");
+
+    // Loop through all staff and send email to each
+    for (const staff of inventoryStaffList) {
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: staff.email, // assuming each object has `email` field
+            subject: "WONPULSE: Low Stock Alert",
+            html: emailTemplate,
+        };
+
+        try {
+            await transporter.sendMail(mailOptions);
+            console.log(`Email sent to ${staff.email}`);
+        } catch (error) {
+            console.error(`Failed to send email to ${staff.email}`, error);
+        }
+    }
+
+    return { success: true, message: "Emails sent to all Inventory Managers." };
+};
+
 
 //CREATE INVENTORY
 const createInventory = async (req, res, next) => {
@@ -49,10 +97,10 @@ const getId = async (req, res, next) => {
 };
 
 const gettingALLInventories = async (req, res, next) => {
-    const {hospitalId}=req.params
+    const { hospitalId } = req.params
     let InventoryList
     try {
-        InventoryList = await Inventory.find({hospitalId:hospitalId})
+        InventoryList = await Inventory.find({ hospitalId: hospitalId })
     }
     catch (e) {
         console.log(e)
@@ -64,7 +112,7 @@ const gettingALLInventories = async (req, res, next) => {
 
 const getInventoryById = async (req, res, next) => {
     const { Id } = req.params
-    console.log(Id,"here")
+    console.log(Id, "here")
     let Item;
     try {
         Item = await Inventory.findOne({ inventoryId: Id })
@@ -208,7 +256,6 @@ const updateQuantity = async (req, res, next) => {
     const { Id } = req.params
     console.log(req.body)
     const item = await Inventory.findById(Id);
-    console.log(item, "item")
 }
 
 const addInventoryFromExcel = async (req, res, next) => {
@@ -216,7 +263,7 @@ const addInventoryFromExcel = async (req, res, next) => {
     let last, lastId, newId;
     let createdItem;
     function excelDateToJSDate(serialDate) {
-        const jsonDate= new Date((serialDate - 25569) * 86400 * 1000);
+        const jsonDate = new Date((serialDate - 25569) * 86400 * 1000);
         return jsonDate.toISOString().split("T")[0];
     }
 
@@ -255,8 +302,8 @@ const addInventoryFromExcel = async (req, res, next) => {
         temperature: req.body.temperature, // Changed to Number
         supplierName: req.body.suppliername,
         contactNumber: req.body.contactnumber,
-        email:req.body.email,
-        status:"Active"|| ""
+        email: req.body.email,
+        status: "Active" || ""
     })
 
     if (!req.body.servicename || !req.body.quantity || !req.body.units || !req.body.category || !req.body.minimumlevel || !req.body.criticalitylevel || !req.body.status) {
@@ -264,7 +311,7 @@ const addInventoryFromExcel = async (req, res, next) => {
     }
     else {
         try {
-        
+
             // console.log(createdItem,"Item Here")
             // console.log(new Date(req.body.receivedDate),req.body.receivedDate)// Invalid Date undefined
             await createdItem.save()
@@ -344,6 +391,29 @@ const getChartData = async (req, res, next) => {
     }
 };
 
+const getInventoryByIdForBackend = async (inventoryId, netChange, hospitalId) => {
+
+    try {
+        const inventoryItem = await Inventory.findOne({ inventoryId, hospitalId });
+        if (!inventoryItem) {
+            throw new Error(`Inventory item not found for ID: ${inventoryId}`);
+        }
+
+        // Correct logic: subtract if positive (consume), add if negative (return)
+        inventoryItem.quantity = inventoryItem.quantity - netChange;
+
+        // Optional safety: prevent going negative
+        if (inventoryItem.quantity < 0) {
+            throw new Error(`Inventory for ${inventoryId} would go negative!`);
+        }
+
+        await inventoryItem.save();
+        return true;
+    } catch (error) {
+        console.error("Error updating inventory item:", error.message);
+        throw error;
+    }
+};
 
 
 exports.createInventory = createInventory
@@ -357,5 +427,6 @@ exports.getInvNames = getInvNames
 exports.getInventoryByName = getInventoryByName
 exports.updateQuantity = updateQuantity
 exports.addInventoryFromExcel = addInventoryFromExcel
-exports.getChartData=getChartData
+exports.getChartData = getChartData
+exports.getInventoryByIdForBackend = getInventoryByIdForBackend
 

@@ -55,7 +55,7 @@ const AppointmentToAdmin = async (appointment) => {
 
 const ConfirmUpdateToPatient = async (appointment) => {
     const { appointmentId, fullName, hospitalId, appointmentDate, doctorName,
-        patientId, reason, staffId, appointmentTime,department } = appointment
+        patientId, reason, staffId, appointmentTime, department } = appointment
 
     const emailTemplatePath = path.join(
         __dirname,
@@ -92,7 +92,7 @@ const ConfirmUpdateToPatient = async (appointment) => {
 
 const RejectToPatient = async (appointment) => {
     const { appointmentId, fullName, hospitalId, appointmentDate, doctorName,
-        patientId, reason, staffId, appointmentTime,department } = appointment
+        patientId, reason, staffId, appointmentTime, department } = appointment
 
     const emailTemplatePath = path.join(
         __dirname,
@@ -118,8 +118,8 @@ const RejectToPatient = async (appointment) => {
         .replace(/{{appointment_id}}/g, appointmentId || "WON PULSE")
         .replace(/{{department}}/g, department || "Neurology")
         .replace(/{{patient_id}}/g, patientId || "Headche")
-        .replace(/{{reason}}/g, reason|| "Un Known");
-;
+        .replace(/{{reason}}/g, reason || "Un Known");
+    ;
 
     const mailOptions = {
         from: process.env.EMAIL_USER,
@@ -131,8 +131,9 @@ const RejectToPatient = async (appointment) => {
 }
 
 const RescheduleAppointmentToPatient = async (appointment) => {
-    const { appointmentId, fullName, hospitalId, appointmentDate, doctorName,
-        patientId, reason, staffId, appointmentTime,department } = appointment
+    const { appointmentId, fullName, hospitalId, rescheduledTime, doctorName,
+        patientId, reason, staffId, appointmentTime, department } = appointment
+    const [datePart, timePart] = rescheduledTime.split(/(?<=\d{4}) /);
 
     const emailTemplatePath = path.join(
         __dirname,
@@ -153,13 +154,13 @@ const RescheduleAppointmentToPatient = async (appointment) => {
         .replace(/{{mobile}}/g, hospital.mobile)
         .replace(/{{email}}/g, hospital.email)
         .replace(/{{adress}}/g, hospital.adress)
-        .replace(/{{appointment_date}}/g, appointmentDate || "WON PULSE")
-        .replace(/{{appointment_time}}/g, appointmentTime || "WON PULSE")
+        .replace(/{{appointment_date}}/g, datePart || "WON PULSE")
+        .replace(/{{appointment_time}}/g, timePart || "WON PULSE")
         .replace(/{{appointment_id}}/g, appointmentId || "WON PULSE")
         .replace(/{{department}}/g, department || "Neurology")
         .replace(/{{patient_id}}/g, patientId || "Headche")
-        .replace(/{{reason}}/g, reason|| "Un Known");
-;
+        .replace(/{{reason}}/g, reason || "Un Known");
+    ;
 
     const mailOptions = {
         from: process.env.EMAIL_USER,
@@ -171,8 +172,9 @@ const RescheduleAppointmentToPatient = async (appointment) => {
 
 }
 const RescheduleAppointmentToAdmin = async (appointment) => {
-    const { appointmentId, fullName, hospitalId, appointmentDate, doctorName,
-        patientId, reason, staffId, appointmentTime,department } = appointment
+    const { appointmentId, fullName, hospitalId, doctorName,
+        patientId, reason, staffId, rescheduledTime, department } = appointment
+    const [datePart, timePart] = rescheduledTime.split(/(?<=\d{4}) /);
 
     const emailTemplatePath = path.join(
         __dirname,
@@ -193,13 +195,13 @@ const RescheduleAppointmentToAdmin = async (appointment) => {
         .replace(/{{mobile}}/g, hospital.mobile)
         .replace(/{{email}}/g, hospital.email)
         .replace(/{{adress}}/g, hospital.adress)
-        .replace(/{{appointment_date}}/g, appointmentDate || "WON PULSE")
-        .replace(/{{appointment_time}}/g, appointmentTime || "WON PULSE")
+        .replace(/{{appointment_date}}/g, datePart || "WON PULSE")
+        .replace(/{{appointment_time}}/g, timePart || "WON PULSE")
         .replace(/{{appointment_id}}/g, appointmentId || "WON PULSE")
         .replace(/{{department}}/g, department || "Neurology")
         .replace(/{{patient_id}}/g, patientId || "Headche")
-        .replace(/{{reason}}/g, reason|| "Un Known");
-;
+        .replace(/{{reason}}/g, reason || "Un Known");
+    ;
 
     const mailOptions = {
         from: process.env.EMAIL_USER,
@@ -456,13 +458,13 @@ const updateStatus = async (req, res, next) => {
                 RejectToPatient(appointment)
                 break;
             case "rescheduled":
-            if(req.body.isDoctorAccepted){
-                RescheduleAppointmentToPatient(appointment)
-            }
-            if(req.body.isPatientAccepted){
-                RescheduleAppointmentToAdmin(appointment)
-            }
-            break;
+                if (req.body.isDoctorAccepted) {
+                    RescheduleAppointmentToPatient(appointment)
+                }
+                if (req.body.isPatientAccepted) {
+                    RescheduleAppointmentToAdmin(appointment)
+                }
+                break;
             default:
                 console.log("Unknown status")
         }

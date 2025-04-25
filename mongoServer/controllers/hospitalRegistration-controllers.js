@@ -218,6 +218,25 @@ const getHospitalReturnName = async (req, res, next) => {
     res.json({ hospitalName: hospital.hospitalDetails.hospitalName })
 }
 
+const AddAnnouncements= async(req,res,next)=>{
+    console.log(req.params,"params")
+    console.log(req.body,"body")
+    try{
+        const {hospitalId} = req.params
+        const {announcements} = req.body
+        console.log(announcements,"announcements")
+        let hospital = await Hospitals.findOne({hospitalId:hospitalId})
+        if(hospital){
+            hospital.announcements=req.body
+            await hospital.save()
+            res.json({message:"Announcement added successfully",success:true})
+        }else{
+            res.status(404).json({message:"Hospital not found",success:false})
+        }
+    }catch(e){
+
+    }
+}
 exports.AddHospital = AddHospital
 exports.GetHospitals = GetHospitals
 exports.getId = getId
@@ -226,3 +245,4 @@ exports.updateHospital = updateHospital
 exports.updatePassword = updatePassword
 exports.getHospitalByEmail = getHospitalByEmail
 exports.getHospitalReturnName = getHospitalReturnName
+exports.AddAnnouncements = AddAnnouncements
