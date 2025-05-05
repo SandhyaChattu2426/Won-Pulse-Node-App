@@ -23,8 +23,7 @@ router.patch('/update/:sid', userControllers.updateLogin)
 router.put('/updatelayout/:sid', userControllers.updateLayout)
 
 router.patch('/updatepassword/:sid', userControllers.updatePassword)
-
 router.get('/get/:sid', userControllers.searchLogin)
-
+router.patch('/profile/:email', userControllers.updateProfile)
 router.delete('/:sid', userControllers.deleteLogin)
 module.exports = router

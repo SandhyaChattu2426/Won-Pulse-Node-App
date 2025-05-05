@@ -4,6 +4,82 @@ const { validationResult } = require('express-validator')
 const Patient = require('../models/patient')
 const { get } = require('mongoose')
 const { uploadFileToS3Bucket } = require('../models/s3Bucket')
+const Hospital = require('../models/hospitals')
+const path = require("path");
+const fs = require("fs");
+const nodemailer = require('nodemailer');
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+});
+
+const GetHospitalDetails = async (hospitalId) => {
+    const hospital = await Hospital.findOne({ hospitalId: hospitalId })
+    if (!hospital) {
+        const error = new HttpError('Could not find a hospital for the Provided id.', 404)
+        return next(error)
+    }
+    return {
+        hospitalName: hospital.hospitalDetails.hospitalName,
+        mobile: hospital.contactInformation.phNo,
+        email: hospital.contactInformation.email,
+        adress: hospital.adress.street + " " + hospital.adress.city + " " + hospital.adress.state,
+    }
+}
+
+const returnEmail = async (patientId, hospitalId) => {
+    const patient = await Patient.findOne({ patientId: patientId, hospitalId: hospitalId })
+    console.log(patient,"patient")
+    // `if (!patient) {
+    //     const error = new HttpError('Could not find a patient for the Provided id.', 404)
+    //     console.log(error)
+    // }`
+    if (patient) {
+        return {
+            id: patientId,
+            email: patient.email,
+            name: patient.fullName,
+            contactNumber: patient.contactNumber,
+        }
+    }
+}
+
+
+const sendConfirmation = async (patient) => {
+    const { hospitalName, fullName, patientId, hospitalId, email } = patient
+    console.log(email, "email")
+
+    const emailTemplatePath = path.join(
+        __dirname,
+        "..",
+        "EmailTemplates",
+        "PatientAfterRegistration.html"
+    );
+    let emailTemplate = fs.readFileSync(emailTemplatePath, "utf-8");
+    const hospital = await GetHospitalDetails(hospitalId)
+    console.log(hospital, "hospital")
+    const url = `${process.env.ALLOWEDURLS}/patient/${patientId}/hospital/${hospitalId}`
+    emailTemplate = emailTemplate
+        .replace(/{{hospital_name}}/g, hospitalName || "WON PULSE")
+        .replace(/{{patient_name}}/g, fullName || "WON PULSE")
+        .replace(/{{navigation_url}}/g, url)
+        .replace(/{{mobile}}/g, hospital.mobile)
+        .replace(/{{email}}/g, hospital.email)
+        .replace(/{{adress}}/g, hospital.adress)
+        ;
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: "WONPULSE:  You're Almost In! Complete Your Hospital Registration",
+        html: emailTemplate,
+    };
+    return transporter.sendMail(mailOptions);
+};
+
+
 
 // GET PATIENT BY ID
 const getPatientById = async (req, res, next) => {
@@ -30,7 +106,7 @@ const getPatients = async (req, res, next) => {
     // console.log(req.params,"***")
     let patients
     try {
-        patients = await Patient.find({ hospitalId:hospitalId })
+        patients = await Patient.find({ hospitalId: hospitalId })
         // console.log(patients,"patients")
     } catch (err) {
         console.log(err)
@@ -85,15 +161,16 @@ const createPatient = async (req, res, next) => {
     try {
         const { email, ...updateData } = req.body; // Extract email from request body
         let existingPatient = await Patient.findOne({ email });
-        if (existingPatient) {
-            await Patient.findByIdAndUpdate(existingPatient._id, updateData, { new: true });
-            return res.status(200).json({ message: "Patient updated successfully", patientId: existingPatient._id });
-        } else {
-            const newPatient = new Patient(req.body);
-            await newPatient.save();
-            console.log("Patient Registered Succesfully")
-            return res.status(201).json({ message: "Patient created successfully", patientId: newPatient._id });
-        }
+        // if (existingPatient) {
+        //     await Patient.findByIdAndUpdate(existingPatient._id, updateData, { new: true });
+        //     return res.status(200).json({ message: "Patient updated successfully", patientId: existingPatient._id });
+        // } else {
+        const newPatient = new Patient(req.body);
+        await newPatient.save();
+        await sendConfirmation(newPatient);
+        // console.log("Patient Registered Succesfully")
+        return res.status(201).json({ message: "Patient created successfully", patientId: newPatient._id });
+
     } catch (err) {
         console.log(err, "error")
         console.error("Error in createPatient:", err);
@@ -450,16 +527,16 @@ const getPatientChartData = async (req, res, next) => {
     }
 };
 
-const checkEmailAndSendName=async(req,res,next)=>{
-    const {email,hospital} = req.params
+const checkEmailAndSendName = async (req, res, next) => {
+    const { email, hospital } = req.params
     console.log(req.params)
-        try {
-            const patient = await Patient.findOne({ email: email,hospitalId:hospital})
-            res.json({ patient })
-        }
-        catch (e) {
-            console.log(e)
-        }
+    try {
+        const patient = await Patient.findOne({ email: email, hospitalId: hospital })
+        res.json({ patient })
+    }
+    catch (e) {
+        console.log(e)
+    }
 }
 
 
@@ -478,3 +555,5 @@ exports.addPatientFromExcel = addPatientFromExcel
 exports.generateNoteUrl = generateNoteUrl
 exports.getPatientChartData = getPatientChartData
 exports.checkEmailAndSendName = checkEmailAndSendName
+exports.GetHospitalDetails = GetHospitalDetails
+exports.returnEmail = returnEmail

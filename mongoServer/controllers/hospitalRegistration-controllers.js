@@ -2,26 +2,65 @@ const { response } = require('express')
 const HttpError = require('../models/http-error')
 //const suppliers = require('../models/suppliers')
 const Hospitals = require('../models/hospitals')
+const path = require("path");
+const fs = require("fs");
+const nodemailer = require('nodemailer');
 
-//Register Supplier
+
+
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+});
+
+// Invitation email function
+const sendConfirmation = async (hospital) => {
+    const { hospitalDetails, AdministrativeDetails, contactInformation } = hospital
+    const emailTemplatePath = path.join(
+        __dirname,
+        "..",
+        "EmailTemplates",
+        "AdminWelcomeAfterReg.html"
+    );
+    let emailTemplate = fs.readFileSync(emailTemplatePath, "utf-8");
+    const url = `${process.env.ALLOWEDURLS}/hospital/${hospital.hospitalId}`
+    emailTemplate = emailTemplate
+        .replace(/{{hospital_name}}/g, hospitalDetails.hospitalName || "WON PULSE")
+        .replace(/{{owner_name}}/g, AdministrativeDetails.adminstrativeName || "WON PULSE")
+        .replace(/{{our_email}}/g, "nowitservices@gmail.com")
+        .replace(/{{contact}}/g, "987456321")
+        .replace(/{{navigation_url}}/g, url);
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: contactInformation.email,
+        subject: "WONPULSE:  You're Almost In! Complete Your Won Pulse Registration",
+        html: emailTemplate,
+    };
+    return transporter.sendMail(mailOptions);
+};
 
 const AddHospital = async (req, res, next) => {
-    const newsupplier = new Hospitals({
+    const newHospital = new Hospitals({
         ...req.body,
-    })
+    });
+
     try {
-        await newsupplier.save()
-        res.json({ message: "Hospital registered successfully" });
+        const savedHospital = await newHospital.save();
+        res.json({ success: true, message: "Hospital registered successfully" });
+        sendConfirmation(savedHospital);
+
+    } catch (e) {
+        console.error("Error saving hospital:", e);
+        res.status(500).json({ success: false, message: "Failed to register hospital" });
     }
-    catch (e) {
-        console.log(e)
-        console.log("Catch-block")
-    }
-}
+};
+
 
 const GetHospitals = async (req, res, next) => {
     let List;
-    console.log("Triggering to Get Hospitals")
     try {
         List = await Hospitals.find({})
         // console.log(List)
@@ -168,10 +207,64 @@ const getHospitalByEmail = async (req, res, next) => {
     res.json({ hospital })
 }
 
-exports.AddHospital = AddHospital
+const getHospitalReturnName = async (req, res, next) => {
+    const { hospitalId } = req.params
+    let hospital
+    try {
+        hospital = await Hospitals.findOne({ hospitalId: hospitalId })
+    }
+    catch (e) {
+        console.log(e)
+    }
+    res.json({ hospitalName: hospital.hospitalDetails.hospitalName })
+}
+
+const AddAnnouncements = async (req, res, next) => {
+    try {
+        const { hospitalId } = req.params
+        const { text } = req.body
+        let hospital = await Hospitals.findOne({ hospitalId: hospitalId })
+        if (hospital) {
+            hospital.alerts = text
+            await hospital.save()
+            res.json({ message: "Announcement added successfully", success: true })
+        } else {
+            res.status(404).json({ message: "Hospital not found", success: false })
+        }
+    } catch (e) {
+        console.log(e)
+    }
+}
+
+const GetAlert = async (req, res, next) => {
+    const { hospitalId } = req.params;
+  
+    try {
+      const hospital = await Hospitals.findOne({ hospitalId });
+  
+      if (!hospital) {
+        return res.status(404).json({ success: false, message: "Hospital not found." });
+      }
+  
+      return res.status(200).json({
+        success: true,
+        data: {
+          text: hospital.alerts || "", // if null, send empty string
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching alert:", error);
+      return res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    }
+  };
+  
+  exports.AddHospital = AddHospital
 exports.GetHospitals = GetHospitals
 exports.getId = getId
 exports.getHospitalById = getHospitalById
 exports.updateHospital = updateHospital
 exports.updatePassword = updatePassword
 exports.getHospitalByEmail = getHospitalByEmail
+exports.getHospitalReturnName = getHospitalReturnName
+exports.AddAnnouncements = AddAnnouncements
+exports.GetAlert=GetAlert

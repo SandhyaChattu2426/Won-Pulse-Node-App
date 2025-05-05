@@ -8,9 +8,12 @@ const HospitalControllers = require('../controllers/hospitalRegistration-control
 router.get('/email/:email',HospitalControllers.getHospitalByEmail)
 router.get('/getId/:hospitalId', HospitalControllers.getId)
 router.get('/:Id',HospitalControllers.getHospitalById)
+router.get('/hospital/:hospitalId',HospitalControllers.getHospitalReturnName)
+
 router.post('/', HospitalControllers.AddHospital)
 router.post('/password/:Id',HospitalControllers.updatePassword)
  router.get('/', HospitalControllers.GetHospitals)
 router.patch('/:Id', HospitalControllers.updateHospital)
-
+router.post('/store-alert/:hospitalId', HospitalControllers.AddAnnouncements)
+router.get('/getAlert/:hospitalId',HospitalControllers.GetAlert)
 module.exports = router

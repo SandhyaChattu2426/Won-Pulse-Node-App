@@ -2,13 +2,14 @@ const HttpError = require('../models/http-error')
 const Admissions = require('../models/Admission')
 const Admission = require('../models/Admission')
 const Patients = require('../models/patient')
+const Inventory = require('../Inventory/inventory-controllers')
+const Pharmacy = require('../pharmacy/pharmacy-controllers')
 const AddPatient = async (req, res, next) => {
     const newsupplier = new Admissions({
         ...req.body,
     })
     try {
         await newsupplier.save()
-        console.log("Patinet is admitteds SuccessFully,triggering try-block")
     }
     catch (e) {
         console.log(e)
@@ -18,11 +19,11 @@ const AddPatient = async (req, res, next) => {
 }
 
 const GetAdmissions = async (req, res, next) => {
-    const {hospitalId}=req.params;
+    const { hospitalId } = req.params;
 
     let List;
     try {
-        List = await Admissions.find({hospitalId:hospitalId})
+        List = await Admissions.find({ hospitalId: hospitalId })
     }
     catch (e) {
         console.log(e)
@@ -34,11 +35,11 @@ const GetAdmissions = async (req, res, next) => {
 const getId = async (req, res, next) => {
     const str = "0";
     try {
-       const {hospitalId}=req.params
-        const room = await Admissions.find({hospitalId:hospitalId});
+        const { hospitalId } = req.params
+        const room = await Admissions.find({ hospitalId: hospitalId });
 
         if (room.length > 0) {
-            const lastRoom = await Admissions.find({hospitalId}).sort({ _id: -1 }).limit(1);
+            const lastRoom = await Admissions.find({ hospitalId }).sort({ _id: -1 }).limit(1);
             const lastRoomId = lastRoom[0].admissionId;
             const lastNumber = parseInt(lastRoomId.substring(2));  // Extracts the number part after 'HP'
             const nextNumber = lastNumber + 1;
@@ -47,7 +48,7 @@ const getId = async (req, res, next) => {
         } else {
             newRoomId = 'AD' + '0'.repeat(5) + "1";  // HP000001
         }
-      
+
         res.json({ id: newRoomId });
 
     } catch (err) {
@@ -115,8 +116,7 @@ const getRegisterdPatients = async (req, res, next) => {
 }
 
 const AdmissionByPatientId = async (req, res, next) => {
-    // console.log("Triggering Here")
-    console.log(req.params,"Thank u lord")
+
     try {
         const AdmittedPerson = await Admissions.find({ "patientName": req.params.name.toLowerCase() });
 
@@ -133,7 +133,7 @@ const AdmissionByPatientId = async (req, res, next) => {
 const addAdmissionFromExcel = async (req, res, next) => {
     let lastId, newId;
     function excelDateToJSDate(serialDate) {
-        const jsonDate= new Date((serialDate - 25569) * 86400 * 1000);
+        const jsonDate = new Date((serialDate - 25569) * 86400 * 1000);
         return jsonDate.toISOString().split("T")[0];
     }
     try {
@@ -151,7 +151,7 @@ const addAdmissionFromExcel = async (req, res, next) => {
     } catch (err) {
         return next(new HttpError(`Creating Admission ID failed, please try again. ${err}`, 500));
     }
-    console.log(req.body,"req.body")
+    console.log(req.body, "req.body")
 
     let {
         admissionid,
@@ -203,7 +203,7 @@ const addAdmissionFromExcel = async (req, res, next) => {
             respiratoryRate: respiratoryrate || "",
             temparature: temparature || "",
             oxygenLevel: oxygenlevel || "",
-            admissionDate:excelDateToJSDate( admissiondate), // is this returns exact date
+            admissionDate: excelDateToJSDate(admissiondate), // is this returns exact date
             status: "Active",
         };
 
@@ -213,60 +213,165 @@ const addAdmissionFromExcel = async (req, res, next) => {
             { $set: updateFields },
             { new: true, upsert: true }
         );
-    
+
 
         res.status(200).json({ patient: updatedPatient });
-    } 
-    
-    
+    }
+
+
     catch (err) {
         return next(new HttpError(`Saving admission failed, please try again. ${err}`, 500));
     }
 };
 
+// const updateAdmission = async (req, res, next) => {
+//     try {
+//         const { Id } = req.params;
+//         const updateData = req.body;
+//         const existingAdmission = await Admissions.findOne({ admissionId: Id });
+//         if (!existingAdmission) {
+//             return res.status(404).json({ message: "Admission not found" });
+//         }
+//         // Validate listItem is an array if present
+//         if (updateData.listItem && !Array.isArray(updateData.listItem)) {
+//             return res.status(400).json({ message: "listItem must be an array" });
+//         }
+//         // Prepare the update object
+//         const updateFields = {
+//             ...updateData,
+//             updatedAt: new Date() // Add update timestamp
+//         };
+//         const updatedAdmission = await Admissions.findOneAndUpdate(
+//             { admissionId: Id },
+//             { $set: updateFields },
+//             { new: true, runValidators: true }
+//         );
+
+//         if (!updatedAdmission) {
+//             return res.status(500).json({ message: "Failed to update admission" });
+//         }
+//         if (updateData.listItem && updateData.listItem.length > 0) {
+//             for (const item of updateData.listItem) {
+//                 const itemId = item.itemId || item.id; // Make sure your frontend sends itemId
+//                 const usedQty = item.quantity || 0;
+//                 console.log(itemId, usedQty, "itemId,usedQty")
+//                 if (!itemId || usedQty <= 0) continue;
+//                 if (itemId.startsWith("IN")) {
+//                     const inventoryItem = await Inventory.getInventoryByIdForBackend(itemId, usedQty, req.body.hospitalId);
+//                     console.log(inventoryItem, "inventoryItem Here")
+//                 }
+//                 if (itemId.startsWith("PH")) {
+//                     const pharmacyItem = await Pharmacy.getPharmacyForBackend(itemId, usedQty, req.body.hospitalId);
+//                     console.log(pharmacyItem, "pharmacyItem Here")
+//                 }
+//             }
+//         }
+
+//         res.status(200).json({
+//             message: "Admission updated successfully",
+//             data: updatedAdmission
+//         });
+
+//     } catch (error) {
+//         console.log(error, "error")
+//         console.error("Error updating admission:", {
+//             error: error.message,
+//             stack: error.stack,
+//             body: req.body
+//         });
+//         res.status(500).json({
+//             message: "Internal Server Error",
+//             error: process.env.NODE_ENV === 'development' ? error.message : undefined
+//         });
+//     }
+// };
 const updateAdmission = async (req, res, next) => {
+
     try {
         const { Id } = req.params;
         const updateData = req.body;
+        const hospitalId = req.body.hospitalId;
 
-        console.log("Update data received:", {
-            admissionId: Id,
-            listItem: updateData.listItem,
-            otherFields: Object.keys(updateData).filter(key => key !== 'listItem')
-        });
-
-        // Validate admission exists first
+        // 1. Check if admission exists
         const existingAdmission = await Admissions.findOne({ admissionId: Id });
         if (!existingAdmission) {
             return res.status(404).json({ message: "Admission not found" });
         }
 
-        // Validate listItem is an array if present
+        console.log(req.body.listItem, "updated listItem");
+        console.log(existingAdmission.listItem, "existingAdmission listItem");
+
         if (updateData.listItem && !Array.isArray(updateData.listItem)) {
             return res.status(400).json({ message: "listItem must be an array" });
         }
 
-        // Prepare the update object
-        const updateFields = {
-            ...updateData,
-            updatedAt: new Date() // Add update timestamp
-        };
+        const oldItemsMap = {};
+        const newItemsMap = {};
 
-        // Perform the update
+        // 3. Prepare map of old items (fixed: now uses id fallback)
+        if (Array.isArray(existingAdmission.listItem)) {
+            for (const item of existingAdmission.listItem) {
+                const itemId = item.itemId || item.id;
+                if (itemId) {
+                    oldItemsMap[itemId] = Number(item.quantity) || 0;
+                }
+            }
+        }
+
+        // 4. Prepare map of new items
+        if (Array.isArray(updateData.listItem)) {
+            for (const item of updateData.listItem) {
+                const itemId = item.itemId || item.id;
+                if (itemId) {
+                    newItemsMap[itemId] = Number(item.quantity) || 0;
+                }
+            }
+        }
+
+        // 5. Get all unique itemIds
+        const allItemIds = new Set([
+            ...Object.keys(oldItemsMap),
+            ...Object.keys(newItemsMap),
+        ]);
+
+        // 6. Calculate net changes and update inventory/pharmacy
+        console.log(oldItemsMap, "oldItemsMap");
+        console.log(newItemsMap, "newItemsMap");
+
+        for (const itemId of allItemIds) {
+            const oldQty = oldItemsMap[itemId] || 0;
+            const newQty = newItemsMap[itemId] || 0;
+            const netQtyChange = newQty - oldQty;
+
+            if (netQtyChange === 0) continue;
+
+            console.log(`ItemID: ${itemId}, OldQty: ${oldQty}, NewQty: ${newQty}, NetQtyChange: ${netQtyChange}`);
+
+            if (itemId.startsWith("IN")) {
+                await Inventory.getInventoryByIdForBackend(itemId, netQtyChange, hospitalId);
+            } else if (itemId.startsWith("PH")) {
+                await Pharmacy.getPharmacyForBackend(itemId, netQtyChange, hospitalId);
+            }
+        }
+
+        // 7. Update admission record
         const updatedAdmission = await Admissions.findOneAndUpdate(
             { admissionId: Id },
-            { $set: updateFields },
-            { new: true, runValidators: true }
+            {
+                $set: {
+                    ...updateData,
+                    updatedAt: new Date()
+                }
+            },
+            {
+                new: true,
+                runValidators: true
+            }
         );
 
         if (!updatedAdmission) {
             return res.status(500).json({ message: "Failed to update admission" });
         }
-
-        console.log("Successfully updated admission:", {
-            admissionId: updatedAdmission.admissionId,
-            listItemCount: updatedAdmission.listItem ? updatedAdmission.listItem.length : 0
-        });
 
         res.status(200).json({
             message: "Admission updated successfully",
@@ -274,17 +379,14 @@ const updateAdmission = async (req, res, next) => {
         });
 
     } catch (error) {
-        console.error("Error updating admission:", {
-            error: error.message,
-            stack: error.stack,
-            body: req.body
-        });
-        res.status(500).json({ 
+        console.error("Error updating admission:", error);
+        res.status(500).json({
             message: "Internal Server Error",
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 };
+
 
 
 

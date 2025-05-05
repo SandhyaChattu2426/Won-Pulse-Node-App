@@ -229,7 +229,7 @@
                                                                 style="padding-bottom:5px;padding-left:5px;padding-right:5px;padding-top:10px;">
                                                                 <div
                                                                     style="color:#ffffff;direction:ltr;font-family:Arial, Helvetica Neue, Helvetica, sans-serif;font-size:16px;font-weight:400;letter-spacing:0px;line-height:1.2;text-align:center;mso-line-height-alt:19px;">
-                                                                    <p style="margin: 0;">[HOSPITAL NAME]</p>
+                                                                    <p style="margin: 0;">{{hospital_name}}</p>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -276,7 +276,7 @@
                                                                 style="padding-left:15px;padding-right:30px;">
                                                                 <div
                                                                     style="color:#000000;font-family:Arial, Helvetica Neue, Helvetica, sans-serif;font-size:16px;font-weight:700;line-height:1.5;text-align:left;mso-line-height-alt:24px;">
-                                                                    <p style="margin: 0;">Hello [Patient Name],</p>
+                                                                    <p style="margin: 0;">Hello {{patient_name}},</p>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -305,8 +305,9 @@
                                                                     <p style="margin: 0;">This is to inform you that
                                                                         your appointment with <strong>Dr. [Doctor's
                                                                             Name]</strong> has been
-                                                                        <strong>rescheduled</strong> due to [reason,
-                                                                        e.g., doctor's availability or an emergency].
+                                                                        <strong>rescheduled</strong> due to Doctor's Unavailability.
+                                                                         <!-- [reason,
+                                                                        e.g., doctor's availability or an emergency]. -->
                                                                     </p>
                                                                 </div>
                                                             </td>
@@ -371,7 +372,7 @@
                                                             <td class="pad">
                                                                 <div
                                                                     style="color:#101112;direction:ltr;font-family:Arial, Helvetica Neue, Helvetica, sans-serif;font-size:13px;font-weight:400;letter-spacing:0px;line-height:1.2;text-align:left;mso-line-height-alt:16px;">
-                                                                    <p style="margin: 0;">[Patient Name]</p>
+                                                                    <p style="margin: 0;">{{patient_name}}</p>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -421,7 +422,7 @@
                                                             <td class="pad">
                                                                 <div
                                                                     style="color:#101112;direction:ltr;font-family:Arial, Helvetica Neue, Helvetica, sans-serif;font-size:13px;font-weight:400;letter-spacing:0px;line-height:1.2;text-align:left;mso-line-height-alt:16px;">
-                                                                    <p style="margin: 0;">Dr. [Doctor's Name]</p>
+                                                                    <p style="margin: 0;">Dr. {{doctor_name}}</p>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -471,7 +472,7 @@
                                                             <td class="pad">
                                                                 <div
                                                                     style="color:#101112;direction:ltr;font-family:Arial, Helvetica Neue, Helvetica, sans-serif;font-size:13px;font-weight:400;letter-spacing:0px;line-height:1.2;text-align:left;mso-line-height-alt:16px;">
-                                                                    <p style="margin: 0;">[e.g., Cardiology, Pediatrics]
+                                                                    <p style="margin: 0;">{{department}}
                                                                     </p>
                                                                 </div>
                                                             </td>
@@ -522,7 +523,7 @@
                                                             <td class="pad">
                                                                 <div
                                                                     style="color:#101112;direction:ltr;font-family:Arial, Helvetica Neue, Helvetica, sans-serif;font-size:13px;font-weight:400;letter-spacing:0px;line-height:1.2;text-align:left;mso-line-height-alt:16px;">
-                                                                    <p style="margin: 0;">[Rescheduled Date & Time]</p>
+                                                                    <p style="margin: 0;">{{appointment_date}}{{appointment_time}}</p>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -572,7 +573,7 @@
                                                             <td class="pad">
                                                                 <div
                                                                     style="color:#101112;direction:ltr;font-family:Arial, Helvetica Neue, Helvetica, sans-serif;font-size:13px;font-weight:400;letter-spacing:0px;line-height:1.2;text-align:left;mso-line-height-alt:16px;">
-                                                                    <p style="margin: 0;">[Hospital Branch or Address]
+                                                                    <p style="margin: 0;">{{adress}}
                                                                     </p>
                                                                 </div>
                                                             </td>
@@ -623,7 +624,7 @@
                                                             <td class="pad">
                                                                 <div
                                                                     style="color:#101112;direction:ltr;font-family:Arial, Helvetica Neue, Helvetica, sans-serif;font-size:13px;font-weight:400;letter-spacing:0px;line-height:1.2;text-align:left;mso-line-height-alt:16px;">
-                                                                    <p style="margin: 0;">[Appointment ID]</p>
+                                                                    <p style="margin: 0;">{{appointment_id}}</p>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -776,7 +777,7 @@
                                                                     style="color:#101112;direction:ltr;font-family:Arial, Helvetica Neue, Helvetica, sans-serif;font-size:13px;font-weight:400;letter-spacing:0px;line-height:1.2;text-align:center;mso-line-height-alt:16px;">
                                                                     <p style="margin: 0;">Thank you for your
                                                                         cooperation. We look forward to serving you at
-                                                                        <strong>[Hospital Name]</strong>.</p>
+                                                                        <strong>{{hospital_name}}</strong>.</p>
                                                                 </div>
                                                             </td>
                                                         </tr>
