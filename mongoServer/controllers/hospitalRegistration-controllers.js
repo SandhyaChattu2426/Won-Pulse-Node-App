@@ -7,6 +7,7 @@ const fs = require("fs");
 const nodemailer = require('nodemailer');
 
 
+
 const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -218,26 +219,46 @@ const getHospitalReturnName = async (req, res, next) => {
     res.json({ hospitalName: hospital.hospitalDetails.hospitalName })
 }
 
-const AddAnnouncements= async(req,res,next)=>{
-    console.log(req.params,"params")
-    console.log(req.body,"body")
-    try{
-        const {hospitalId} = req.params
-        const {announcements} = req.body
-        console.log(announcements,"announcements")
-        let hospital = await Hospitals.findOne({hospitalId:hospitalId})
-        if(hospital){
-            hospital.announcements=req.body
+const AddAnnouncements = async (req, res, next) => {
+    try {
+        const { hospitalId } = req.params
+        const { text } = req.body
+        let hospital = await Hospitals.findOne({ hospitalId: hospitalId })
+        if (hospital) {
+            hospital.alerts = text
             await hospital.save()
-            res.json({message:"Announcement added successfully",success:true})
-        }else{
-            res.status(404).json({message:"Hospital not found",success:false})
+            res.json({ message: "Announcement added successfully", success: true })
+        } else {
+            res.status(404).json({ message: "Hospital not found", success: false })
         }
-    }catch(e){
-
+    } catch (e) {
+        console.log(e)
     }
 }
-exports.AddHospital = AddHospital
+
+const GetAlert = async (req, res, next) => {
+    const { hospitalId } = req.params;
+  
+    try {
+      const hospital = await Hospitals.findOne({ hospitalId });
+  
+      if (!hospital) {
+        return res.status(404).json({ success: false, message: "Hospital not found." });
+      }
+  
+      return res.status(200).json({
+        success: true,
+        data: {
+          text: hospital.alerts || "", // if null, send empty string
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching alert:", error);
+      return res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    }
+  };
+  
+  exports.AddHospital = AddHospital
 exports.GetHospitals = GetHospitals
 exports.getId = getId
 exports.getHospitalById = getHospitalById
@@ -246,3 +267,4 @@ exports.updatePassword = updatePassword
 exports.getHospitalByEmail = getHospitalByEmail
 exports.getHospitalReturnName = getHospitalReturnName
 exports.AddAnnouncements = AddAnnouncements
+exports.GetAlert=GetAlert

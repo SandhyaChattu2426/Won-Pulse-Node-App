@@ -3,7 +3,7 @@ const User = require('../models/Users')
 const { validationResult } = require('express-validator')
 const bcrypt = require('bcrypt');
 const staff = require('../models/staff');
-const users=require('../models/Users')
+const users = require('../models/Users')
 
 
 const updateMfa = async (req, res, next) => {
@@ -85,34 +85,34 @@ const getLogin = async (req, res, next) => {
 }
 
 const getLoginById = async (req, res, next) => {
-        const email = req.params.sid;
-        let login
-        try {
-            login = await users.find({ email: email })
-            // console.log(login,"login")
-    
-        } catch (err) {
-            const error = new HttpError(`Something went wrong, could not find a login.${err}`, 500)
-            return next(error)
-        }
-    
-        // const place = DUMMY.find((p) => {
-        //     return p.id === placeId;
-        // })
-    
-        if (!login) {
-            throw new HttpError('Could not find a login for the provided id.', 404)
-            return next(error)
-            // error.code = 404
-            // throw error
-            // return res.status(404).json({ message: 'Could not find a place for the provided id.' })
-        }
-    
-        // console.log("GET Request in Places", institute);
-        res.json({ login: login })
+    const email = req.params.sid;
+    let login
+    try {
+        login = await users.find({ email: email })
+        // console.log(login,"login")
+
+    } catch (err) {
+        const error = new HttpError(`Something went wrong, could not find a login.${err}`, 500)
+        return next(error)
     }
-    
-    
+
+    // const place = DUMMY.find((p) => {
+    //     return p.id === placeId;
+    // })
+
+    if (!login) {
+        throw new HttpError('Could not find a login for the provided id.', 404)
+        return next(error)
+        // error.code = 404
+        // throw error
+        // return res.status(404).json({ message: 'Could not find a place for the provided id.' })
+    }
+
+    // console.log("GET Request in Places", institute);
+    res.json({ login: login })
+}
+
+
 
 
 const putId = async (req, res, next) => {
@@ -121,7 +121,7 @@ const putId = async (req, res, next) => {
 const createLogin = async (req, res, next) => {
 
 
-    
+
 }
 
 const updateLayout = async (req, res, next) => {
@@ -133,14 +133,14 @@ const updateLayout = async (req, res, next) => {
     const { dashboard_layouts
     } = req.body
     const email = req.params.sid
-    console.log(email,"email")
+    console.log(email, "email")
     let login
     try {
-       login= await User.findOneAndUpdate(
-            { email: email }, 
+        login = await User.findOneAndUpdate(
+            { email: email },
             { $set: { dashboard_layouts: dashboard_layouts } },
             { new: true, useFindAndModify: false }
-          );
+        );
 
     }
     catch (err) {
@@ -151,7 +151,7 @@ const updateLayout = async (req, res, next) => {
         await login.save()
     }
     catch (err) {
-        console.log(err,"error")
+        console.log(err, "error")
     }
 
     // DUMMY[placeIndex] = updatedPlace
@@ -172,6 +172,43 @@ const searchLogin = async (req, res, next) => {
 const deleteLogin = async (req, res, next) => {
 }
 
+const updateProfile = async (req, res, next) => {
+    const { email } = req.params;
+    const { url } = req.body;
+
+    try {
+        if (!email) {
+            return res.status(400).json({ success: false, message: "Email is required." });
+        }
+
+
+
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found." });
+        }
+
+        user.profile_url = url;
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile updated successfully.",
+            data: {
+                email: user.email,
+                profile_url: user.profile_url
+            }
+        });
+    } catch (error) {
+        console.error("Error updating profile:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error. Please try again later."
+        });
+    }
+};
+
 
 
 
@@ -188,5 +225,6 @@ exports.updatePassword = updatePassword;
 exports.updateLayout = updateLayout
 exports.updateLogin = updateLogin
 exports.searchLogin = searchLogin
-exports.deleteLogin=deleteLogin
+exports.deleteLogin = deleteLogin
+exports.updateProfile = updateProfile
 

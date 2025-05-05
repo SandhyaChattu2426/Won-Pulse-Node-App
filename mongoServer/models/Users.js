@@ -34,7 +34,7 @@ const userSchema = new Schema({
     authenticator_secret: {type:String},
     patient_id:{type:String},
     hospital_id:{type:String},
-
+    profile_url:{type:String},
 });
 
 module.exports=mongoose.model("user",userSchema)

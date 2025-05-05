@@ -50,10 +50,6 @@ const HospitalSchema = new Schema({
         instagram: { type: String, default: "" },
         facebook: { type: String, default: "" },
     },
-    alerts:[{
-        text: { type: String, default: "" },
-        status: { type: String, default: "" },
-        date: { type: String, default: "" },
-    }]
+    alerts: { type: String }
 })
 module.exports = mongoose.model('hospitals', HospitalSchema)
