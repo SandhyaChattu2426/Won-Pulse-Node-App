@@ -43,10 +43,10 @@ app.use(bodyParser.json())
 const allowedOrigins = process.env.ALLOWEDURLS?.split(',')
 const corsOptions = {
     origin: (origin, callback) => {
-
+        
+        console.log("Incoming Origin", origin)
+        console.log("Allowed Origins", allowedOrigins)
         if (origin && allowedOrigins.includes(origin)) {
-            console.log("Incoming Origin", origin)
-            console.log("Allowed Origins", allowedOrigins)
             callback(null, true);
         } else {
             console.error(`Blocked by CORS: ${origin}`);
@@ -691,7 +691,6 @@ const authenticateToken = async (req, res, next) => {
 };
 
 app.post('/login', async (req, res, next) => {
-    console.log("triggering")
     try {
         const user = await Login.findOne({ email: req.body.email });
         console.log(user, "user")
