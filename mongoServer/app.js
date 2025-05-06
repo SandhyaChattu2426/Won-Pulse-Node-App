@@ -43,7 +43,10 @@ app.use(bodyParser.json())
 const allowedOrigins = process.env.ALLOWEDURLS?.split(',')
 const corsOptions = {
     origin: (origin, callback) => {
-        if (origin || allowedOrigins.includes(origin)) {
+
+        if (origin && allowedOrigins.includes(origin)) {
+            console.log("Incoming Origin", origin)
+            console.log("Allowed Origins", allowedOrigins)
             callback(null, true);
         } else {
             console.error(`Blocked by CORS: ${origin}`);
