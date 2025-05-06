@@ -30,7 +30,7 @@ const dashboardRoutes = require('./routes/dashboardRoutes')
 const { MongoClient } = require("mongodb");
 const dashboardReportRoutes = require('./routes/DashboardReports')
 const RoleRoutes = require('./routes/RolesRoutes')
-const HospitalFunction=require('./controllers/patients-controllers')
+const HospitalFunction = require('./controllers/patients-controllers')
 
 require('dotenv').config();
 const secretKey = process.env.JWT_SECRET;
@@ -40,8 +40,21 @@ const client = new MongoClient(uri);
 const path = require("path");
 const fs = require("fs");
 app.use(bodyParser.json())
-
-app.use(cors());
+const allowedOrigins = process.env.ALLOWEDURLS?.split(',')
+const corsOptions = {
+    origin: (origin, callback) => {
+        if (origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            console.error(`Blocked by CORS: ${origin}`);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true, // Include cookies and credentials
+};
+app.use(cors(corsOptions));
 app.use('/api/patient', patientsRoutes);
 app.use('/api/staff', StaffRoutes)
 app.use('/api/role', RoleRoutes)
@@ -97,10 +110,10 @@ const AdminWelcomeTemplate = async (hospital) => {
         .replace(/{{hospital_id}}/g, hospitalDetails.hospitalId || "WON PULSE")
         .replace(/{{activation_date}}/g, activationDate)
         .replace(/{{navigation_url}}/g, url)
-        .replace(/{{mobile}}/g,  "7893536373")
-        .replace(/{{adress}}/g, "umashankarNagar,NowITServicervicesIndia.pvt.Ltd" )
+        .replace(/{{mobile}}/g, "7893536373")
+        .replace(/{{adress}}/g, "umashankarNagar,NowITServicervicesIndia.pvt.Ltd")
         .replace(/{{mail}}/g, "wonPulse@gmail.com");
-;
+    ;
 
     const mailOptions = {
         from: process.env.EMAIL_USER,
@@ -112,7 +125,7 @@ const AdminWelcomeTemplate = async (hospital) => {
     return transporter.sendMail(mailOptions);
 }
 const PatientWelcomeTemplate = async (patient) => {
-    const { fullName,patientId,hospitalName,hospitalId,email} = patient
+    const { fullName, patientId, hospitalName, hospitalId, email } = patient
     const emailTemplatePath = path.join(
         __dirname,
         ".",
@@ -127,7 +140,7 @@ const PatientWelcomeTemplate = async (patient) => {
         month: 'long',
         day: 'numeric',
     });
-    const hospital=await HospitalFunction.GetHospitalDetails(hospitalId)
+    const hospital = await HospitalFunction.GetHospitalDetails(hospitalId)
 
     emailTemplate = emailTemplate
         .replace(/{{patient_name}}/g, fullName || "WON PULSE")
@@ -136,7 +149,7 @@ const PatientWelcomeTemplate = async (patient) => {
         .replace(/{{registration_date}}/g, activationDate)
         .replace(/{{navigation_url}}/g, url)
         .replace(/{{mobile}}/g, hospital.mobile || "WON PULSE")
-        .replace(/{{adress}}/g, hospital.adress )
+        .replace(/{{adress}}/g, hospital.adress)
         .replace(/{{mail}}/g, hospital.email);
 
     const mailOptions = {
@@ -149,8 +162,8 @@ const PatientWelcomeTemplate = async (patient) => {
 }
 
 
-const staffWelcomeTemplate=async (staff) => {
-    const { fullName,staffId,hospitalName,department,doctorType,email,hospitalId} = staff
+const staffWelcomeTemplate = async (staff) => {
+    const { fullName, staffId, hospitalName, department, doctorType, email, hospitalId } = staff
     const emailTemplatePath = path.join(
         __dirname,
         ".",
@@ -165,16 +178,16 @@ const staffWelcomeTemplate=async (staff) => {
         month: 'long',
         day: 'numeric',
     });
-    const hospital=await HospitalFunction.GetHospitalDetails(hospitalId)
+    const hospital = await HospitalFunction.GetHospitalDetails(hospitalId)
     emailTemplate = emailTemplate
         .replace(/{{staff_name}}/g, fullName || "WON PULSE")
         .replace(/{{hospital_name}}/g, hospitalName || "WON PULSE")
         .replace(/{{staff_id}}/g, staffId || "WON PULSE")
-        .replace(/{{department}}/g, department||doctorType)
+        .replace(/{{department}}/g, department || doctorType)
         .replace(/{{activation_date}}/g, activationDate)
         .replace(/{{navigation_url}}/g, url)
         .replace(/{{mobile}}/g, hospital.mobile || "WON PULSE")
-        .replace(/{{adress}}/g, hospital.adress )
+        .replace(/{{adress}}/g, hospital.adress)
         .replace(/{{mail}}/g, hospital.email);
 
 
@@ -275,7 +288,7 @@ app.post('/send-email-otp', async (req, res) => {
             const otp = generateOTP();
             otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
             // console.log(otp)
-            await sendOTP(email, otp, hospitalName = "WONPULSE", hospitalLogo = "https://res.cloudinary.com/dca9sij3n/image/upload/f_auto,q_auto/hunqedjlmgyb4bdswike", hospitalMail = "mummy@gmail.com", hospitalContact = "1234567890", hospitalAddress = "Umashankar Nagar, Vijayawada, Andhra Pradesh, India - 527001"); 
+            await sendOTP(email, otp, hospitalName = "WONPULSE", hospitalLogo = "https://res.cloudinary.com/dca9sij3n/image/upload/f_auto,q_auto/hunqedjlmgyb4bdswike", hospitalMail = "mummy@gmail.com", hospitalContact = "1234567890", hospitalAddress = "Umashankar Nagar, Vijayawada, Andhra Pradesh, India - 527001");
             res.status(200).json({ message: 'OTP sent successfully!' });
         }
         else {
@@ -299,7 +312,7 @@ app.post('/send-hospital-email-otp', async (req, res) => {
             const otp = generateOTP(); // Assume generateOTP() generates a random OTP
             otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
 
-            console.log(otp);
+            // console.log(otp);
 
             // Send OTP to the email (assume sendOTP handles email delivery)
             await sendOTP(email, otp);
@@ -675,9 +688,10 @@ const authenticateToken = async (req, res, next) => {
 };
 
 app.post('/login', async (req, res, next) => {
+    console.log("triggering")
     try {
         const user = await Login.findOne({ email: req.body.email });
-        // console.log(user, "user")
+        console.log(user, "user")
         if (user.user_type === "Hospital") {
             const isMatch = await bcrypt.compare(req.body.password, user.password);
             if (!isMatch) {
@@ -906,6 +920,50 @@ app.post('/get/report-data', async (req, res) => {
     //     await client.close();
     // }
 });
+
+const sendContactedUsers = async (email, fullName, contact) => {
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: "testmail@gmail.com",
+        subject: 'WONPULSE: DETAILS OF THE USER CONTACTING US',
+        html: `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                <p>Hello Team,</p>
+                <p>Someone has contacted us to get more information. Here are the details:</p>
+                <ul>
+                    <li><strong>Full Name:</strong> ${fullName}</li>
+                    <li><strong>Email:</strong> ${email}</li>
+                    <li><strong>Contact:</strong> ${contact}</li>
+                </ul>
+            </div>
+        `,
+    };
+
+    return transporter.sendMail(mailOptions);
+};
+
+
+app.post('/sendRequesttonowit', async (req, res) => {
+    try {
+        const { email, fullName, contact } = req.body;
+        await sendContactedUsers(email, fullName, contact);
+
+        res.status(200).json({
+            success: true,
+            message: "Email sent successfully",
+        });
+    } catch (error) {
+        console.error("Error sending email:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "Failed to send email",
+        });
+    }
+});
+
+
+
 
 app.use((req, res, next) => {
     const error = new HttpError('Could not find this route .', 404)
