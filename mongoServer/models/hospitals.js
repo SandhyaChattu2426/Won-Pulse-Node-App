@@ -50,6 +50,12 @@ const HospitalSchema = new Schema({
         instagram: { type: String, default: "" },
         facebook: { type: String, default: "" },
     },
-    alerts: { type: String }
+    alerts: { type: String },
+    hospitalSubCategory:{type:String,default:""},
+    razorpay_linked_account:{type:String,default:""},
+    razorpay_stake_holder:{type:String,default:""},
+    razorpay_product_id:{type:String,default:""},
+    razorpay_account_status:{type:String,default:""},
+    
 })
 module.exports = mongoose.model('hospitals', HospitalSchema)
