@@ -6,8 +6,7 @@ const path = require("path");
 const fs = require("fs");
 const nodemailer = require('nodemailer');
 const mongoose = require("mongoose");
-const { CreateRazorpayLinkedAccount } = require('../payment-gateway/razorpay-helper-functions')
-
+const { CreateRazorpayLinkedAccount } = require('../payment-gateway/razorpay-helper-functions');
 
 
 
@@ -104,6 +103,7 @@ const AddHospital = async (req, res, next) => {
         return res.status(500).json({ success: false, message: "Failed to register hospital" });
     }
 };
+
 
 
 const GetHospitals = async (req, res, next) => {
@@ -305,6 +305,40 @@ const GetAlert = async (req, res, next) => {
     }
 };
 
+const AddKyc = async (req, res, next) => {
+    console.log("ALICE")
+    console.log(req.params)
+    console.log(req.body)
+    try {
+        const { hospitalId } = req.params;
+        const { accountnumber, accountholdername, IFSCcode } = req.body;
+
+        if (!accountnumber || !accountholdername || !IFSCcode) {
+            return res.status(400).json({ message: "All bank details are required." });
+        }
+
+        const hpl = await hospitals.findOne({ hospitalId });
+
+        if (!hpl) {
+            return res.status(404).json({ message: "Hospital not found." });
+        }
+
+        hpl.bankDetails = {
+            accountnumber,
+            accountholdername,
+            IFSCCode: IFSCcode,
+        };
+
+        await hpl.save();
+
+        return res.status(200).json({ success:true,message: "KYC details added successfully.", bankDetails: hpl.bankDetails });
+    } catch (error) {
+        console.error("Error adding KYC:", error);
+        return res.status(500).json({ success:false,message: "Internal server error." });
+    }
+};
+
+
 exports.AddHospital = AddHospital
 exports.GetHospitals = GetHospitals
 exports.getId = getId
@@ -315,3 +349,4 @@ exports.getHospitalByEmail = getHospitalByEmail
 exports.getHospitalReturnName = getHospitalReturnName
 exports.AddAnnouncements = AddAnnouncements
 exports.GetAlert = GetAlert
+exports.AddKyc=AddKyc
