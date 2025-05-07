@@ -16,4 +16,5 @@ router.post('/password/:Id',HospitalControllers.updatePassword)
 router.patch('/:Id', HospitalControllers.updateHospital)
 router.post('/store-alert/:hospitalId', HospitalControllers.AddAnnouncements)
 router.get('/getAlert/:hospitalId',HospitalControllers.GetAlert)
+router.patch('/kyc/:hospitalId',HospitalControllers.AddKyc)
 module.exports = router

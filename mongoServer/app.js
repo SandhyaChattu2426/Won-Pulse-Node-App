@@ -55,7 +55,7 @@ const corsOptions = {
             callback(new Error('Not allowed by CORS'));
         }
     },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS','PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
 };
@@ -293,7 +293,7 @@ app.post('/send-email-otp', async (req, res) => {
         if (!user) {
             const otp = generateOTP();
             otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
-            // console.log(otp)
+            console.log(otp)
             await sendOTP(email, otp, hospitalName = "WONPULSE", hospitalLogo = "https://res.cloudinary.com/dca9sij3n/image/upload/f_auto,q_auto/hunqedjlmgyb4bdswike", hospitalMail = "mummy@gmail.com", hospitalContact = "1234567890", hospitalAddress = "Umashankar Nagar, Vijayawada, Andhra Pradesh, India - 527001");
             res.status(200).json({ message: 'OTP sent successfully!' });
         }
@@ -696,7 +696,7 @@ const authenticateToken = async (req, res, next) => {
 app.post('/login', async (req, res, next) => {
     try {
         const user = await Login.findOne({ email: req.body.email });
-        console.log(user, "user")
+        console.log(user, "userHERee")
         if (user.user_type === "Hospital") {
             const isMatch = await bcrypt.compare(req.body.password, user.password);
             if (!isMatch) {
@@ -729,7 +729,6 @@ app.post('/login', async (req, res, next) => {
         }
 
         const isMatch = await bcrypt.compare(req.body.password, user.password);
-
         if (!isMatch) {
             return res.status(400).json({ message: 'Invalid Password' });
         }
@@ -996,7 +995,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get("/")
 mongoose.connect(`mongodb+srv://sandhya:123@cluster0.ddkdz.mongodb.net/wonpulse?retryWrites=true&w=majority&appName=Cluster0`).then(app.listen(process.env.PORT, () => {
-    console.log("server is running at 5005")
+    console.log("server is running at 5000")
     console.log("connected to mongodb")
 })).catch(err => {
     console.log(err)

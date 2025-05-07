@@ -25,18 +25,18 @@ const HospitalSchema = new Schema({
         speciality: [{ type: String, required: true }]
     },
     AdministrativeDetails: {
-        adminstrativeContact: { type: String, required: true },
-        adminstrativeName: { type: String, required: true },
-
+        administrativeContact: { type: String, required: true },
+        administrativeName: { type: String, required: true },
     },
     operationalHours: {
         from: { type: String, required: true },
         to: { type: String, required: true },
     },
-    adress: {
+    address: {
         street: { type: String, required: true },
         city: { type: String, required: true },
         state: { type: String, required: true },
+        zipcode:{ type: String, required: true },
 
     },
     password: { type: String },
@@ -50,12 +50,19 @@ const HospitalSchema = new Schema({
         instagram: { type: String, default: "" },
         facebook: { type: String, default: "" },
     },
+    bankDetails: {
+        accountholdername: { type: String, default: "" },
+        accountnumber: { type: String, default: "" },
+        IFSCCode: { type: String, default: "" },
+    },
     alerts: { type: String },
-    hospitalSubCategory:{type:String,default:""},
-    razorpay_linked_account:{type:String,default:""},
-    razorpay_stake_holder:{type:String,default:""},
-    razorpay_product_id:{type:String,default:""},
-    razorpay_account_status:{type:String,default:""},
-    
+    business_type: { type: String, default: "" },
+    hospitalSubCategory: { type: String, default: "" },
+    razorpay_linked_account: { type: String, default: "" },
+    razorpay_stake_holder: { type: String, default: "" },
+    razorpay_product_id: { type: String, default: "" },
+    razorpay_account_status: { type: String, default: "" },
+    category:{type:String,default:""}
+
 })
 module.exports = mongoose.model('hospitals', HospitalSchema)
