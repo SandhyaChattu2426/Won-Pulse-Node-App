@@ -5,6 +5,9 @@ const Hospitals = require('../models/hospitals')
 const path = require("path");
 const fs = require("fs");
 const nodemailer = require('nodemailer');
+const mongoose = require("mongoose");
+const { CreateRazorpayLinkedAccount } = require('../payment-gateway/razorpay-helper-functions')
+
 
 
 
@@ -43,18 +46,62 @@ const sendConfirmation = async (hospital) => {
 };
 
 const AddHospital = async (req, res, next) => {
-    const newHospital = new Hospitals({
-        ...req.body,
-    });
+    const session = await mongoose.startSession();
+    session.startTransaction(); 
 
     try {
-        const savedHospital = await newHospital.save();
-        res.json({ success: true, message: "Hospital registered successfully" });
-        sendConfirmation(savedHospital);
+        const newHospital = new Hospitals({ ...req.body, category: 'healthcare', sub_category: 'hospital', });
+
+        // Check for existing hospital by email
+        const existingHospital = await Hospitals.findOne({
+            "contactInformation.email": newHospital?.contactInformation?.email
+        }).session(session);
+
+        if (existingHospital) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(400).json({ success: false, message: "Hospital with this email already exists" });
+        }
+
+        // Save the new hospital
+        const savedHospital = await newHospital.save({ session });
+        const hospitalId = savedHospital?.hospitalId;
+
+        const hospitalDetails = {
+            business_type: newHospital?.business_type,
+            hospital_name: newHospital?.hospitalDetails?.hospitalName,
+            category: 'healthcare',
+            sub_category: 'hospital',
+            street: newHospital?.address?.street,
+            city: newHospital?.address?.city,
+            state: newHospital?.address?.state, 
+            postcode: newHospital?.address?.zipcode,
+            country: 'india',
+        };
+
+        console.log("Hospital details for Razorpay:", hospitalDetails); // Log for debugging
+
+        await CreateRazorpayLinkedAccount(
+            hospitalId,
+            newHospital?.contactInformation?.email,
+            newHospital?.AdministrativeDetails?.administrativeName,
+            newHospital?.AdministrativeDetails?.administrativeContact,
+            hospitalDetails,
+            session
+        );
+
+        await sendConfirmation(savedHospital);
+
+        await session.commitTransaction();
+        session.endSession();
+
+        return res.status(200).json({ success: true, message: "Hospital registered successfully" });
 
     } catch (e) {
+        await session.abortTransaction();
+        session.endSession();
         console.error("Error saving hospital:", e);
-        res.status(500).json({ success: false, message: "Failed to register hospital" });
+        return res.status(500).json({ success: false, message: "Failed to register hospital" });
     }
 };
 
@@ -238,27 +285,27 @@ const AddAnnouncements = async (req, res, next) => {
 
 const GetAlert = async (req, res, next) => {
     const { hospitalId } = req.params;
-  
+
     try {
-      const hospital = await Hospitals.findOne({ hospitalId });
-  
-      if (!hospital) {
-        return res.status(404).json({ success: false, message: "Hospital not found." });
-      }
-  
-      return res.status(200).json({
-        success: true,
-        data: {
-          text: hospital.alerts || "", // if null, send empty string
-        },
-      });
+        const hospital = await Hospitals.findOne({ hospitalId });
+
+        if (!hospital) {
+            return res.status(404).json({ success: false, message: "Hospital not found." });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                text: hospital.alerts || "", // if null, send empty string
+            },
+        });
     } catch (error) {
-      console.error("Error fetching alert:", error);
-      return res.status(500).json({ success: false, message: "Server Error", error: error.message });
+        console.error("Error fetching alert:", error);
+        return res.status(500).json({ success: false, message: "Server Error", error: error.message });
     }
-  };
-  
-  exports.AddHospital = AddHospital
+};
+
+exports.AddHospital = AddHospital
 exports.GetHospitals = GetHospitals
 exports.getId = getId
 exports.getHospitalById = getHospitalById
@@ -267,4 +314,4 @@ exports.updatePassword = updatePassword
 exports.getHospitalByEmail = getHospitalByEmail
 exports.getHospitalReturnName = getHospitalReturnName
 exports.AddAnnouncements = AddAnnouncements
-exports.GetAlert=GetAlert
+exports.GetAlert = GetAlert
