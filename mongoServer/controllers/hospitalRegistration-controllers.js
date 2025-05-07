@@ -5,6 +5,7 @@ const Hospitals = require('../models/hospitals')
 const path = require("path");
 const fs = require("fs");
 const nodemailer = require('nodemailer');
+const hospitals = require('../models/hospitals');
 
 
 
@@ -57,6 +58,7 @@ const AddHospital = async (req, res, next) => {
         res.status(500).json({ success: false, message: "Failed to register hospital" });
     }
 };
+
 
 
 const GetHospitals = async (req, res, next) => {
@@ -238,27 +240,61 @@ const AddAnnouncements = async (req, res, next) => {
 
 const GetAlert = async (req, res, next) => {
     const { hospitalId } = req.params;
-  
+
     try {
-      const hospital = await Hospitals.findOne({ hospitalId });
-  
-      if (!hospital) {
-        return res.status(404).json({ success: false, message: "Hospital not found." });
-      }
-  
-      return res.status(200).json({
-        success: true,
-        data: {
-          text: hospital.alerts || "", // if null, send empty string
-        },
-      });
+        const hospital = await Hospitals.findOne({ hospitalId });
+
+        if (!hospital) {
+            return res.status(404).json({ success: false, message: "Hospital not found." });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                text: hospital.alerts || "", // if null, send empty string
+            },
+        });
     } catch (error) {
-      console.error("Error fetching alert:", error);
-      return res.status(500).json({ success: false, message: "Server Error", error: error.message });
+        console.error("Error fetching alert:", error);
+        return res.status(500).json({ success: false, message: "Server Error", error: error.message });
     }
-  };
-  
-  exports.AddHospital = AddHospital
+};
+
+const AddKyc = async (req, res, next) => {
+    console.log("ALICE")
+    console.log(req.params)
+    console.log(req.body)
+    try {
+        const { hospitalId } = req.params;
+        const { accountnumber, accountholdername, IFSCcode } = req.body;
+
+        if (!accountnumber || !accountholdername || !IFSCcode) {
+            return res.status(400).json({ message: "All bank details are required." });
+        }
+
+        const hpl = await hospitals.findOne({ hospitalId });
+
+        if (!hpl) {
+            return res.status(404).json({ message: "Hospital not found." });
+        }
+
+        hpl.bankDetails = {
+            accountnumber,
+            accountholdername,
+            IFSCCode: IFSCcode,
+        };
+
+        await hpl.save();
+
+        return res.status(200).json({ success:true,message: "KYC details added successfully.", bankDetails: hpl.bankDetails });
+    } catch (error) {
+        console.error("Error adding KYC:", error);
+        return res.status(500).json({ success:false,message: "Internal server error." });
+    }
+};
+
+
+exports.AddHospital = AddHospital
 exports.GetHospitals = GetHospitals
 exports.getId = getId
 exports.getHospitalById = getHospitalById
@@ -267,4 +303,5 @@ exports.updatePassword = updatePassword
 exports.getHospitalByEmail = getHospitalByEmail
 exports.getHospitalReturnName = getHospitalReturnName
 exports.AddAnnouncements = AddAnnouncements
-exports.GetAlert=GetAlert
+exports.GetAlert = GetAlert
+exports.AddKyc=AddKyc
