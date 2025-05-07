@@ -33,6 +33,8 @@ const RoleRoutes = require('./routes/RolesRoutes')
 const HospitalFunction = require('./controllers/patients-controllers')
 
 
+const webhookRoutes = require("./routes/webhook-routes");
+
 require('dotenv').config();
 const secretKey = process.env.JWT_SECRET;
 const secretRefreshKey = process.env.JWT_REFRESH_SECRET;
@@ -79,6 +81,7 @@ app.use('/api/genralbill', BillRoutes)
 app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/dashboardReports', dashboardReportRoutes)
 app.use('/api/doctor/requestbill', PharmaBillRequests)
+app.use('/api/webhook', webhookRoutes);
 
 // app.use('/api/users', usersRoutes)
 const transporter = nodemailer.createTransport({

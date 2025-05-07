@@ -5,7 +5,8 @@ const Hospitals = require('../models/hospitals')
 const path = require("path");
 const fs = require("fs");
 const nodemailer = require('nodemailer');
-const hospitals = require('../models/hospitals');
+const mongoose = require("mongoose");
+const { CreateRazorpayLinkedAccount } = require('../payment-gateway/razorpay-helper-functions');
 
 
 
@@ -44,18 +45,62 @@ const sendConfirmation = async (hospital) => {
 };
 
 const AddHospital = async (req, res, next) => {
-    const newHospital = new Hospitals({
-        ...req.body,
-    });
+    const session = await mongoose.startSession();
+    session.startTransaction(); 
 
     try {
-        const savedHospital = await newHospital.save();
-        res.json({ success: true, message: "Hospital registered successfully" });
-        sendConfirmation(savedHospital);
+        const newHospital = new Hospitals({ ...req.body, category: 'healthcare', sub_category: 'hospital', });
+
+        // Check for existing hospital by email
+        const existingHospital = await Hospitals.findOne({
+            "contactInformation.email": newHospital?.contactInformation?.email
+        }).session(session);
+
+        if (existingHospital) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(400).json({ success: false, message: "Hospital with this email already exists" });
+        }
+
+        // Save the new hospital
+        const savedHospital = await newHospital.save({ session });
+        const hospitalId = savedHospital?.hospitalId;
+
+        const hospitalDetails = {
+            business_type: newHospital?.business_type,
+            hospital_name: newHospital?.hospitalDetails?.hospitalName,
+            category: 'healthcare',
+            sub_category: 'hospital',
+            street: newHospital?.address?.street,
+            city: newHospital?.address?.city,
+            state: newHospital?.address?.state, 
+            postcode: newHospital?.address?.zipcode,
+            country: 'india',
+        };
+
+        console.log("Hospital details for Razorpay:", hospitalDetails); // Log for debugging
+
+        await CreateRazorpayLinkedAccount(
+            hospitalId,
+            newHospital?.contactInformation?.email,
+            newHospital?.AdministrativeDetails?.administrativeName,
+            newHospital?.AdministrativeDetails?.administrativeContact,
+            hospitalDetails,
+            session
+        );
+
+        await sendConfirmation(savedHospital);
+
+        await session.commitTransaction();
+        session.endSession();
+
+        return res.status(200).json({ success: true, message: "Hospital registered successfully" });
 
     } catch (e) {
+        await session.abortTransaction();
+        session.endSession();
         console.error("Error saving hospital:", e);
-        res.status(500).json({ success: false, message: "Failed to register hospital" });
+        return res.status(500).json({ success: false, message: "Failed to register hospital" });
     }
 };
 
