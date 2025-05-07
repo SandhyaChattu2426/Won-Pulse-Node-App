@@ -40,13 +40,14 @@ const client = new MongoClient(uri);
 const path = require("path");
 const fs = require("fs");
 app.use(bodyParser.json())
-const allowedOrigins = process.env.ALLOWEDURLS?.split(',')
+const allowedOrigins = process.env.ALLOWEDURLS?.split(',').map(origin => origin.replace(/\/$/, ''));
+
 const corsOptions = {
     origin: (origin, callback) => {
-        
-        console.log("Incoming Origin", origin)
-        console.log("Allowed Origins", allowedOrigins)
-        if (origin && allowedOrigins.includes(origin)) {
+        console.log("Incoming Origin", origin);
+        console.log("Allowed Origins", allowedOrigins);
+
+        if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
             console.error(`Blocked by CORS: ${origin}`);
@@ -55,8 +56,9 @@ const corsOptions = {
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true, // Include cookies and credentials
+    credentials: true,
 };
+
 app.use(cors(corsOptions));
 app.use('/api/patient', patientsRoutes);
 app.use('/api/staff', StaffRoutes)
