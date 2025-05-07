@@ -32,6 +32,7 @@ const dashboardReportRoutes = require('./routes/DashboardReports')
 const RoleRoutes = require('./routes/RolesRoutes')
 const HospitalFunction = require('./controllers/patients-controllers')
 
+
 require('dotenv').config();
 const secretKey = process.env.JWT_SECRET;
 const secretRefreshKey = process.env.JWT_REFRESH_SECRET;
@@ -994,8 +995,8 @@ app.use(express.json()); // To handle JSON requests
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/")
-mongoose.connect(`mongodb+srv://sandhya:123@cluster0.ddkdz.mongodb.net/wonpulse?retryWrites=true&w=majority&appName=Cluster0`).then(app.listen(5000, () => {
-    console.log("server is running at 5000")
+mongoose.connect(`mongodb+srv://sandhya:123@cluster0.ddkdz.mongodb.net/wonpulse?retryWrites=true&w=majority&appName=Cluster0`).then(app.listen(process.env.PORT, () => {
+    console.log("server is running at 5005")
     console.log("connected to mongodb")
 })).catch(err => {
     console.log(err)
