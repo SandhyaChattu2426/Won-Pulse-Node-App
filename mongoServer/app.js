@@ -284,29 +284,48 @@ app.post('/send-email-otp-forPassword', async (req, res) => {
 
 app.post('/send-email-otp', async (req, res) => {
     const { email } = req.body;
-    console.log(email)
+    console.log(email);
 
-    // Check if the email already exists in the database
     try {
         const user = await Login.findOne({ email: email });
+        console.log(user);
 
         if (!user) {
             const otp = generateOTP();
-            otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
-            console.log(otp)
-            await sendOTP(email, otp, hospitalName = "WONPULSE", hospitalLogo = "https://res.cloudinary.com/dca9sij3n/image/upload/f_auto,q_auto/hunqedjlmgyb4bdswike", hospitalMail = "mummy@gmail.com", hospitalContact = "1234567890", hospitalAddress = "Umashankar Nagar, Vijayawada, Andhra Pradesh, India - 527001");
-            res.status(200).json({ message: 'OTP sent successfully!' });
-        }
-        else {
-            return res.status(400).json({ message: 'User does not Exist' });
+            otpStorage[email] = { otp, expiry: Date.now() + 120000 }; // 2-minute expiry
+            console.log(otp);
 
+            await sendOTP(
+                email,
+                otp,
+                "WONPULSE",
+                "https://res.cloudinary.com/dca9sij3n/image/upload/f_auto,q_auto/hunqedjlmgyb4bdswike",
+                "mummy@gmail.com",
+                "1234567890",
+                "Umashankar Nagar, Vijayawada, Andhra Pradesh, India - 527001"
+            );
+
+            return res.status(200).json({
+                success: true,
+                message: "OTP sent successfully!",
+            });
+        } else {
+            return res.status(400).json({
+                success: false,
+                message: "User already exists.",
+            });
         }
 
     } catch (error) {
-        // console.log('Error checking email or sending OTP:', error);
-        res.status(500).json({ error, message: 'Internal Server Error.' });
+        console.error("Error checking email or sending OTP:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error.",
+            error: error.message,
+        });
     }
 });
+
 
 app.post('/send-hospital-email-otp', async (req, res) => {
     const { email } = req.body;
@@ -318,7 +337,7 @@ app.post('/send-hospital-email-otp', async (req, res) => {
             const otp = generateOTP(); // Assume generateOTP() generates a random OTP
             otpStorage[email] = { otp, expiry: Date.now() + 120000 };  // Store OTP with an expiry of 2 minutes
 
-            // console.log(otp);
+            console.log(otp);
 
             // Send OTP to the email (assume sendOTP handles email delivery)
             await sendOTP(email, otp);
