@@ -104,8 +104,6 @@ const AddHospital = async (req, res, next) => {
     }
 };
 
-
-
 const GetHospitals = async (req, res, next) => {
     let List;
     try {
