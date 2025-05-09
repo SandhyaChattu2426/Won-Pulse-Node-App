@@ -306,7 +306,7 @@ const GetAlert = async (req, res, next) => {
 };
 
 const AddKyc = async (req, res, next) => {
-    console.log("ALICE")
+    // console.log("ALICE")
     console.log(req.params)
     console.log(req.body)
     try {
@@ -317,7 +317,7 @@ const AddKyc = async (req, res, next) => {
             return res.status(400).json({ message: "All bank details are required." });
         }
 
-        const hpl = await hospitals.findOne({ hospitalId });
+        const hpl = await Hospitals.findOne({ hospitalId });
 
         if (!hpl) {
             return res.status(404).json({ message: "Hospital not found." });

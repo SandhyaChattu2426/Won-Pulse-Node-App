@@ -8,7 +8,9 @@ const billItemSchema = new Schema({
   discount: { type: Number, default: 0 },
   tax: { type: Number, default: 0 },
   quantity: { type: Number, default: 1 },
-  total: { type: Number, required: true }
+  total: { type: Number, required: true },
+  paymentType: { type: String, required: true },
+  paymentStatus: { type: String, required: true },
 });
 
 const BillSchema = new Schema({
@@ -17,7 +19,6 @@ const BillSchema = new Schema({
   patientName: { type: String, required: true },
 
   billItem: [billItemSchema],
-
   paymentType: { type: String, required: true }, // e.g., "Cash", "Card"
   status: { type: String, required: true }, // e.g., "Paid", "Pending"
   hospitalId: { type: String, required: true },
