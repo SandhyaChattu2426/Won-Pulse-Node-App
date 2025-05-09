@@ -30,7 +30,9 @@ const dashboardRoutes = require('./routes/dashboardRoutes')
 const { MongoClient } = require("mongodb");
 const dashboardReportRoutes = require('./routes/DashboardReports')
 const RoleRoutes = require('./routes/RolesRoutes')
-const HospitalFunction = require('./controllers/patients-controllers')
+const HospitalFunction = require('./controllers/patients-controllers');
+
+require('./job-automations/scheduled-jobs'); // JOB AUTOMATIONS
 
 
 const webhookRoutes = require("./routes/webhook-routes");
