@@ -17,11 +17,15 @@ const createBill = async (req, res, next) => {
             billId: billId
         });
 
+        if (req.body.paymentType === "Online") {
+            const x = await createOrderPaymentLinkById({ ...req.body, billType: "PharmaBill" });
+            console.log("Payment Link Created", x)
+        }
         await newBill.save();
-        res.json({ msg: "Bill Created Successfully", billId });
+        return res.status(201).json({ success: true, msg: "Bill Created Successfully", billId });
     } catch (e) {
         console.log(e);
-        return next(new HttpError("Cannot create bill", 501));
+        return res.status(500).json({ success: false, message: "Bill Creation Failed!" });
     }
 };
 

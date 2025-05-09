@@ -2,7 +2,7 @@ const axios = require("axios");
 const Razorpay = require("razorpay");
 require("dotenv").config();
 const Hospitals = require('../models/hospitals');
-const { getHospitalAndPatientDetails,sendPaymentEmail } = require("./razorpay-utils");
+const { getHospitalAndPatientDetails, sendPaymentEmail } = require("./razorpay-utils");
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY,
@@ -242,9 +242,8 @@ const disableRazorpayPaymentLink = async (paymentLinkId) => {
 const createRzpPaymentOrdertoTransferAmount = async (
   linkedAccountId,
   amount,
-  AmountToTransfer,
   currency,
-  PurchaseOrderID,
+  billId,
   paymentId
 ) => {
   try {
@@ -254,10 +253,10 @@ const createRzpPaymentOrdertoTransferAmount = async (
       transfers: [
         {
           account: linkedAccountId,
-          amount: AmountToTransfer * 100,
+          amount: amount * 100,
           currency: currency,
           notes: {
-            purchaseID: PurchaseOrderID,
+            billID: billId,
             paymentID: paymentId
           },
           on_hold: 0
@@ -265,6 +264,7 @@ const createRzpPaymentOrdertoTransferAmount = async (
       ]
     });
 
+    console.log("Order created successfully:", order);
     return order;
   } catch (error) {
     console.error("Error creating payment link:", error);
@@ -285,6 +285,7 @@ const createOrderPaymentLinkById = async (details) => {
       patientId: patient_id,
       hospitalId: hospital_id,
       totalPrice: amount,
+      billType: bill_type
     } = details;
 
     console.log(patient_id, hospital_id, amount, billID, 'details from create order payment link by id')
@@ -304,11 +305,11 @@ const createOrderPaymentLinkById = async (details) => {
       hospital_id,
       patient_id
     );
-    console.log(patientAndHospitalDetails, 'student and institute details')
+    console.log(patientAndHospitalDetails, 'patient and hospital details')
     if (!patientAndHospitalDetails) {
       return {
         success: false,
-        message: 'Institute or student details not found.',
+        message: 'hospital or patient details not found.',
       };
     }
 
@@ -316,10 +317,13 @@ const createOrderPaymentLinkById = async (details) => {
       patient_email,
       hospital_contact,
       razorpay_linked_account,
-      patient_name,
+      fullName: patient_name,
       patient_contact,
-      hospital_name,
+      hospitalId,
+      hospitalDetails,
     } = patientAndHospitalDetails;
+
+    const hospital_name = hospitalDetails?.hospitalName;
 
     const amountInPaise = Math.round(grossAmount * 100);
     const currency = 'INR';
@@ -345,9 +349,11 @@ const createOrderPaymentLinkById = async (details) => {
         hospital_id,
         patient_id,
         patient_name,
-        institute_rzp_linked_account_id: razorpay_linked_account,
-        gross_amount: amountInPaise,
+        hospital_rzp_linked_account_id: razorpay_linked_account,
+        total_amount: amountInPaise,
         bill_id: billID,
+        currency,
+        bill_type: bill_type,
         app: 'WON_PULSE',
       },
     });
