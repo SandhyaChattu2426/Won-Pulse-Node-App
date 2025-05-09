@@ -4,9 +4,11 @@ const Hospitals = require('../models/hospitals');
 
 const rzrpayPaymentSuccessWebhook = async (req, res, next) => {
   try {
-    const webhookSecret = process.env.RZP_DIGI_PAYMENT_WEBHOOK_SECRET;
+    const webhookSecret = process.env.RZP_PULSE_PAYMENT_WEBHOOK_SECRET;
     const payload = req.body;
     const signature = req.headers["x-razorpay-signature"];
+
+    console.log("Webhook payload:", payload);
 
     // Validate the webhook signature
     const crypto = require("crypto");
@@ -27,38 +29,76 @@ const rzrpayPaymentSuccessWebhook = async (req, res, next) => {
       }
 
       const appType = payment.notes?.app;
-      if (appType !== "WON_DIGI") {
-        return res.status(200).send("Payment not related to WON_DIGI, ignoring.");
+      if (appType !== "WON_PULSE") {
+        return res.status(200).send("Payment not related to WON_PULSE, ignoring.");
       }
 
-      const paymentId = payment.id;
-      const clientName = payment.notes?.client_name;
-      const linkedAccountId = payment.notes?.vendor_rzp_linked_account_id;
+      const paymentId = payment?.id;
+      const patient_name = payment.notes?.patient_name;
+      const linkedAccountId = payment.notes?.hospital_rzp_linked_account_id;
       const amount = payment.notes?.total_amount / 100;
-      const currency = payment.notes?.currency;
-      const Fees = payment.notes?.totalFee;
-      const AmountToTransfer = amount - Fees;
-      const PurchaseOrderID = payment.notes?.purchase_order_id;
-      const VendorId = payment.notes?.vendor_id;
-      const invoice_id = payment.notes?.invoice_id;
+      // const AmountToTransfer = amount - Fees;
+      const HospitalId = payment.notes?.hospital_id;
+      const billId = payment.notes?.bill_id;
+      const patientId = payment.notes?.patient_id;
+      const currency = payment?.notes?.currency;
 
-      const Order = await createRzpPaymentOrdertoTransferAmount(
-        linkedAccountId,
+      console.log("Payment details:", {
+        paymentId,
+        patient_name,
+        linkedAccountId, 
         amount,
-        AmountToTransfer,
-        currency,
-        PurchaseOrderID,
-        paymentId
-      )
-        .then(() => {
-          updatePayments(PurchaseOrderID, paymentId);
-          updateAlerts(PurchaseOrderID, clientName, amount, VendorId);
-          updateClient(PurchaseOrderID, amount, VendorId, Order.id);
-          markInvoiceInactive(invoice_id);
-        })
-        .catch((error) => {
-          console.error("Error during transfer:", error.message);
-        });
+        HospitalId,
+        billId,
+        patientId
+      });
+      let Order;
+      try{
+        Order = await createRzpPaymentOrdertoTransferAmount(
+          linkedAccountId,
+          amount,
+          currency,
+          billId,
+          paymentId
+        );
+
+        if(payment?.notes?.bill_type === "Pharma"){
+           // updatePayments(PurchaseOrderID, paymentId);
+          // updateAlerts(PurchaseOrderID, clientName, amount, VendorId);
+          // updateClient(PurchaseOrderID, amount, VendorId, Order.id);
+          // markInvoiceInactive(invoice_id);
+        }else if(payment?.notes?.bill_type === "GeneralBill"){
+          // updatePayments(PurchaseOrderID, paymentId);
+          // updateAlerts(PurchaseOrderID, clientName, amount, VendorId);
+          // updateClient(PurchaseOrderID, amount, VendorId, Order.id);
+          // markInvoiceInactive(invoice_id);
+        }
+
+        console.log("Payment transfer successful:", Order);
+      }catch(err){
+        console.error("Error during transfer:", err.message);
+      }
+
+      // const Order = await createRzpPaymentOrdertoTransferAmount(
+      //   linkedAccountId,
+      //   amount,
+      //   currency,
+      //   billId,
+      //   paymentId
+      // )
+      //   .then(() => {
+      //     // updatePayments(PurchaseOrderID, paymentId);
+      //     // updateAlerts(PurchaseOrderID, clientName, amount, VendorId);
+      //     // updateClient(PurchaseOrderID, amount, VendorId, Order.id);
+      //     // markInvoiceInactive(invoice_id);
+
+      //     console.log("Payment transfer successful:", Order);
+      //   })
+      //   .catch((error) => {
+      //     console.error("Error during transfer:", error.message);
+      //   });
+
+
     }
 
     res.status(200).send("Webhook received");
@@ -66,13 +106,14 @@ const rzrpayPaymentSuccessWebhook = async (req, res, next) => {
     console.error("Error handling webhook:", error);
     res.status(500).send("Internal Server Error");
   }
+  
 };
 
 
 const BankAccountStatusUpdateWebhook = async (req, res, next) => {
   const rawBody = req.body;
   const signature = req.headers["x-razorpay-signature"];
-  const webhookSecret = process.env.RZP_DIGI_BANK_ACC_UPDATE_SECRET;
+  const webhookSecret = process.env.RZP_PULSE_BANK_ACC_UPDATE_SECRET;
 
   // Verify webhook signature
   const expectedSignature = crypto
@@ -129,7 +170,7 @@ const BankAccountStatusUpdateWebhook = async (req, res, next) => {
     Hospitals.razorpay_account_status = status;
     await Hospitals.save();
 
-    await updateAlertsOnKyCResponse(payload);
+    // await updateAlertsOnKyCResponse(payload);
 
     res.status(200).send("Webhook processed");
   } catch (error) {
