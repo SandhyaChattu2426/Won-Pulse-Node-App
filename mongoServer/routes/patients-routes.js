@@ -19,13 +19,13 @@ const upload = multer({
     fileFilter,
 });
 
+router.get('/:id/hospital/:hospitalid', patientsControllers.getPatientById);
 router.post('/getfileurl',upload.single("file"),patientsControllers.generateNoteUrl)
 router.post('/', patientsControllers.createPatient)
 router.post('/upload-excel',patientsControllers.addPatientFromExcel)
 router.get('/getId/:hospitalId', patientsControllers.getId);
 router.get('/charts', patientsControllers.getPatientChartData);
 router.get('/email/:email/hospital/:hospital',patientsControllers.checkEmailAndSendName)
-router.get('/:id/hospital/:hospitalid', patientsControllers.getPatientById);
 router.get('/hospital/:hospitalId', patientsControllers.getPatients);
 
 // router.use(CheckAuth)

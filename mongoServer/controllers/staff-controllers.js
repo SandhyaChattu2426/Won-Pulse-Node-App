@@ -103,9 +103,9 @@ const getId = async (req, res, next) => {
 
 //Get Staff By Id
 const getStaffById = async (req, res, next) => {
-    // console.log(req.params)
+    console.log(req.params)
     try {
-        const staffMember = await Staff.find({ staffId: req.params.id, hospitalId: req.params.hospitalId })
+        const staffMember = await Staff.findOne({ staffId: req.params.id, hospitalId: req.params.hospitalId })
         res.json({ staffMember })
     }
     catch (e) {

@@ -158,6 +158,7 @@ const getBillByPatientId = async (req, res, next) => {
 }
 
 
+
 module.exports = {
     createBill,
     getBills,

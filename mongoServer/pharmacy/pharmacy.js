@@ -17,9 +17,9 @@ const pharmacySchema = new Schema({
     location: { type: String, required: true },
     criticalityLevel: { type: String, required: true },
     temperature: { type: String, required: true },
-    supplierName: { type: String, required: true },
-    contactNumber: { type: String, required: true },
-    email: { type: String, required: true },
+    supplierName: { type: String, },
+    contactNumber: { type: String, },
+    email: { type: String, },
     medicineLicenceNo: { type: String, required: true },
     status: { type: String, required: true },
     hospitalId: { type: String },
@@ -30,6 +30,6 @@ const pharmacySchema = new Schema({
     },
     UpdatedBy: { type: String },
     UpdatedOn: { type: Date },
-    formulation:{type:String}
+    formulation: { type: String }
 })
 module.exports = mongoose.model('pharmacy', pharmacySchema)

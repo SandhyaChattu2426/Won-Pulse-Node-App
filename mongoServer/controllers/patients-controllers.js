@@ -32,7 +32,7 @@ const GetHospitalDetails = async (hospitalId) => {
 
 const returnEmail = async (patientId, hospitalId) => {
     const patient = await Patient.findOne({ patientId: patientId, hospitalId: hospitalId })
-    console.log(patient,"patient")
+    console.log(patient, "patient")
     // `if (!patient) {
     //     const error = new HttpError('Could not find a patient for the Provided id.', 404)
     //     console.log(error)
@@ -102,19 +102,20 @@ const getPatientById = async (req, res, next) => {
 
 //GET Patients
 const getPatients = async (req, res, next) => {
-    const { hospitalId } = req.params
-    // console.log(req.params,"***")
-    let patients
+    const { hospitalId } = req.params;
+    let patients;
     try {
-        patients = await Patient.find({ hospitalId: hospitalId })
-        // console.log(patients,"patients")
+        patients = await Patient.find({ hospitalId: hospitalId });
     } catch (err) {
-        console.log(err)
-        const error = new HttpError("not getting a patient", 402)
-        return next(error)
+        console.log(err);
+        const error = new HttpError("Not getting a patient", 402);
+        return next(error);
     }
 
-    res.json({ patient: patients.map(e => e.toObject({ getters: true })) })
+    res.status(200).json({
+        message: 'Patients retrieved successfully',
+        patients: patients.map(e => e.toObject({ getters: true }))
+    });
 };
 
 // GetId
