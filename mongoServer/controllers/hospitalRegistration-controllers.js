@@ -315,6 +315,7 @@ const AddKyc = async (req, res, next) => {
         }
 
         const hpl = await Hospitals.findOne({ hospitalId });
+
         if (!hpl) {
             return res.status(404).json({ message: "Hospital not found." });
         }
