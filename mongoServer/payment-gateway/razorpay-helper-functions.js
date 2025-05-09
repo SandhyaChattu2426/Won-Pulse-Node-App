@@ -2,7 +2,7 @@ const axios = require("axios");
 const Razorpay = require("razorpay");
 require("dotenv").config();
 const Hospitals = require('../models/hospitals');
-const { getInstituteAndStudentDetails, sendPaymentEmail } = require("./razorpay-utils");
+const { getHospitalAndPatientDetails,sendPaymentEmail } = require("./razorpay-utils");
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY,
@@ -281,17 +281,16 @@ const createOrderPaymentLinkById = async (details) => {
     }
 
     const {
-      service_id,
-      user_id: student_id,
-      bill_schoolid: institute_id,
-      due_amount: amount,
-      service_type,
+      billId: billID,
+      patientId: patient_id,
+      hospitalId: hospital_id,
+      totalPrice: amount,
     } = details;
 
-    console.log(student_id, institute_id, amount, service_id, 'details from create order payment link by id')
+    console.log(patient_id, hospital_id, amount, billID, 'details from create order payment link by id')
 
 
-    if (!service_id || !amount || !student_id || !institute_id) {
+    if (!patient_id || !amount || !hospital_id || !billID) {
       return { success: false, message: 'Missing required fields.' };
     }
 
@@ -301,12 +300,12 @@ const createOrderPaymentLinkById = async (details) => {
     }
 
     // Fetch student and institute details
-    const studentAndInstituteDetails = await getInstituteAndStudentDetails(
-      institute_id,
-      student_id
+    const patientAndHospitalDetails = await getHospitalAndPatientDetails(
+      hospital_id,
+      patient_id
     );
-    console.log(studentAndInstituteDetails, 'student and institute details')
-    if (!studentAndInstituteDetails) {
+    console.log(patientAndHospitalDetails, 'student and institute details')
+    if (!patientAndHospitalDetails) {
       return {
         success: false,
         message: 'Institute or student details not found.',
@@ -314,13 +313,13 @@ const createOrderPaymentLinkById = async (details) => {
     }
 
     const {
-      student_email,
-      institute_contact,
+      patient_email,
+      hospital_contact,
       razorpay_linked_account,
-      student_name,
-      student_contact,
-      institute_name,
-    } = studentAndInstituteDetails;
+      patient_name,
+      patient_contact,
+      hospital_name,
+    } = patientAndHospitalDetails;
 
     const amountInPaise = Math.round(grossAmount * 100);
     const currency = 'INR';
@@ -330,11 +329,11 @@ const createOrderPaymentLinkById = async (details) => {
       amount: amountInPaise,
       currency,
       accept_partial: true,
-      description: `${service_type} Payment Request – ${institute_name}`,
+      description: `Bill Payment Request – ${hospital_name}`,
       customer: {
-        name: student_name,
-        email: student_email,
-        contact: student_contact?.replace(/^91/, '').slice(-10) || '',
+        name: patient_id,
+        email: patient_email,
+        contact: patient_contact?.replace(/^91/, '').slice(-10) || '',
       },
       notify: {
         sms: true,
@@ -343,14 +342,13 @@ const createOrderPaymentLinkById = async (details) => {
       reminder_enable: true,
       callback_method: 'get',
       notes: {
-        institute_id,
-        student_id,
-        student_name,
+        hospital_id,
+        patient_id,
+        patient_name,
         institute_rzp_linked_account_id: razorpay_linked_account,
         gross_amount: amountInPaise,
-        currency,
-        service_id,
-        app:'WON_DIGI',
+        bill_id: billID,
+        app: 'WON_PULSE',
       },
     });
     console.log(paymentLink, 'payment link created')
@@ -358,7 +356,7 @@ const createOrderPaymentLinkById = async (details) => {
 
     // Send payment email
     await sendPaymentEmail(
-      studentAndInstituteDetails,
+      patientAndHospitalDetails,
       paymentLink.short_url,
       amountInPaise
     );
@@ -367,7 +365,7 @@ const createOrderPaymentLinkById = async (details) => {
       success: true,
       message: 'Payment link sent successfully',
       paymentLink: paymentLink.short_url,
-      mail: student_email,
+      mail: patient_email,
     };
   } catch (error) {
     return {

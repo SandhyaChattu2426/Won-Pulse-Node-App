@@ -1,14 +1,20 @@
-const HttpError = require('../models/http-error')
+const HttpError = require('../models/http-error');
+const {createOrderPaymentLinkById} = require('../payment-gateway/razorpay-helper-functions')
 
 const GeneralBill=require('../models/Bill')
+
 //CREATE AN APPOINTMENT
 const createBill = async (req, res, next) => {
     const newBill = new GeneralBill ({
         ...req.body
     })
-    // console.log(req.body)
+    console.log(req.body,'this is body')
     try {
-        await newBill.save()
+        if(req.body.paymentType === "Online"){
+            const x = await createOrderPaymentLinkById(req.body);
+            console.log("Payment Link Created",x)
+        }
+        await newBill.save();
     }
     catch (e) {
         console.log(e)

@@ -7,6 +7,7 @@ const fs = require("fs");
 const nodemailer = require('nodemailer');
 const mongoose = require("mongoose");
 const { CreateRazorpayLinkedAccount } = require('../payment-gateway/razorpay-helper-functions');
+const { EditRazorpayProductBankAccountDetails } = require('../payment-gateway/razorpay-helper-functions');
 
 
 
@@ -46,7 +47,7 @@ const sendConfirmation = async (hospital) => {
 
 const AddHospital = async (req, res, next) => {
     const session = await mongoose.startSession();
-    session.startTransaction(); 
+    session.startTransaction();
 
     try {
         const newHospital = new Hospitals({ ...req.body, category: 'healthcare', sub_category: 'hospital', });
@@ -73,7 +74,7 @@ const AddHospital = async (req, res, next) => {
             sub_category: 'hospital',
             street: newHospital?.address?.street,
             city: newHospital?.address?.city,
-            state: newHospital?.address?.state, 
+            state: newHospital?.address?.state,
             postcode: newHospital?.address?.zipcode,
             country: 'india',
         };
@@ -103,8 +104,6 @@ const AddHospital = async (req, res, next) => {
         return res.status(500).json({ success: false, message: "Failed to register hospital" });
     }
 };
-
-
 
 const GetHospitals = async (req, res, next) => {
     let List;
@@ -306,14 +305,12 @@ const GetAlert = async (req, res, next) => {
 };
 
 const AddKyc = async (req, res, next) => {
-    // console.log("ALICE")
-    console.log(req.params)
-    console.log(req.body)
     try {
         const { hospitalId } = req.params;
-        const { accountnumber, accountholdername, IFSCcode } = req.body;
+        const { accountnumber, accountholdername, IFSCCode } = req.body;
+        console.log("Received KYC data:", req.body); // Log the received data for debugging
 
-        if (!accountnumber || !accountholdername || !IFSCcode) {
+        if (![accountnumber, accountholdername, IFSCCode]) {
             return res.status(400).json({ message: "All bank details are required." });
         }
 
@@ -326,17 +323,37 @@ const AddKyc = async (req, res, next) => {
         hpl.bankDetails = {
             accountnumber,
             accountholdername,
-            IFSCCode: IFSCcode,
+            IFSCCode,
         };
 
         await hpl.save();
 
-        return res.status(200).json({ success:true,message: "KYC details added successfully.", bankDetails: hpl.bankDetails });
+        try {
+            const bankDetails = {
+                account_number: req.body.accountnumber,
+                account_holder_name: req.body.accountholdername,
+                ifsc_code: req.body.IFSCcode,
+            }
+            await EditRazorpayProductBankAccountDetails(
+                hpl.razorpay_linked_account,
+                hpl.razorpay_product_id,
+                bankDetails,
+            );
+        } catch (err) {
+            console.error("Razorpay bank update failed:", err);
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "KYC details added successfully.",
+            bankDetails: hpl.bankDetails,
+        });
     } catch (error) {
         console.error("Error adding KYC:", error);
-        return res.status(500).json({ success:false,message: "Internal server error." });
+        return res.status(500).json({ success: false, message: "Internal server error." });
     }
 };
+
 
 
 exports.AddHospital = AddHospital
@@ -349,4 +366,4 @@ exports.getHospitalByEmail = getHospitalByEmail
 exports.getHospitalReturnName = getHospitalReturnName
 exports.AddAnnouncements = AddAnnouncements
 exports.GetAlert = GetAlert
-exports.AddKyc=AddKyc
+exports.AddKyc = AddKyc
