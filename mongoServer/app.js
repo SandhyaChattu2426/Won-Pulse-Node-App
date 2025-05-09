@@ -57,7 +57,7 @@ const corsOptions = {
             callback(new Error('Not allowed by CORS'));
         }
     },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS','PATCH'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
 };
@@ -519,6 +519,7 @@ app.post('/verify-login-otp', (req, res) => {
 // Register Login
 app.post('/api/register-login', async (req, res) => {
     const { email, password, fullName, contact } = req.body;
+    console.log(req.body,"body here")
     if (!email || !password || !fullName) {
         return res.status(400).json({ success: false, message: 'Email, password, and user name are required.' });
     }
@@ -529,6 +530,7 @@ app.post('/api/register-login', async (req, res) => {
             const hashedPassword = await bcrypt.hash(plainTextPassword, saltRounds);
             return hashedPassword;
         } catch (err) {
+            console.log(err,"error Here")
             throw new Error('Error hashing password');
         }
     };
@@ -543,7 +545,7 @@ app.post('/api/register-login', async (req, res) => {
         const companyDetails = req.body.company_details || null;
         const newLogin = new Login({
             user_id: req.body.user_id || null,
-            user_name: req.body.user_name || null,
+            user_name: req.body.fullName || null,
             role_id: req.body.role_id || null,
             first_name: req.body.fullName || null,
             last_name: req.body.lastName || null,
@@ -615,6 +617,7 @@ app.post('/api/verify-hospital', async (req, res) => {
 });
 
 app.post('/api/verify-staff', async (req, res) => {
+    console.log("triggering Here")
     const { email, password, role } = req.body;
     if (!email || !password) {
         return res.status(400).json({ success: false, message: 'Email, password,  are required.' });

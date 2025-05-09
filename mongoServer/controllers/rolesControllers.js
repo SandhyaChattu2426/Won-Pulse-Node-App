@@ -20,7 +20,7 @@ const GetRoles = async (req, res, next) => {
     let List;
     try {
         List = await Roles.find({hospitalId:hospitalId})
-        // console.log(List,"List")
+        console.log(List,"List")
     }
     catch (e) {
         console.log(e)
