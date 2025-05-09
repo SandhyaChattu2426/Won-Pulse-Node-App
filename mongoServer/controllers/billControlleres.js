@@ -149,10 +149,13 @@ const getBillByPatientId=async(req,res,next)=>{
     res.json({ medicineBill:Appointment })
 }
 
-exports.createBill = createBill
-exports.getBills = getBills
-exports.getId = getId
 // exports.updateAppointments = updateAppointments
 // exports.updateAppointmentStatus=updateAppointmentStatus
 // exports.getBillByPatientId=getBillByPatientId
-exports.getBillByBillId=getBillByBillId
+
+module.exports ={
+    createBill,
+    getBills,
+    getId,
+    getBillByBillId
+}
