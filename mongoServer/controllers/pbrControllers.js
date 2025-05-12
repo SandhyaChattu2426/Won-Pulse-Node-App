@@ -46,17 +46,17 @@ const GetBillRequestById = async (req, res) => {
   }
 }
 
-const UpdateStatus=async(req,res,next)=>{
-  try{
-  const request=await PharmaBillingRequests.findOne({requestId:req.params.id})
-  request.status="resolved"
-  await request.save()
-  }catch(e){
-    console.log(e,"error")
-  }
-}
+// const UpdateStatus=async(req,res,next)=>{
+//   try{
+//   const request=await PharmaBillingRequests.findOne({requestId:req.params.id})
+//   request.status="resolved"
+//   await request.save()
+//   }catch(e){
+//     console.log(e,"error")
+//   }
+// }
 
 exports.CreateRequest = CreateRequest
 exports.GetNotifiedBills = GetNotifiedBills
 exports.GetBillRequestById = GetBillRequestById
-exports.UpdateStatus=UpdateStatus
+// exports.UpdateStatus=UpdateStatus
