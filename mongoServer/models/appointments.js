@@ -27,6 +27,7 @@ const AppointmentsSchema = new Schema({
         schedule:[{typr:String}]
     }],
     paymentStatus:{type:String},
+    rescheduleCount:{type:Number}
 })
 
 module.exports = mongoose.model('appointments', AppointmentsSchema)

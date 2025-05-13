@@ -431,9 +431,11 @@ const addPatientFromExcel = async (req, res, next) => {
 
 // generating url
 const generateNoteUrl = async (req, res, next) => {
+     console.log("triggering")
     try {
-        // console.log(req.file,'this si the file')
-        // console.log(req.body,"body")
+       
+        console.log(req.file,'this si the file')
+        console.log(req.body,"body")
         if (!req.file) {
             return res.status(400).json({
                 success: false,
