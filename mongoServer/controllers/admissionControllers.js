@@ -15,7 +15,6 @@ const AddPatient = async (req, res, next) => {
         console.log(e)
     }
     res.json("Patient admitted Successfully")
-
 }
 
 const GetAdmissions = async (req, res, next) => {
