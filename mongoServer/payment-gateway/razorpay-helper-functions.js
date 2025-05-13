@@ -257,7 +257,8 @@ const createRzpPaymentOrdertoTransferAmount = async (
           currency: currency,
           notes: {
             billID: billId,
-            paymentID: paymentId
+            paymentID: paymentId,
+            app:'WON_PULSE'
           },
           on_hold: 0
         }
