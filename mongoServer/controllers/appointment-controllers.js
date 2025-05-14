@@ -213,12 +213,20 @@ const RescheduleAppointmentToAdmin = async (appointment) => {
 
 }
 
-
 //CREATE AN APPOINTMENT
 const createAppointment = async (req, res, next) => {
     const newAppointment = new Appointments({
         ...req.body
     })
+     const existingAppointment = await Appointments.findOne({
+            patientId: req.body.patientId,
+            appointmentDate: req.body.appointmentDate,
+        });
+
+        if (existingAppointment) {
+            return res.status(400).json({ message: "Patient already has an appointment on this date." });
+        }
+
     try {
         await newAppointment.save()
         if (newAppointment.isPatientAccepted && !newAppointment.isDoctorAccepted) {
@@ -235,6 +243,9 @@ const createAppointment = async (req, res, next) => {
                 reason: newAppointment.reason || "headache",
             };
             await AppointmentToAdmin(appointment)
+        }
+        if (newAppointment.isDoctorAccepted) {
+            newAppointment.rescheduleCount = 1
         }
     }
     catch (e) {
@@ -443,31 +454,40 @@ const updateStatus = async (req, res, next) => {
             return res.status(404).json({ message: "Appointment not found" });
         }
 
+        // Prevent status update if rescheduleCount is 3 or more
+        if (appointment.rescheduleCount >= 3) {
+            return res.status(400).json({ message: "Appointment cannot be updated. Maximum reschedule attempts reached." });
+        }
+
+        // Update appointment fields
         Object.keys(req.body).forEach(key => {
             appointment[key] = req.body[key];
         });
 
         await appointment.save();
-        if (req.body.status === "accepted") {
-        }
+
+        // Handle notifications and logic based on status
         switch (req.body.status) {
             case "accepted":
-                ConfirmUpdateToPatient(appointment)
+                ConfirmUpdateToPatient(appointment);
                 break;
             case "rejected":
-                RejectToPatient(appointment)
+                RejectToPatient(appointment);
                 break;
             case "rescheduled":
                 if (req.body.isDoctorAccepted) {
-                    RescheduleAppointmentToPatient(appointment)
+                    appointment.rescheduleCount += 1;
+                    await appointment.save(); // save updated rescheduleCount
+                    RescheduleAppointmentToPatient(appointment);
                 }
                 if (req.body.isPatientAccepted) {
-                    RescheduleAppointmentToAdmin(appointment)
+                    RescheduleAppointmentToAdmin(appointment);
                 }
                 break;
             default:
-                console.log("Unknown status")
+                console.log("Unknown status");
         }
+
         res.status(200).json({ message: "Status Updated Successfully" });
 
     } catch (e) {
@@ -475,6 +495,8 @@ const updateStatus = async (req, res, next) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
+
 const getAppointmentsByDoctorIdAndDate = async (req, res, next) => {
     const { doctorId, date, hospitalId } = req.params;
     let appointments

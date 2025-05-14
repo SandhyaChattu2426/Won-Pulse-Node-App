@@ -173,9 +173,10 @@ const deleteLogin = async (req, res, next) => {
 }
 
 const updateProfile = async (req, res, next) => {
+    console.log("triggering")
     const { email } = req.params;
     const { url } = req.body;
-
+    
     try {
         if (!email) {
             return res.status(400).json({ success: false, message: "Email is required." });
