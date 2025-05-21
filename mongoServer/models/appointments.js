@@ -26,7 +26,7 @@ const AppointmentsSchema = new Schema({
         quantity:{type:String},
         schedule:[{typr:String}]
     }],
-    paymentStatus:{type:String},
+    paymentStatus:{type:String,default:"pending"},
     rescheduleCount:{type:Number}
 })
 

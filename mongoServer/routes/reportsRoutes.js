@@ -34,7 +34,6 @@ router.get('/patient/:patientName', ReportControllers.getReportByPatientId);
 router.post('/', ReportControllers.AddReport);
 router.get('/hospital/:hospitalId', ReportControllers.GetReports);
 router.patch('/status/:Id', ReportControllers.updateReportStatus);
-
-
+router.get('/billReport/:patientId/hospital/:hospitalId', ReportControllers.GetPendingReports);
 
 module.exports = router;

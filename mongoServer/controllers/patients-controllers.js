@@ -26,7 +26,7 @@ const GetHospitalDetails = async (hospitalId) => {
         hospitalName: hospital.hospitalDetails.hospitalName,
         mobile: hospital.contactInformation.phNo,
         email: hospital.contactInformation.email,
-        adress: hospital.adress.street + " " + hospital.adress.city + " " + hospital.adress.state,
+        address: hospital.address.street + " " + hospital.address.city + " " + hospital.address.state,
     }
 }
 

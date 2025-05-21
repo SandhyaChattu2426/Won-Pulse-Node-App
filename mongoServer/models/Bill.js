@@ -18,7 +18,18 @@ const BillSchema = new Schema({
   patientId: { type: String, required: true },
   patientName: { type: String, required: true },
 
-  billItem: [billItemSchema],
+  billItems: [{
+  id: { type: String, },
+  productOrService: { type: String, },
+  unitPrice: { type: Number, },
+  discount: { type: Number,  },
+  tax: { type: Number, default: 0 },
+  quantity: { type: Number, default: 1 },
+  totalPrice: { type: Number },
+  paymentType: { type: String} ,
+  paymentStatus: { type: String, default: "pending" },
+  itemId: { type: String},
+}],
   paymentType: { type: String, required: true }, // e.g., "Cash", "Card"
   status: { type: String, required: true }, // e.g., "Paid", "Pending"
   hospitalId: { type: String, required: true },

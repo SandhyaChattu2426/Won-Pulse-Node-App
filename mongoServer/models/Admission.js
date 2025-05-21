@@ -6,7 +6,7 @@ const AdmissionSchema = new Schema({
     patientName: { type: String, required: true },
     reasonForAdmission: { type: String, required: true },
     admissionType: { type: String, required: true },
-    patientId: { type: String },
+    patientId: { type: String,required: true },
     roomNumber: { type: Number },
     roomType: { type: String },
     roomCharge: { type: String },

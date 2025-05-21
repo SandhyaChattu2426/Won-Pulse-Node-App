@@ -258,7 +258,7 @@ const createRzpPaymentOrdertoTransferAmount = async (
           notes: {
             billID: billId,
             paymentID: paymentId,
-            app:'WON_PULSE'
+            app: 'WON_PULSE'
           },
           on_hold: 0
         }
@@ -289,7 +289,7 @@ const createOrderPaymentLinkById = async (details) => {
       billType: bill_type
     } = details;
 
-    console.log(patient_id, hospital_id, amount, billID, 'details from create order payment link by id')
+    // console.log(patient_id, hospital_id, amount, billID, 'details from create order payment link by id')
 
 
     if (!patient_id || !amount || !hospital_id || !billID) {
@@ -306,7 +306,7 @@ const createOrderPaymentLinkById = async (details) => {
       hospital_id,
       patient_id
     );
-    console.log(patientAndHospitalDetails, 'patient and hospital details')
+    // console.log(patientAndHospitalDetails, 'patient and hospital details')
     if (!patientAndHospitalDetails) {
       return {
         success: false,
@@ -315,14 +315,26 @@ const createOrderPaymentLinkById = async (details) => {
     }
 
     const {
-      patient_email,
-      hospital_contact,
+      email,
+      contactInformation,//hospital_contact
       razorpay_linked_account,
       fullName: patient_name,
-      patient_contact,
+      contactNumber,//patient_contact
       hospitalId,
       hospitalDetails,
     } = patientAndHospitalDetails;
+
+    console.log(
+      email,
+      contactInformation.phNo,
+      razorpay_linked_account,
+      patient_name,
+      contactNumber,
+      hospitalId,
+      hospitalDetails,
+      "here"
+    );
+
 
     const hospital_name = hospitalDetails?.hospitalName;
 
@@ -336,9 +348,9 @@ const createOrderPaymentLinkById = async (details) => {
       accept_partial: true,
       description: `Bill Payment Request – ${hospital_name}`,
       customer: {
-        name: patient_id,
-        email: patient_email,
-        contact: patient_contact?.replace(/^91/, '').slice(-10) || '',
+        name: patient_name,
+        email: email,
+        contact: contactNumber?.replace(/^91/, '').slice(-10) || '',
       },
       notify: {
         sms: true,
@@ -372,7 +384,7 @@ const createOrderPaymentLinkById = async (details) => {
       success: true,
       message: 'Payment link sent successfully',
       paymentLink: paymentLink.short_url,
-      mail: patient_email,
+      mail: email,
     };
   } catch (error) {
     return {

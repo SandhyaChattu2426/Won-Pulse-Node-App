@@ -512,16 +512,48 @@ const getAppointmentsByDoctorIdAndDate = async (req, res, next) => {
     res.json({ appointments: appointments })
 }
 
+const GetAppointmentForBilling=async (req, res, next) => {      
+    const { patientId,hospitalId } = req.params;
+    let appointments
+    try {
+        appointments = await Appointments.find({ patientId: patientId, hospitalId: hospitalId, paymentStatus: "pending" })
+        console.log(appointments, "appointments")
+    }
+    catch (e) {
+        console.log(e)
+    }
+    res.json({ appointments })
+}
 
+const updateAppointmentPaymentStatus = async (id) => {
+    try {
+        const appointment = await Appointments.findOne({ appointmentId: id });
 
-exports.createAppointment = createAppointment
-exports.getAppointments = getAppointments
-exports.getId = getId
-exports.updateAppointments = updateAppointments
-exports.getAppointmentById = getAppointmentById
-// exports.updateAppointmentStatus = updateAppointmentStatus
-exports.getAppointmentByPatientId = getAppointmentByPatientId
-exports.addAppointmentFromExcel = addAppointmentFromExcel
-exports.updateStatus = updateStatus
-exports.getAppointmentsByDoctorIdAndDate = getAppointmentsByDoctorIdAndDate
-exports.AppointmentToAdmin = AppointmentToAdmin
+        if (!appointment) {
+            return res.status(404).json({ message: "Appointment not found" });
+        }
+
+        appointment.paymentStatus ="paid";
+        await appointment.save();
+
+        res.status(200).json({ message: "Payment status updated successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+module.exports = {
+    createAppointment,
+    getAppointments,
+    getId,
+    updateAppointments,
+    getAppointmentById,
+    getAppointmentByPatientId,
+    addAppointmentFromExcel,
+    updateStatus,
+    getAppointmentsByDoctorIdAndDate,
+    AppointmentToAdmin,
+    GetAppointmentForBilling,
+    updateAppointmentPaymentStatus
+};

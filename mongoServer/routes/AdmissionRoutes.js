@@ -6,16 +6,16 @@ const HttpError = require('../models/http-error')
 const AdmissionControllers = require('../controllers/admissionControllers')
 
 router.post('/upload-excel', AdmissionControllers.addAdmissionFromExcel)
-
-router.get('/patient/:name',AdmissionControllers.AdmissionByPatientId)
+router.patch('/:Id/:hospitalId', AdmissionControllers.updateAdmission)
+router.get('/patient/:name', AdmissionControllers.AdmissionByPatientId)
 router.get('/getId/:hospitalId', AdmissionControllers.getId)
-router.patch('/update/:Id',AdmissionControllers.updateAdmission)
-router.get('/patientNames',AdmissionControllers.getRegisterdPatients)
-router.get('/:Id', AdmissionControllers.AdmissionDetailsById)
+router.get('/patient/:patientId/hospital/:hospitalId', AdmissionControllers.getIdByPatientId)
+router.get('/patientNames', AdmissionControllers.getRegisterdPatients)
+router.get('/:Id/hospital/:hospitalId', AdmissionControllers.AdmissionDetailsById)
 router.post('/', AdmissionControllers.AddPatient)
 router.get('/hospital/:hospitalId', AdmissionControllers.GetAdmissions)
 // router.patch('/Id', appointmentControllers.updateAppointments)
-router.patch('/status/:Id',AdmissionControllers.updateAddmissionStatus)
+router.patch('/status/:Id', AdmissionControllers.updateAddmissionStatus)
 
 
 module.exports = router

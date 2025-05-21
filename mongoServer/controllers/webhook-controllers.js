@@ -1,6 +1,7 @@
 const { createRzpPaymentOrdertoTransferAmount } = require('../payment-gateway/razorpay-helper-functions');
 const Hospitals = require('../models/hospitals');
-
+const updateAppointment=require('../controllers/appointment-controllers')
+const updateBillStatus=require('../controllers/billControlleres')
 
 const rzrpayPaymentSuccessWebhook = async (req, res, next) => {
   try {
@@ -63,11 +64,15 @@ const rzrpayPaymentSuccessWebhook = async (req, res, next) => {
         );
 
         if(payment?.notes?.bill_type === "Pharma"){
+          console.log("pharma", billId);
+          console.log("teigger")
            // updatePayments(PurchaseOrderID, paymentId);
-          // updateAlerts(PurchaseOrderID, clientName, amount, VendorId);
+          // updateAlerts(PurchaseOrderID, clientName, amount, VendorId); // pass bill ID based on that take appointmentIds and reports complete them all.....
           // updateClient(PurchaseOrderID, amount, VendorId, Order.id);
           // markInvoiceInactive(invoice_id);
         }else if(payment?.notes?.bill_type === "GeneralBill"){
+          console.log("general", billId);
+          await updateBillStatus.updateBillStatus(billId, HospitalId)
           // updatePayments(PurchaseOrderID, paymentId);
           // updateAlerts(PurchaseOrderID, clientName, amount, VendorId);
           // updateClient(PurchaseOrderID, amount, VendorId, Order.id);

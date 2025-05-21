@@ -256,6 +256,17 @@ const generateNoteUrl = async (req, res, next) => {
     }
 };
 
+const GetPendingReports = async (req, res, next) => {
+    const {hospitalId,patientId}=req.params
+    let List;
+    try {
+        List = await Reports.find({hospitalId,patientId,"paymentStatus":"pending"})
+    }
+    catch (e) {
+        console.log(e)
+    }
+    res.json({ List })
+}
 
 
 
@@ -268,3 +279,4 @@ exports.getReportByPatientId = getReportByPatientId
 exports.getReportById = getReportById
 exports.addReportFromExcel = addReportFromExcel
 exports.generateNoteUrl=generateNoteUrl
+exports.GetPendingReports=GetPendingReports

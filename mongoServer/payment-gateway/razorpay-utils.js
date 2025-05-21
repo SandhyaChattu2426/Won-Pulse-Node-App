@@ -19,7 +19,8 @@ const getHospitalAndPatientDetails = async(hospitalId, patientID) => {
 
   try {
     const hospital = await Hospital.findOne({ hospitalId: hospitalId });
-    const patient = await Patient.findOne({ patientId: patientID });
+    const patient = await Patient.findOne({ patientId: patientID ,hospitalId: hospitalId});
+    
 
     if (!hospital) {
       throw new Error("Hospital not found.");

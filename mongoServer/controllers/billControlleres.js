@@ -1,8 +1,56 @@
 const HttpError = require('../models/http-error');
 const { createOrderPaymentLinkById } = require('../payment-gateway/razorpay-helper-functions');
 const Appointments = require('../models/appointments');
+const Reports = require('../models/reports')
+const PatientFunction = require('./patients-controllers')
+const path = require("path");
+const fs = require("fs");
 
-const GeneralBill = require('../models/Bill')
+const GeneralBill = require('../models/Bill');
+const reports = require('../models/reports');
+const nodemailer = require('nodemailer');
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+});
+
+const sendEmail = async (billId, patientId, hospitalId) => {
+    console.log("Sending email to hospital");
+    const emailTemplatePath = path.join(
+        __dirname,
+        "..",
+        "EmailTemplates",
+        "PaymentSuccessFull.html",
+
+    );
+    let emailTemplate = fs.readFileSync(emailTemplatePath, "utf-8");
+    const hospital = await PatientFunction.GetHospitalDetails(hospitalId)
+    const patient = await PatientFunction.returnEmail(patientId, hospitalId)
+    emailTemplate = emailTemplate
+        .replace(/{{hospital_name}}/g, hospital.hospitalName || "WON PULSE")
+        .replace(/{{bill_id}}/g, billId || "WON PULSE")
+
+        .replace(/{{patient_name}}/g, patient?.name || "WON PULSE")
+        .replace(/{{patient_email}}/g, patient?.email || "WON PULSE")
+        .replace(/{{mobile}}/g, hospital.mobile)
+        .replace(/{{email}}/g, hospital.email)
+        .replace(/{{adress}}/g, hospital.address)
+        // .replace(/{{reason}}/g, reason || "Headche");
+    ;
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: patient.email||"sandhya.chattu@nowitservices.com",
+        subject: "WONPULSE:You Have a New Appointment Request from a Patient",
+        html: emailTemplate,
+    };
+    return transporter.sendMail(mailOptions);
+
+}
+
+
 
 //CREATE AN APPOINTMENT
 const createBill = async (req, res, next) => {
@@ -12,7 +60,7 @@ const createBill = async (req, res, next) => {
     console.log(req.body, 'this is body')
     try {
         if (req.body.paymentType === "Online") {
-            const x = await createOrderPaymentLinkById({...req.body,billType:"GeneralBill"});
+            const x = await createOrderPaymentLinkById({ ...req.body, billType: "GeneralBill" });
             console.log("Payment Link Created", x)
         }
         await newBill.save();
@@ -20,6 +68,7 @@ const createBill = async (req, res, next) => {
         return res.status(201).json({ success: true, message: "Bill Created Successfully!" });
     }
     catch (e) {
+        console.log(e, "error Here,,,,,")
         return res.status(500).json({ success: false, message: "Bill Creation Failed!" });
     }
 
@@ -80,11 +129,11 @@ const getBills = async (req, res, next) => {
 
 
 const getBillByBillId = async (req, res) => {
-    const { Id } = req.params
+    const { Id, hospitalId } = req.params
     console.log(Id)
     let Bill;
     try {
-        Bill = await GeneralBill.findOne({ "billId": Id });
+        Bill = await GeneralBill.findOne({ billId: Id, hospitalId: hospitalId });
         console.log(Bill)
         return res.status(200).json({ success: true, message: "Bill fetched successfully!", medicineBill: Bill });
     }
@@ -157,6 +206,52 @@ const getBillByPatientId = async (req, res, next) => {
     }
 }
 
+const updateBillStatus = async (id, hospitalId) => {
+    const Bill = await GeneralBill.findOne({ billId: id, hospitalId: hospitalId });
+    if (!Bill) {
+        console.log("Bill not found");
+        return;
+    }
+
+    console.log(Bill.billItems, "bill here....");
+
+    try {
+        for (const item of Bill.billItems) {
+            if (item.itemId.includes("AP")) {
+                console.log("triggering appointment");
+                const appointment = await Appointments.findOne({ appointmentId: item.itemId, hospitalId: Bill.hospitalId });
+                console.log(appointment, "appointment here");
+
+                if (appointment) {
+                    appointment.paymentStatus = "Success";
+                    await appointment.save();
+                    item.paymentStatus = "Paid";
+                }
+            }
+
+            if (item.itemId.includes("MR")) {
+                console.log("triggering report");
+                const report = await reports.findOne({ "reportDetails.reportId": item.itemId, hospitalId: Bill.hospitalId });
+                console.log(report, "report here");
+
+                if (report) {
+                    report.paymentStatus = "Success";
+                    await report.save();
+                    item.paymentStatus = "Paid";
+                }
+            }
+        }
+
+        await Bill.save(); // Save the updated bill with modified billItems
+        console.log("Bill status updated");
+        sendEmail(Bill.billId, Bill.patientId, Bill.hospitalId);
+
+    } catch (e) {
+        console.error("Error updating bill status:", e);
+    }
+};
+
+
 
 
 module.exports = {
@@ -166,5 +261,6 @@ module.exports = {
     // updateAppointments,
     // updateAppointmentStatus,
     // getBillByPatientId,
-    getBillByBillId
+    getBillByBillId,
+    updateBillStatus
 }
