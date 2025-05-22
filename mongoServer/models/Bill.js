@@ -1,17 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const billItemSchema = new Schema({
-  id: { type: String, required: true },
-  productOrService: { type: String, required: true },
-  unitPrice: { type: Number, required: true },
-  discount: { type: Number, default: 0 },
-  tax: { type: Number, default: 0 },
-  quantity: { type: Number, default: 1 },
-  total: { type: Number, required: true },
-  paymentType: { type: String, required: true },
-  paymentStatus: { type: String, required: true },
-});
 
 const BillSchema = new Schema({
   billId: { type: String },
@@ -27,8 +16,9 @@ const BillSchema = new Schema({
   quantity: { type: Number, default: 1 },
   totalPrice: { type: Number },
   paymentType: { type: String} ,
-  paymentStatus: { type: String, default: "pending" },
+  paymentStatus : { type: String , default: "pending"},
   itemId: { type: String},
+  admissionId: { type: String },
 }],
   paymentType: { type: String, required: true }, // e.g., "Cash", "Card"
   status: { type: String, required: true }, // e.g., "Paid", "Pending"

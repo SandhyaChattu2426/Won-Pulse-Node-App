@@ -2,6 +2,7 @@ const HttpError = require('../models/http-error');
 const { createOrderPaymentLinkById } = require('../payment-gateway/razorpay-helper-functions');
 const Appointments = require('../models/appointments');
 const Reports = require('../models/reports')
+const Admission=require('../models/Admission')
 const PatientFunction = require('./patients-controllers')
 const path = require("path");
 const fs = require("fs");
@@ -240,7 +241,23 @@ const updateBillStatus = async (id, hospitalId) => {
                     item.paymentStatus = "Paid";
                 }
             }
+            if(item.admissionId !== undefined){
+                console.log("triggering admission");
+                const admission = await Admission.findOne({ admissionId: item.admissionId, hospitalId: Bill.hospitalId });
+                console.log(admission, "admission here");
+
+               if(admission.listItem.length>0){
+                admission.listItem.map((adItem) => {
+                    if(adItem.id===item.id){
+                        adItem.paymentStatus = "Paid";
+                        item.paymentStatus = "Paid";
+                        console.log("admission item payment status updated");
+                    }
+               });
+            }
+            admission.save();
         }
+    }
 
         await Bill.save(); // Save the updated bill with modified billItems
         console.log("Bill status updated");

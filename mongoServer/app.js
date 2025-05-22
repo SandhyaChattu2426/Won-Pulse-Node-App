@@ -50,7 +50,7 @@ const allowedOrigins = process.env.ALLOWEDURLS?.split(',').map(origin => origin.
 
 const corsOptions = {
     origin: (origin, callback) => {
-        // console.log("Incoming Origin", origin);
+        console.log("Incoming Origin", origin);
         // console.log("Allowed Origins", allowedOrigins);
 
         if (!origin || allowedOrigins.includes(origin)) {

@@ -22,7 +22,8 @@ const AdmissionSchema = new Schema({
         quantity: { type: String },
         addedBy: { type: String },
         dateAdded: { type: String} ,
-        _id: { type: String}
+        _id: { type: String},
+        paymentStatus: { type: String, default: "pending" }
     }],
     admissionDate: { type: Date, required: true }, 
     status: { type: String },
