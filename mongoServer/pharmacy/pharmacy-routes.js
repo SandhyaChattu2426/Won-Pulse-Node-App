@@ -14,5 +14,5 @@ router.get('/medicine/names',pharmacyControllers.getpharmaNames)
 router.get('/name/:name',pharmacyControllers.getPharmacyByName)
 router.get('/vaccine/:hospitalid' ,pharmacyControllers.getVaccinations)
 router.get('/hospital/:hospitalId',pharmacyControllers.GetPharmacy);
-router.patch('/status/:Id',pharmacyControllers.updateMedicineStatus)
+router.patch('/status/:id/:hospitalId',pharmacyControllers.updateMedicineStatus)
 module.exports = router

@@ -23,7 +23,7 @@ const InventorySchema = new Schema({
   email: { 
     type: String, 
   },
-  status: { type: String, required: true, enum: ['Active', 'Inactive'] },
+  status: { type: String, required: true },
   hospitalId:{type:String} ,
   staffId:{type:String},
   AddedBy:{type:String},

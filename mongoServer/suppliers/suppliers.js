@@ -12,10 +12,10 @@ const supplierSchema = new Schema({
         medicineLicenseNumber:{ type: String},
     },
     adress: {
-        city: { type: String, required: true },
-        state: { type: String, required: true },
-        adress: { type: String, required: true },
-        zipcode: { type: String, required: true }
+        city: { type: String,},
+        state: { type: String, },
+        adress: { type: String, },
+        zipcode: { type: String, }
     },
     category: { type: String, required: true },
     

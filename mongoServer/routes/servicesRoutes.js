@@ -14,7 +14,7 @@ router.get('/report/names', ServiceControllers.getReportNames)
 router.get('/pharma/names', ServiceControllers.getPharmaNames)
 router.get('/general/names', ServiceControllers.getGeneralServicesNames)
 router.get('/category/:category', ServiceControllers.getServiceByCategory)
-router.patch('/status/:Id', ServiceControllers.updateServiceStatus)
+router.patch('/status/:id/:hospitalId', ServiceControllers.updateServiceStatus)
 
 module.exports = router
 

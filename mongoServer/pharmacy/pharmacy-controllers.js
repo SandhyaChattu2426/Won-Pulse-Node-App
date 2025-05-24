@@ -111,14 +111,9 @@ const getMedicineById = async (req, res, next) => {
 
 // Update Status Of Inventory
 const updateMedicineStatus = async (req, res, next) => {
-    //console.log("Triggering update Medicine Status")
-
     try {
-        //console.log("Updation Inventorystatus")
-        const InId = req.params.Id
-        // //console.log(StaffId,"here is")
-        const medicine = await Pharmacy.findOne({ "medicineDetails.medicineId": InId })
-        // //console.log(room,"Inventory Here")
+       const {id,hospitalId}=req.params
+        const medicine = await Pharmacy.findOne({ medicineId: id, hospitalId: hospitalId })
 
         if (medicine) {
             try {
@@ -127,13 +122,12 @@ const updateMedicineStatus = async (req, res, next) => {
                 return res.status(200).json({ message: "Pharmacy status updated successfully!" });
 
             } catch (e) {
-                //console.log(e)
+                console.log(e)
                 //console.log("Could not find the patient")
             }
         }
-    }
-    catch (e) {
-        //console.log(e)
+    } catch (e) {
+        console.log(e)
     }
 }
 

@@ -5,7 +5,7 @@ const Service = require('../models/Services')
 //Creating a room
 const getServiceByName = async (req, res, next) => {
     const { name } = req.params
-    console.log(name,"name @@")
+    console.log(name, "name @@")
     try {
         Item = await Service.findOne({
             "services.serviceName": name
@@ -35,11 +35,11 @@ const createService = async (req, res, next) => {
 
 // Get Room Details (All)
 const GetServices = async (req, res, next) => {
-    const {hospitalId} = req.params
-    console.log(hospitalId,"hospitalId")    
+    const { hospitalId } = req.params
+    console.log(hospitalId, "hospitalId")
     let List;
     try {
-        List = await Service.find({hospitalId : hospitalId})
+        List = await Service.find({ hospitalId: hospitalId })
         console.log(List)
     }
     catch (e) {
@@ -50,17 +50,17 @@ const GetServices = async (req, res, next) => {
 
 // Getting Id
 const getId = async (req, res, next) => {
-    const {hospitalId}=req.params
+    const { hospitalId } = req.params
     let newRoomId;
     const str = "0";
     try {
         // Fetch all hospitals from the database
-        const room = await Service.find({hospitalId:hospitalId});
+        const room = await Service.find({ hospitalId: hospitalId });
         if (room.length > 0) {
-            const lastRoom = await Service.find({hospitalId}).sort({ _id: -1 }).limit(1);
-            console.log(lastRoom,"lastRoom")
+            const lastRoom = await Service.find({ hospitalId }).sort({ _id: -1 }).limit(1);
+            console.log(lastRoom, "lastRoom")
             const lastRoomId = lastRoom[0].services.serviceId;
-            console.log(lastRoomId,"last@@")
+            console.log(lastRoomId, "last@@")
             const lastNumber = parseInt(lastRoomId.substring(2));  // Extracts the number part after 'HP'
             const nextNumber = lastNumber + 1;
             const zerosCount = 6 - nextNumber.toString().length;
@@ -80,11 +80,11 @@ const getId = async (req, res, next) => {
 //Getting details By Id
 
 const getServicesById = async (req, res, next) => {
-    const { Id,hospitalId } = req.params
+    const { Id, hospitalId } = req.params
     console.log(req.params)
     let Item;
     try {
-        Item = await Service.findOne({ "services.serviceId": Id ,hospitalId:hospitalId })
+        Item = await Service.findOne({ "services.serviceId": Id, hospitalId: hospitalId })
         // console.log(Item)
         res.json({ service: Item })
 
@@ -96,10 +96,8 @@ const getServicesById = async (req, res, next) => {
 // update Room Status
 const updateServiceStatus = async (req, res, next) => {
     try {
-
-        const Id = req.params.Id
-        // console.log(StaffId,"here is")
-        Item = await Service.findOne({ "services.serviceId": Id })
+        const { id, hospitalId } = req.params
+        Item = await Service.findOne({ "services.serviceId": id, hospitalId: hospitalId })
 
         if (Item) {
             try {
@@ -109,7 +107,7 @@ const updateServiceStatus = async (req, res, next) => {
 
             } catch (e) {
                 console.log(e)
-                console.log("Could not find the patient")
+                console.log("Could not find the service")
             }
         }
     }
@@ -117,8 +115,6 @@ const updateServiceStatus = async (req, res, next) => {
         console.log(e)
     }
 }
-
-// Conditionally renders
 
 const getReportNames = async (req, res, next) => {
     console.log("Getting report Names")
@@ -208,45 +204,55 @@ const getGeneralServicesNames = async (req, res, next) => {
 }
 
 const getServiceByCategory = async (req, res, next) => {
-    // console.log("Triggering @mongoose")
-    // console.log(req.params,"parame")
     const service = await Service.find({ "services.category": "Inventory" })
-    // console.log(service,"services")
     res.json({ List: service })
 }
 
-const addServiceFromExcel = async (req, res, next) => {
+const addServiceFromExcel = async (req, res) => {
     function excelDateToJSDate(serialDate) {
         const date = new Date((serialDate - 25569) * 86400 * 1000);
         return date.toISOString().split("T")[0];
     }
 
-    //    let {}
-    console.log(req.body);
+    console.log("Incoming Data:", req.body);
 
-    let { servicename, category, subcategory, unitprice, discount, totalprice, status, tax } = req.body
-    if (!servicename || !category || !subcategory || !unitprice || !totalprice || !discount) {
-        return res.status(400).send({ message: "Incomplete Service  details." });
+    // Destructure relevant fields from req.body (case-sensitive & trimmed)
+    const {
+        ServiceName,
+        Category,
+        SubCategory,
+        UnitPrice,
+        Discount,
+        TotalPrice,
+        Tax,
+        Status,
+        hospitalId,
+        ReferenceContactNumber,
+        ReferenceEmail,
+        AddedBy
+    } = req.body;
+    console.log(hospitalId, "hospitalId")
+
+    if (!ServiceName || !Category || !SubCategory || !UnitPrice || !TotalPrice || !Discount) {
+        return res.status(400).json({ message: "Incomplete service details." });
     }
 
     try {
-        // Check if a patient with the provided email exists
-        let serviceName = await Service.findOne({ "services.serviceName": servicename });
-        console.log(serviceName, "obj")
+        // Check if service already exists
+        let existingService = await Service.findOne({ "services.serviceName": ServiceName });
 
         let serviceId;
-        if (serviceName) {
-            // Use the existing patientId if found
-            serviceId = serviceName.services.serviceId;
+        if (existingService) {
+            // Use existing ID
+            serviceId = existingService.services.serviceId;
         } else {
-            // Generate a new patient ID if not found
+            // Generate new ID
             const totalItems = await Service.countDocuments();
             let lastId;
 
             if (totalItems > 0) {
                 const last = await Service.findOne().sort({ _id: -1 });
-                console.log(last, "lastItem")
-                lastId = parseInt(last.services.serviceId.slice(2));
+                lastId = parseInt(last.services.serviceId?.slice(2) || "0");
             } else {
                 lastId = 0;
             }
@@ -257,32 +263,37 @@ const addServiceFromExcel = async (req, res, next) => {
             serviceId = prefix + paddedNumber;
         }
 
-        // Create or update the patient record
-        console.log(serviceId, "Id here")
+        // Perform upsert operation
         const updatedService = await Service.findOneAndUpdate(
-            { "services.serviceName": servicename },
+            { "services.serviceName": ServiceName },
             {
                 $set: {
-                    services: {
-                        serviceId: serviceId,
-                        serviceName: servicename,
-                        category: category,
-                        subCategory: subcategory,
-                        tax: tax,
-                        unitPrice: unitprice,
-                        discount: discount,
-                        totalPrice: totalprice
-                    },
-                    status: status || "Active"
+                    "services.serviceId": serviceId,
+                    "services.serviceName": ServiceName,
+                    "services.category": Category,
+                    "services.subCategory": SubCategory,
+                    "services.tax": Tax,
+                    "services.unitPrice": UnitPrice,
+                    "services.discount": Discount,
+                    "services.totalPrice": TotalPrice,
+
+                    "services.referenceContactNumber": ReferenceContactNumber,
+                    "services.referenceEmail": ReferenceEmail,
+                    "services.addedBy": AddedBy,
+
+                    hospitalId: hospitalId,
+                    status: Status || "Active",
+                    createdAt: new Date(),
+                    updatedON: new Date()
                 }
             },
-            { new: true, upsert: true } // Return updated document; create if not exists
+            { new: true, upsert: true }
         );
 
-        res.status(200).json({ service: updatedService });
+        return res.status(200).json({ service: updatedService });
     } catch (err) {
-        // return next(new HttpError(`Saving patient failed, please try again. ${err}`, 500));
-        console.log(err, "error")
+        console.error("Error saving service:", err);
+        return res.status(500).json({ message: "Saving service failed. Please try again later." });
     }
 };
 

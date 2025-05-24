@@ -20,20 +20,14 @@ const upload = multer({
     fileFilter,
 });
 
-
-
-// Route to upload an Excel file and process it to add reports
-// router.post('/upload-excel',  ReportControllers.addReportFromExcel);
-
-// Other routes
-router.post('/getfileurl',upload.single("file"),ReportControllers.generateNoteUrl)
+router.post('/getfileurl', upload.single("file"), ReportControllers.generateNoteUrl)
 router.post('/upload-excel', ReportControllers.addReportFromExcel);
 router.get('/getId/:hospitalId', ReportControllers.getId);
 router.get('/:Id', ReportControllers.getReportById);
 router.get('/patient/:patientName', ReportControllers.getReportByPatientId);
 router.post('/', ReportControllers.AddReport);
 router.get('/hospital/:hospitalId', ReportControllers.GetReports);
-router.patch('/status/:Id', ReportControllers.updateReportStatus);
+router.patch('/status/:id/:hospitalId', ReportControllers.updateReportStatus);
 router.get('/billReport/:patientId/hospital/:hospitalId', ReportControllers.GetPendingReports);
 
 module.exports = router;

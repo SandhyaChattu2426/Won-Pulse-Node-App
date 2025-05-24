@@ -70,10 +70,11 @@ const AdmissionDetailsById = async (req, res, next) => {
 }
 
 const updateAddmissionStatus = async (req, res, next) => {
+    console.log("Triggering HEre")
     try {
-        const AdId = req.params.Id
-        const admission = await Admissions.findOne({ admissionId: AdId })
-
+        const { id, hospitalId } = req.params
+        const admission = await Admissions.findOne({ admissionId: id, hospitalId: hospitalId })
+        console.log(admission, "admission")
         if (admission) {
             try {
                 admission.status = req.body.status
@@ -316,11 +317,11 @@ const updateAdmission = async (req, res, next) => {
 };
 
 const getIdByPatientId = async (req, res, next) => {
-    const { patientId, hospitalId } = req.params;       
-    let Admission;      
+    const { patientId, hospitalId } = req.params;
+    let Admission;
 
     try {
-        Admission = await Admissions.findOne({ patientId: patientId, hospitalId: hospitalId,paymentStatus:"pending" });
+        Admission = await Admissions.findOne({ patientId: patientId, hospitalId: hospitalId, paymentStatus: "pending" });
         if (!Admission) {
             return res.status(404).json({ message: "No admission found for this patient" });
         }

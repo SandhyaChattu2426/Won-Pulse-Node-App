@@ -155,25 +155,23 @@ const UpdateInventoryDetails = async (req, res, next) => {
 
 // Update Status
 const updateInventoryStatus = async (req, res, next) => {
-    // console.log("Triggering update Inventory Status")
+
 
     try {
-        // console.log("Updation Inventorystatus")
-        const InId = req.params.Id
-        console.log(InId)
-        const room = await Inventory.findOne({ "inventoryDetails.inventoryId": InId })
-        console.log(room.status, "BeforeUpdate")
-        console.log(req.body)
+        const { id, hospitalId } = req.params
+        console.log(id, hospitalId)
+        const { status } = req.body
+        const room = await Inventory.findOne({ inventoryId: id, hospitalId: hospitalId })
+        console.log(room, "BeforeUpdate")
         if (room) {
             try {
-                room.status = req.body.status
+                room.status = status
                 await room.save()
                 console.log(room, "AfterUpdate")
-                return res.status(200).json({ message: "room status updated successfully!" });
+                return res.status(200).json({ message: "inventory status updated successfully!" });
 
             } catch (e) {
                 console.log(e)
-                console.log("Could not find the patient")
             }
         }
     }
@@ -185,8 +183,6 @@ const updateInventoryStatus = async (req, res, next) => {
 // Update InventoryQuantity accepting List
 
 const UpdateInventoryQuantity = async (req, res, next) => {
-
-    console.log(req.body.InvItemList)
     try {
         const usedItemList = req.body.InvItemList
         const AllItems = await Inventory.find({}) // All Items
@@ -259,20 +255,20 @@ const updateQuantity = async (req, res, next) => {
 }
 
 const addInventoryFromExcel = async (req, res, next) => {
-    // console.log("Triggering here")
     let last, lastId, newId;
     let createdItem;
-    function excelDateToJSDate(serialDate) {
-        const jsonDate = new Date((serialDate - 25569) * 86400 * 1000);
-        return jsonDate.toISOString().split("T")[0];
-    }
 
+    function excelDateToJSDate(serialDate) {
+        if (!serialDate || isNaN(serialDate)) return null;
+        const jsDate = new Date((serialDate - 25569) * 86400 * 1000);
+        if (isNaN(jsDate.getTime())) return null;
+        return jsDate.toISOString().split("T")[0];
+    }
     try {
         const totalItems = await Inventory.countDocuments();
         if (totalItems > 0) {
             last = await Inventory.findOne().sort({ _id: -1 });
             lastId = parseInt(last.inventoryId.slice(2));
-            console.log(lastId, "lastid")
         } else {
             lastId = 0;
         }
@@ -285,42 +281,56 @@ const addInventoryFromExcel = async (req, res, next) => {
         return next(new HttpError(`Creating report ID failed, Please try again. ${err}`, 500));
     }
 
-    createdItem = new Inventory({
-        inventoryId: newId, // Keeping as String for flexibility
-        category: req.body.category,
-        serviceName: req.body.servicename,
-        quantity: req.body.quantity, // Changed to Number
-        units: req.body.units,
-        quantityInStock: req.body.quantityinstock, // Changed to Number
-        receivedDate: excelDateToJSDate(req.body.receiveddate),
-        manufactureDate: excelDateToJSDate(req.body.manufacturedate),
-        expairyDate: excelDateToJSDate(req.body.expairydate),
-        minimumLevel: req.body.minimumlevel, // Changed to Number
-        reorderLevel: req.body.reorderlevel, // Changed to Number
-        storageLocation: req.body.storagelocation,
-        criticalityLevel: req.body.criticalitylevel, // Assuming a 1-5 scale
-        temperature: req.body.temperature, // Changed to Number
-        supplierName: req.body.suppliername,
-        contactNumber: req.body.contactnumber,
-        email: req.body.email,
-        status: "Active" || ""
-    })
+    const body = req.body;
+    // console.log(body, "Incoming data from Excel");
 
-    if (!req.body.servicename || !req.body.quantity || !req.body.units || !req.body.category || !req.body.minimumlevel || !req.body.criticalitylevel || !req.body.status) {
+    createdItem = new Inventory({
+        inventoryId: newId,
+        category: body.Category,
+        serviceName: body.ServiceName,
+        quantity: Number(body.Quantity),
+        units: Number(body.Units),
+        quantityInStock: Number(body.QuantityInStock) || 0,
+        receivedDate: excelDateToJSDate(body.ReceivedDate),
+        manufactureDate: excelDateToJSDate(body.ManufactureDate),
+        expairyDate: excelDateToJSDate(body.ExpairyDate),
+        minimumLevel: Number(body.MinimumLevel),
+        reorderLevel: Number(body.ReorderLevel),
+        storageLocation: body.StorageLocation,
+        criticalityLevel: Number(body.CriticalityLevel),
+        temperature: Number(body.Temperature),
+        supplierName: body.SupplierName,
+        contactNumber: body.ContactNumber,
+        email: body.Email,
+        status: body.Status || "Active",
+        hospitalId: body.hospitalId || "",
+        staffId: body.StaffId || ""
+    });
+
+    // Basic validation
+    if (
+        !body.ServiceName ||
+        !body.Quantity ||
+        !body.Units ||
+        !body.Category ||
+        !body.MinimumLevel ||
+        !body.Status
+    ) {
         return res.status(400).send({ message: "Incomplete Inventory details." });
     }
-    else {
-        try {
 
-            // console.log(createdItem,"Item Here")
-            // console.log(new Date(req.body.receivedDate),req.body.receivedDate)// Invalid Date undefined
-            await createdItem.save()
-            res.status(201).json({ item: createdItem });
-        } catch (err) {
-            return next(new HttpError(`Creating item failed, Please try again. ${err}`, 500));
+    try {
+        if (!createdItem.receivedDate) {
+            const today = new Date();
+            createdItem.receivedDate = today.toISOString().split("T")[0];
         }
+
+        await createdItem.save();
+        res.status(201).json({ item: createdItem });
+    } catch (err) {
+        return next(new HttpError(`Creating item failed, Please try again. ${err}`, 500));
     }
-}
+};
 
 const getChartData = async (req, res, next) => {
     // Predefined color map for categories

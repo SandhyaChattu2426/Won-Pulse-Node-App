@@ -20,22 +20,18 @@ const upload = multer({
 });
 
 router.get('/:id/hospital/:hospitalid', patientsControllers.getPatientById);
-router.post('/getfileurl',upload.single("file"),patientsControllers.generateNoteUrl)
+router.post('/getfileurl', upload.single("file"), patientsControllers.generateNoteUrl)
 router.post('/', patientsControllers.createPatient)
-router.post('/upload-excel',patientsControllers.addPatientFromExcel)
+router.post('/upload-excel', patientsControllers.addPatientFromExcel)
 router.get('/getId/:hospitalId', patientsControllers.getId);
 router.get('/charts', patientsControllers.getPatientChartData);
-router.get('/email/:email/hospital/:hospital',patientsControllers.checkEmailAndSendName)
+router.get('/email/:email/hospital/:hospital', patientsControllers.checkEmailAndSendName)
 router.get('/hospital/:hospitalId', patientsControllers.getPatients);
-
 // router.use(CheckAuth)
-router.patch('/status/:Id',patientsControllers.updatePatientStatus)
 router.patch('/:patientId', patientsControllers.updatePatient)
-router.post('/addReport/:Id',patientsControllers.AddAppointment)
-
-router.post('/bookAppointment/:Id',patientsControllers.AddAppointment)
-
-
+router.post('/addReport/:Id', patientsControllers.AddAppointment)
+router.post('/bookAppointment/:Id', patientsControllers.AddAppointment)
+router.patch('/status/:patientId/:hospitalId', patientsControllers.updatePatientStatus)
 
 
 router.delete('/:id', patientsControllers.deletePatient)

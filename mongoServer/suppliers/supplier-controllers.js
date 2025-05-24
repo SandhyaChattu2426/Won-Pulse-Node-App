@@ -25,10 +25,10 @@ const RegisterSupplier = async (req, res, next) => {
 // GETTing Details
 
 const GetSuppliers = async (req, res, next) => {
-   const {hospitalId}=req.params
+    const { hospitalId } = req.params
     let List;
     try {
-        List = await Suppliers.find({hospitalId})
+        List = await Suppliers.find({ hospitalId })
     }
     catch (e) {
         console.log(e)
@@ -46,11 +46,11 @@ const getId = async (req, res, next) => {
 
     try {
         // Fetch all hospitals from the database
-        const suppliers = await Suppliers.find({hospitalId});
+        const suppliers = await Suppliers.find({ hospitalId });
 
         if (suppliers.length > 0) {
             // Get the last hospital document, sorted by _id in descending order
-            const lastSupplier = await Suppliers.find({hospitalId}).sort({ _id: -1 }).limit(1);
+            const lastSupplier = await Suppliers.find({ hospitalId }).sort({ _id: -1 }).limit(1);
 
             // Extract the last hospital's hospitalId
             const lastSupplierId = lastSupplier[0].supplierId;
@@ -117,6 +117,7 @@ const PharmacySuppliers = async (req, res, next) => {
 }
 const addSupplierFromExcel = async (req, res, next) => {
     console.log("Triggering here");
+
     let last, lastId, newId;
     let createdItem;
 
@@ -124,72 +125,101 @@ const addSupplierFromExcel = async (req, res, next) => {
         const totalItems = await suppliers.countDocuments();
         if (totalItems > 0) {
             last = await suppliers.findOne().sort({ _id: -1 });
-            console.log(last);
             lastId = parseInt(last.supplierId.slice(2));
-            console.log(lastId, "lastid");
         } else {
             lastId = 0;
         }
+
         const prefix = "SU";
         const newNumber = lastId + 1;
         const paddedNumber = newNumber.toString().padStart(6, "0");
         newId = prefix + paddedNumber;
-        console.log(newId);
     } catch (err) {
         return next(new HttpError(`Creating Supplier ID failed, Please try again. ${err}`, 500));
     }
 
     console.log(req.body, "request");
-    const excelSerialToJSDate = (serial) => {
-        const excelEpoch = new Date(1900, 0, 1);
-        return new Date(excelEpoch.getTime() + (serial - 1) * 86400000).toISOString().split("T")[0];
-    };
+    const {
+        SupplierName,
+        ContactNumber,
+        Email,
+        DeliveryTime,
+        GstNumber,
+        MedicineLicenseNumber,
+        City,
+        State,
+        Adress,
+        Zipcode,
+        Category,
+        Status,
+        hospitalId,
+        AddedBy
+    } = req.body;
 
-    // Extract request body values
-    const { suppliername, contactnumber, email, adress, category, city, gstnumber, state, status, deliverytime, zipcode,medicinelicensenumber } = req.body
     try {
         const existingSupplier = await suppliers.findOne({
-            "supplierDetails.email": email,
-            "supplierDetails.contactNumber": contactnumber,
+            "supplierDetails.email": Email,
+            "supplierDetails.contactNumber": ContactNumber,
         });
 
         if (existingSupplier) {
-            return res.status(409).json({ message: "Report already exists with the same service name, collection date, and patient name." });
+            return res.status(409).json({ message: "Supplier already exists with the same email and contact number." });
         }
     } catch (err) {
-        return next(new HttpError(`Checking existing reports failed, Please try again. ${err}`, 500));
+        return next(new HttpError(`Checking existing suppliers failed, Please try again. ${err}`, 500));
     }
 
-
-    // // Create a new report if it does not exist
     const createdSupplier = new suppliers({
         supplierId: newId,
         supplierDetails: {
-            supplierName: suppliername,
-            contactNumber: contactnumber,
-            email: email,
-            deliveryTime: deliverytime,
-            gstNumber: gstnumber,
-            medicineLicenseNumber: medicinelicensenumber || ""
+            supplierName: SupplierName,
+            contactNumber: ContactNumber,
+            email: Email,
+            deliveryTime: DeliveryTime,
+            gstNumber: GstNumber,
+            medicineLicenseNumber: MedicineLicenseNumber || ""
         },
         adress: {
-            city: city,
-            adress: adress,
-            state: state,
-            zipcode: zipcode
+            city: City,
+            state: State,
+            adress: Adress,
+            zipcode: Zipcode
         },
-        category: category,
-        status: status
-
-    })
+        category: Category,
+        status: Status,
+        hospitalId: hospitalId || "",
+        AddedBy: AddedBy || ""
+    });
 
     try {
-        await createdSupplier.save();
+        createdItem = await createdSupplier.save();
         res.status(201).json({ item: createdItem });
     } catch (err) {
-        return next(new HttpError(`Creating Report failed, Please try again. ${err}`, 500));
+        return next(new HttpError(`Creating Supplier failed, Please try again. ${err}`, 500));
     }
 };
+
+const updateSupplierStatus = async (req, res, next) => {
+    console.log("Triggering here")
+    try {
+        const { id, hospitalId } = req.params
+        const supplier = await suppliers.findOne({ supplierId: id, hospitalId: hospitalId })
+        if (supplier) {
+            try {
+                supplier.status = req.body.status
+                await supplier.save()
+                return res.status(200).json({ message: "supplier status updated successfully!" });
+
+            } catch (e) {
+                console.log(e, "error @supplier ")
+                console.log("Could not find the patient")
+            }
+        }
+    }
+    catch (e) {
+        console.log(e)
+    }
+}
 
 
 
@@ -201,3 +231,4 @@ exports.InventorySuppliers = InventorySuppliers
 exports.GetSupplierById = GetSupplierById
 exports.PharmacySuppliers = PharmacySuppliers
 exports.addSupplierFromExcel = addSupplierFromExcel
+exports.updateSupplierStatus = updateSupplierStatus

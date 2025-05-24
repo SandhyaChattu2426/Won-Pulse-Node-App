@@ -8,9 +8,7 @@ const mongoose = require("mongoose");
 const Patients = require("../models/patient")
 
 const Reports = require('../models/reports')
-const {uploadFileToS3Bucket}=require('../models/s3Bucket')
-
-//Register Supplier
+const { uploadFileToS3Bucket } = require('../models/s3Bucket')
 
 const AddReport = async (req, res, next) => {
     // const { supplierDetails, adress } = req.body
@@ -27,15 +25,11 @@ const AddReport = async (req, res, next) => {
     res.json("Report Registered Sucessfully")
 }
 
-// GETTing Details
-
 const GetReports = async (req, res, next) => {
-    const {hospitalId}=req.params
-    // console.log(hospitalId,"hospitalId")
+    const { hospitalId } = req.params
     let List;
     try {
-        List = await Reports.find({hospitalId:hospitalId})
-        // console.log(List,"List")
+        List = await Reports.find({ hospitalId: hospitalId })
     }
     catch (e) {
         console.log(e)
@@ -45,20 +39,20 @@ const GetReports = async (req, res, next) => {
 
 // GetId
 const getId = async (req, res, next) => {
-    const {hospitalId}=req.params
+    const { hospitalId } = req.params
     const str = "0";
     try {
-        const medicine = await Reports.find({hospitalId});
+        const medicine = await Reports.find({ hospitalId });
 
         if (medicine.length > 0) {
-            const lastRoom = await Reports.find({hospitalId}).sort({ _id: -1 }).limit(1);
+            const lastRoom = await Reports.find({ hospitalId }).sort({ _id: -1 }).limit(1);
             const lastRoomId = lastRoom[0].reportDetails.reportId;
-            const lastNumber = parseInt(lastRoomId.substring(2));  
+            const lastNumber = parseInt(lastRoomId.substring(2));
             const nextNumber = lastNumber + 1;
             const zerosCount = 6 - nextNumber.toString().length;
             newRoomId = 'MR' + str.repeat(zerosCount) + nextNumber.toString();
         } else {
-            newRoomId = 'MR' + '0'.repeat(5) + "1";  
+            newRoomId = 'MR' + '0'.repeat(5) + "1";
         }
 
         // console.log("Generated Hospital ID:", newRoomId);
@@ -91,8 +85,8 @@ const getReportById = async (req, res, next) => {
 const updateReportStatus = async (req, res, next) => {
     try {
         // console.log("Updation Inventorystatus")
-        const InId = req.params.Id
-        const medicine = await Pharmacy.findOne({ "reportDetails.reportId": InId })
+        const { id, hospitalId } = req.params
+        const medicine = await Reports.findOne({ "reportDetails.reportId": id, hospitalId: hospitalId })
         if (medicine) {
             try {
                 medicine.status = req.body.status
@@ -101,7 +95,7 @@ const updateReportStatus = async (req, res, next) => {
 
             } catch (e) {
                 console.log(e)
-                // console.log("Could not find the patient")
+                console.log("Could not find the Room Status")
             }
         }
     }
@@ -115,7 +109,7 @@ const getReportByPatientId = async (req, res, next) => {
     // console.log(req.params.patientName,"@@")
     let report
     try {
-        report = await Reports.findOne({ "reportDetails.patientName": patientName,"paymentStatus":"pending" })
+        report = await Reports.findOne({ "reportDetails.patientName": patientName, "paymentStatus": "pending" })
     }
     catch (e) {
         console.log(e)
@@ -230,10 +224,10 @@ const generateNoteUrl = async (req, res, next) => {
         }
 
         // Upload image to S3
-        console.log(req.file,"file @backend")
-        console.log(req.body,"body")
+        console.log(req.file, "file @backend")
+        console.log(req.body, "body")
         const fileUrl = await uploadFileToS3Bucket(req.file);
-        console.log(fileUrl,"fileUrl")
+        console.log(fileUrl, "fileUrl")
         if (!fileUrl) {
             return res.status(500).json({
                 success: false,
@@ -245,7 +239,7 @@ const generateNoteUrl = async (req, res, next) => {
             success: true,
             message: "File uploaded successfully.",
             fileUrl,
-            name:req.file.originalname
+            name: req.file.originalname
         });
     } catch (error) {
         console.error("Error uploading File:", error);
@@ -257,10 +251,10 @@ const generateNoteUrl = async (req, res, next) => {
 };
 
 const GetPendingReports = async (req, res, next) => {
-    const {hospitalId,patientId}=req.params
+    const { hospitalId, patientId } = req.params
     let List;
     try {
-        List = await Reports.find({hospitalId,patientId,"paymentStatus":"pending"})
+        List = await Reports.find({ hospitalId, patientId, "paymentStatus": "pending" })
     }
     catch (e) {
         console.log(e)
@@ -278,5 +272,5 @@ exports.updateReportStatus = updateReportStatus
 exports.getReportByPatientId = getReportByPatientId
 exports.getReportById = getReportById
 exports.addReportFromExcel = addReportFromExcel
-exports.generateNoteUrl=generateNoteUrl
-exports.GetPendingReports=GetPendingReports
+exports.generateNoteUrl = generateNoteUrl
+exports.GetPendingReports = GetPendingReports

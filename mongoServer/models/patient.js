@@ -27,22 +27,7 @@ const patientSchema = new Schema({
         default:[]
     },
     status:{type:String,required:true},
-    appointments: [
-        {
-           doctorName:String,
-            appointmentId:String,
-            appointmentDate:String,
-            status: { type: String, default: "Scheduled" }
-        }
-    ],
-    reports:[{
-        reportName:String,
-        reportId:String,
-        uploadedOn:String,
-        testResults:String,
-        resultStatus:String,
-
-    }],
+ 
     files:[{
         name:{type:String},
         url:{type:String}

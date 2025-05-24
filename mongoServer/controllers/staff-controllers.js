@@ -1,13 +1,8 @@
 const HttpError = require('../models/http-error')
-
-const { v4: uuid } = require("uuid")
-const { validationResult } = require('express-validator')
-
 const Staff = require('../models/staff')
 const HospitalFunction = require('./patients-controllers')
 const { request } = require('express')
 const path = require("path");
-
 const fs = require("fs");
 const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
@@ -79,10 +74,8 @@ const getId = async (req, res, next) => {
     let ZerosCount;
     const str = "0";
     const { hospitalId } = req.params
-
     try {
         const Patients = await Staff.find({ hospitalId });
-        // console.log(Patients)
         if (Patients.length > 0) {
             const lastPatient = await Staff.find({ hospitalId }).sort({ _id: -1 }).limit(1);
             const lastNumber = parseInt(lastPatient[0].staffId.substring(2))
@@ -162,13 +155,13 @@ const updateStaff = async (req, res, next) => {
 
 const updateStaffStatus = async (req, res, next) => {
     try {
-        const StaffId = req.params.Id
-        const staff = await Staff.findOne({ staffId: StaffId })
+        const { staffId, hospitalId } = req.params;
+        const staff = await Staff.findOne({ staffId, hospitalId });
         if (staff) {
             try {
                 staff.status = req.body.status
                 await staff.save()
-                return res.status(200).json({ message: "Patient status updated successfully!" });
+                return res.status(200).json({ message: "Staff status updated successfully!" });
 
             } catch (e) {
                 console.log(e)

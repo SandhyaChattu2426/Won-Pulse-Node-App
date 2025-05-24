@@ -10,5 +10,6 @@ router.get('/getId/:hospitalId', supplierControllers.getId)
 router.get('/pharmacy', supplierControllers.PharmacySuppliers)
 router.get('/inventory', supplierControllers.InventorySuppliers)
 router.get('/:Id', supplierControllers.GetSupplierById)
+router.patch('/status/:id/:hospitalId', supplierControllers.updateSupplierStatus)
 
 module.exports = router

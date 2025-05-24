@@ -15,7 +15,7 @@ router.get('/:Id/hospital/:hospitalId', AdmissionControllers.AdmissionDetailsByI
 router.post('/', AdmissionControllers.AddPatient)
 router.get('/hospital/:hospitalId', AdmissionControllers.GetAdmissions)
 // router.patch('/Id', appointmentControllers.updateAppointments)
-router.patch('/status/:Id', AdmissionControllers.updateAddmissionStatus)
+router.patch('/status/:id/:hospitalId', AdmissionControllers.updateAddmissionStatus)
 
 
 module.exports = router

@@ -21,10 +21,10 @@ const createRoom = (req, res, next) => {
 
 // Get Room Details (All)
 const GetRooms = async (req, res, next) => {
-    const {hospitalId}=req.params
+    const { hospitalId } = req.params
     let List;
     try {
-        List = await Room.find({hospitalId:hospitalId})
+        List = await Room.find({ hospitalId: hospitalId })
     }
     catch (e) {
         console.log(e)
@@ -37,16 +37,16 @@ const getId = async (req, res, next) => {
     let newRoomId;
     let RoomsLength;
     const str = "0";
-    
+
     console.log("Backend triggering to get ID");
-    const {hospitalId}=req.params
+    const { hospitalId } = req.params
     try {
         // Fetch all hospitals from the database
-        const room = await Room.find({hospitalId});
-        console.log(room,"rooms Here")
+        const room = await Room.find({ hospitalId });
+        console.log(room, "rooms Here")
 
         if (room.length > 0) {
-            const lastRoom = await Room.find({hospitalId}).sort({ _id: -1 }).limit(1);
+            const lastRoom = await Room.find({ hospitalId }).sort({ _id: -1 }).limit(1);
             const lastRoomId = lastRoom[0].roomId;
             const lastNumber = parseInt(lastRoomId.substring(2));  // Extracts the number part after 'HP'
             const nextNumber = lastNumber + 1;
@@ -58,7 +58,7 @@ const getId = async (req, res, next) => {
         console.log("Generated Hospital ID:", newRoomId);
         res.json({ id: newRoomId });
     } catch (err) {
-       console.log(err)
+        console.log(err)
     }
 };
 
@@ -81,12 +81,9 @@ const getRoomsById = async (req, res, next) => {
 
 // update Room Status
 const updateRoomStatus = async (req, res, next) => {
-
     try {
-        console.log("Updation Room status")
-        const RoomId = req.params.Id
-        // console.log(StaffId,"here is")
-        const room = await rooms.findOne({ "roomId": RoomId })
+        const { id, hospitalId } = req.params
+        const room = await rooms.findOne({ roomId: id, hospitalId: hospitalId })
         if (room) {
             try {
                 room.status = req.body.status
@@ -94,7 +91,7 @@ const updateRoomStatus = async (req, res, next) => {
                 return res.status(200).json({ message: "room status updated successfully!" });
 
             } catch (e) {
-                console.log(e,"error @room ")
+                console.log(e, "error @room ")
                 console.log("Could not find the patient")
             }
         }
@@ -111,8 +108,8 @@ const getRoomByRoomNo = async (req, res, next) => {
     const room = await Room.findOne({ "RoomDetails.RoomNumber": RoomNo })
     console.log(room, "before-update")
     try {
-       
-        res.json({roomId:room.RoomDetails.RoomId})
+
+        res.json({ roomId: room.RoomDetails.RoomId })
     }
     catch (e) {
         console.log(e)
@@ -132,26 +129,79 @@ const updateRoomVacancy = async (req, res, next) => {
             { "roomId": roomId },  // Find the room by its RoomId
             { $set: { "vacancy": req.body.vacancy } }  // Only update the vacancy field
         );
-      
+
         // console.log(room, "after update")
     } catch (e) {
         console.log(e)
     }
 
 }
-const getRoomNumByCatAndType=async(req,res,next)=>{
-        try {
-            const { category, type } = req.params;
-            const rooms = await Room.find({ category, roomType: type });
-            if (!rooms.length) {
-                return res.status(404).json({ message: "No rooms found" });
-            }
-            res.status(200).json(rooms);
-        } catch (error) {
-            console.error("Error fetching rooms:", error);
-            res.status(500).json({ message: "Server error" });
+const getRoomNumByCatAndType = async (req, res, next) => {
+    try {
+        const { category, type } = req.params;
+        const rooms = await Room.find({ category, roomType: type });
+        if (!rooms.length) {
+            return res.status(404).json({ message: "No rooms found" });
         }
+        res.status(200).json(rooms);
+    } catch (error) {
+        console.error("Error fetching rooms:", error);
+        res.status(500).json({ message: "Server error" });
     }
+}
+
+
+const addRoomFromExcel = async (req, res, next) => {
+    try {
+        const {
+            RoomNumber,
+            Category,
+            RoomType,
+            RoomCharge,
+            Status,
+            HospitalId,
+            CreatedBy,
+            hospitalId
+        } = req.body;
+
+        // Validate required fields
+        if (!RoomNumber || !Category || !RoomType || !RoomCharge || !Status) {
+            return res.status(400).json({ message: "Missing required room details." });
+        }
+
+        // Generate unique roomId
+        const totalRooms = await Room.countDocuments();
+        let lastId = 0;
+
+        if (totalRooms > 0) {
+            const last = await Room.findOne().sort({ _id: -1 });
+            lastId = parseInt(last.roomId.slice(2)) || 0;
+        }
+
+        const prefix = "R";
+        const newNumber = lastId + 1;
+        const paddedNumber = newNumber.toString().padStart(6, "0");
+        const roomId = prefix + paddedNumber;
+
+        const newRoom = new Room({
+            roomId,
+            roomNumber: RoomNumber,
+            category: Category,
+            roomType: RoomType,
+            roomCharge: RoomCharge,
+            status: Status,
+            hospitalId: hospitalId || "",
+            createdBy: CreatedBy || ""
+        });
+
+        await newRoom.save();
+        res.status(201).json({ room: newRoom });
+
+    } catch (err) {
+        console.error("Error creating room from Excel:", err);
+        return next(new HttpError(`Saving room failed, please try again. ${err}`, 500));
+    }
+};
 
 exports.createRoom = createRoom
 exports.GetRooms = GetRooms
@@ -160,4 +210,5 @@ exports.getRoomsById = getRoomsById
 exports.updateRoomStatus = updateRoomStatus
 exports.getRoomByRoomNo = getRoomByRoomNo
 exports.updateRoomVacancy = updateRoomVacancy
-exports.getRoomNumByCatAndType=getRoomNumByCatAndType
+exports.getRoomNumByCatAndType = getRoomNumByCatAndType
+exports.addRoomFromExcel = addRoomFromExcel

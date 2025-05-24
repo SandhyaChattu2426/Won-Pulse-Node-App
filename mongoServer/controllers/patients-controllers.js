@@ -1,8 +1,5 @@
 const HttpError = require('../models/http-error')
-const { v4: uuid } = require("uuid")
-const { validationResult } = require('express-validator')
 const Patient = require('../models/patient')
-const { get } = require('mongoose')
 const { uploadFileToS3Bucket } = require('../models/s3Bucket')
 const Hospital = require('../models/hospitals')
 const path = require("path");
@@ -33,10 +30,6 @@ const GetHospitalDetails = async (hospitalId) => {
 const returnEmail = async (patientId, hospitalId) => {
     const patient = await Patient.findOne({ patientId: patientId, hospitalId: hospitalId })
     console.log(patient, "patient")
-    // `if (!patient) {
-    //     const error = new HttpError('Could not find a patient for the Provided id.', 404)
-    //     console.log(error)
-    // }`
     if (patient) {
         return {
             id: patientId,
@@ -251,24 +244,47 @@ const deletePatient = async (req, res, next) => {
 
 const updatePatientStatus = async (req, res, next) => {
     try {
-        // console.log("Updation status")
-        const PatientId = req.params.Id
-        const patient = await Patient.findOne({ patientId: PatientId })
-        if (patient) {
-            try {
-                patient.status = req.body.status
-                await patient.save()
-                return res.status(200).json({ message: "Patient status updated successfully!" });
+        const { patientId, hospitalId } = req.params;
+        const { status } = req.body;
 
-            } catch (e) {
-                console.log(e)
-            }
+        // Validate input
+        if (!status) {
+            return res.status(400).json({
+                success: false,
+                message: "Status field is required in the request body.",
+            });
         }
+
+        const patient = await Patient.findOne({ patientId, hospitalId });
+
+        if (!patient) {
+            return res.status(404).json({
+                success: false,
+                message: "Patient not found with the provided patientId and hospitalId.",
+            });
+        }
+
+        patient.status = status;
+        await patient.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Patient status updated successfully!",
+            data: {
+                patientId: patient.patientId,
+                newStatus: patient.status
+            }
+        });
+    } catch (error) {
+        console.error("Error updating patient status:", error);
+        return res.status(500).json({
+            success: false,
+            message: "An error occurred while updating the patient status. Please try again later.",
+            error: error.message
+        });
     }
-    catch (e) {
-        console.log(e)
-    }
-}
+};
+
 
 
 const AddAppointment = async (req, res, next) => {
@@ -341,101 +357,87 @@ const AddReport = async (req, res, next) => {
 
 
 const addPatientFromExcel = async (req, res, next) => {
+
     function excelDateToJSDate(serialDate) {
+        if (!serialDate || isNaN(serialDate)) return null;
         const date = new Date((serialDate - 25569) * 86400 * 1000);
         return date.toISOString().split("T")[0];
     }
-    let {
-        firstname = "",
-        lastname = "",
-        dateofbirth = "",
-        gender = "",
-        email = "",
-        contactnumber = "",
-        emergencycontactname = "",
-        emergencycontactnumber = "",
-        street = "",
-        city = "",
-        state = "",
-        zipcode = "",
-        insuranceprovider = "",
-        policynumber = "",
-        policyholdersname = "",
-        relation = "",
-        currentmedicine = "",
-        previoussurgeries = "",
-        chronicconditions = "",
-        reasonsforvisit = "",
-        status = "Active",
-    } = req.body;
+
+    // Normalize and map Excel fields
+    const normalizedData = {
+        firstName: req.body.FirstName || "",
+        lastName: req.body.LastName || "",
+        dateOfBirth: excelDateToJSDate(req.body.DateOfBirth),
+        gender: req.body.Gender || "",
+        email: req.body.Email || "",
+        contactNumber: String(req.body.ContactNumber || ""),
+        emergencyContactName: req.body.EmergencyContactName || "",
+        emergencyContactNumber: String(req.body.EmergencyContactNumber || ""),
+        street: req.body.Street || "",
+        city: req.body.City || "",
+        state: String(req.body.State || ""),
+        zipcode: String(req.body.Zipcode || ""),
+        insuranceProvider: req.body.InsuranceProvider || "",
+        policyNumber: String(req.body.PolicyNumber || ""),
+        policyHoldersName: req.body.PolicyHoldersName || "",
+        relation: req.body.Relation || "",
+        reasonsForVisit: req.body.ReasonsForVisit || "",
+        status: req.body.Status || "Active",
+        hospitalId: req.body.HospitalId || req.body.hospitalId || "",
+        hospitalName: req.body.HospitalName || "",
+        fullName: `${req.body.FirstName || ""} ${req.body.LastName || ""}`.trim(),
+        currentMedicine: [], // Placeholder; customize if your Excel contains these
+        previousSurgeries: [],
+        chronicConditions: [],
+    };
 
     try {
-        // Check if a patient with the provided email exists
-        let existingPatient = await Patient.findOne({ email });
+        let existingPatient = await Patient.findOne({ email: normalizedData.email });
         let patientId;
+
         if (existingPatient) {
-            // Use the existing patientId if found
             patientId = existingPatient.patientId;
         } else {
-            // Generate a new patient ID if not found
             const totalItems = await Patient.countDocuments();
-            let lastId;
+            let lastId = 0;
 
             if (totalItems > 0) {
                 const last = await Patient.findOne().sort({ _id: -1 });
-                lastId = parseInt(last.patientId.slice(2));
-            } else {
-                lastId = 0;
+                lastId = parseInt(last.patientId.slice(2)) || 0;
             }
 
             const prefix = "PA";
             const newNumber = lastId + 1;
             const paddedNumber = newNumber.toString().padStart(6, "0");
             patientId = prefix + paddedNumber;
+            console.log("Generated New Patient ID:", patientId);
         }
+
+        normalizedData.patientId = patientId;
+
         const updatedPatient = await Patient.findOneAndUpdate(
-            { email: email },
-            {
-                $set: {
-                    patientId: patientId, // Assign the correct patientId
-                    firstName: firstname,
-                    LastName: lastname,
-                    dateOfBirth: excelDateToJSDate(dateofbirth),
-                    gender: gender,
-                    contactNumber: contactnumber,
-                    emergencyContactName: emergencycontactname,
-                    emergencyContactNumber: emergencycontactnumber,
-                    street: street,
-                    city: city,
-                    state: state,
-                    zipcode: zipcode,
-                    insuranceProvider: insuranceprovider,
-                    policyNumber: policynumber,
-                    policyHoldersName: policyholdersname,
-                    relation: relation,
-                    currentMedicine: currentmedicine,
-                    previousSurgeries: previoussurgeries,
-                    chronicConditions: chronicconditions,
-                    reasonsForVisit: reasonsforvisit,
-                    status: status,
-                }
-            },
-            { new: true, upsert: true } // Return updated document; create if not exists
+            { email: normalizedData.email },
+            { $set: normalizedData },
+            { new: true, upsert: true }
         );
 
-        res.status(200).json({ patient: updatedPatient });
+        return res.status(200).json({ patient: updatedPatient });
+
     } catch (err) {
+        console.log(err, "@backend");
         return next(new HttpError(`Saving patient failed, please try again. ${err}`, 500));
     }
 };
 
+
 // generating url
 const generateNoteUrl = async (req, res, next) => {
-     console.log("triggering")
+    console.log("triggering")
     try {
-       
-        console.log(req.file,'this si the file')
-        console.log(req.body,"body")
+
+        console.log(req.file, 'this si the file')
+        console.log(req.body, "body")
         if (!req.file) {
             return res.status(400).json({
                 success: false,

@@ -85,7 +85,6 @@ app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/dashboardReports', dashboardReportRoutes)
 app.use('/api/doctor/requestbill', PharmaBillRequests)
 app.use('/api/webhook', webhookRoutes);
-
 // app.use('/api/users', usersRoutes)
 const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -172,8 +171,6 @@ const PatientWelcomeTemplate = async (patient) => {
     };
     return transporter.sendMail(mailOptions);
 }
-
-
 const staffWelcomeTemplate = async (staff) => {
     const { fullName, staffId, hospitalName, department, doctorType, email, hospitalId } = staff
     const emailTemplatePath = path.join(
@@ -331,8 +328,6 @@ app.post('/send-email-otp', async (req, res) => {
         });
     }
 });
-
-
 app.post('/send-hospital-email-otp', async (req, res) => {
     const { email } = req.body;
     try {
@@ -439,7 +434,6 @@ app.post('/EmailStaff', async (req, res) => {
 });
 
 app.post('/EmailHospital', async (req, res) => {
-
     const { email, Id } = req.body;
     try {
         await sendOTPHospital(email, Id);
@@ -476,8 +470,6 @@ app.post('/EmailPatient', async (req, res) => {
 
 const verifyOtp = (email, otp) => {
     const storedOtpData = otpStorage[email];
-    // console.log(storedOtpData.otp, "*****")
-
     try {
         if (!storedOtpData) {
             return { status: 400, message: 'OTP not found for this email.' };
@@ -517,8 +509,6 @@ app.post('/verify-login-otp', (req, res) => {
 
     return res.status(result.status).json({ message: result.message });
 })
-
-
 // Register Login
 app.post('/api/register-login', async (req, res) => {
     const { email, password, fullName, contact } = req.body;
@@ -692,16 +682,13 @@ app.post('/api/verify-patient', async (req, res) => {
     }
 });
 
-
 const authenticateToken = async (req, res, next) => {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
-
     if (!token) {
         // console.log("No token found");
         return res.status(401).json({ message: "Access token required" });
     }
-
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
 

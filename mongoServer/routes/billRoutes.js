@@ -10,6 +10,6 @@ router.get('/:Id/hospital/:hositalID',billControllers.getBillByBillId)
 //  router.get('/:Id', appointmentControllers.geet)
  router.get('/hospital/:hospitalId', billControllers.getBills)
 // router.patch('/Id', appointmentControllers.updateAppointments)
-// router.patch('/status/:Id',appointmentControllers.updateAppointmentStatus)
+router.patch('/status/:id/:hospitalId', billControllers.updateStatusOfTheBill)
 
 module.exports = router
