@@ -14,7 +14,7 @@ RUN npm ci --legacy-peer-deps
 COPY . .
 
 # Expose the application port
-EXPOSE 5000
+EXPOSE 5002
 
 # Start the application (avoid nodemon in production)
 CMD ["node", "app.js"]
